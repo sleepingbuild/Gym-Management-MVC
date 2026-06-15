@@ -1,4 +1,3 @@
-# ROADMAP.md
 
 # Gym Management System Roadmap
 

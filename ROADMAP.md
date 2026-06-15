@@ -1,532 +1,446 @@
-# Gym Management System - Development Roadmap
+# ROADMAP.md
 
-> Version: 1.0
-> Duration: 6 Weeks
-> Team Size: 5 Members
-> Development Methodology: Agile Sprint-Based Development
+# Gym Management System Roadmap
 
----
+Project Duration: 6 Weeks
 
-# 1. Project Overview
+Development Methodology: Agile Sprint-Based Development
 
-Gym Management System là hệ thống quản lý phòng tập gym được xây dựng nhằm hỗ trợ quản lý hội viên, huấn luyện viên, gói tập, lịch tập, thanh toán trực tuyến và AI Chatbot hỗ trợ luyện tập.
+Repository Strategy:
 
-## Core Features
-
-- User Authentication & Authorization
-- Membership Management
-- Trainer Management
-- Booking & Scheduling
-- Workout Progress Tracking
-- Online Payment (VNPay)
-- AI Fitness Chatbot (RAG + Gemini API)
-- Dashboard & Reporting
+* main → Stable Release
+* develop → Integration Branch
+* feature/* → Feature Development
 
 ---
 
-# 2. Team Structure
+# Team Responsibilities
 
-| Member | Role |
-|----------|----------|
-| Phi | Team Leader, Frontend Lead, AI Lead |
-| Quang Trung | Backend Developer |
-| Kiệt | Backend Developer |
-| Văn Quang | Junior Developer, AI Support |
-| Hoàng Long | Junior Developer, Testing & Documentation |
+## Phi
 
----
+Role:
 
-# 3. Development Timeline
+* Team Leader
+* Frontend Lead
+* AI Lead
 
----
+Responsibilities:
 
-# WEEK 1 - Foundation & Project Setup
-
-## Sprint Goal
-
-Hoàn thành nền tảng dự án và cơ sở dữ liệu.
+* UI/UX Development
+* Dashboard Development
+* AI Chatbot Development
+* Integration Review
+* Final Release
 
 ---
 
-## Main Tasks
+## Quang Trung
 
-### System Architecture
+Role:
 
-- Finalize software architecture
-- Finalize folder structure
-- Define coding standards
-- Define Git workflow
+* Backend Developer
 
-### Database Design
+Responsibilities:
 
-- ERD
-- Database Schema
-- Entity Relationships
-- Initial Migration
-
-### Project Setup
-
-- ASP.NET Core MVC Solution
-- SQL Server Connection
-- Entity Framework Core
-- ASP.NET Identity
-- Bootstrap Integration
-- Serilog Configuration
+* Authentication
+* Membership Module
+* Trainer Module
+* Payment Integration
 
 ---
 
-## Deliverables
+## Kiệt
 
-### Documents
+Role:
 
-- README Draft
-- Architecture Draft
-- ERD
-- Class Diagram
+* Backend Developer
 
-### Source Code
+Responsibilities:
 
-- Initial Project Structure
-- Database Migration v1
-
----
-
-## Team Assignment
-
-### Phi
-
-- Project Structure
-- Frontend Base Layout
-
-### Quang Trung
-
-- EF Core Setup
-- Database Configuration
-
-### Kiệt
-
-- Database Design
-
-### Văn Quang
-
-- Documentation Support
-
-### Hoàng Long
-
-- Diagram Support
+* Database
+* Booking Module
+* Workout Progress
+* Dashboard Statistics
 
 ---
 
-# WEEK 2 - Authentication & Membership
+## Văn Quang
 
-## Sprint Goal
+Role:
 
-Hoàn thành xác thực người dùng và quản lý gói tập.
+* AI Support
+* Documentation
 
----
+Responsibilities:
 
-## Features
-
-### Authentication
-
-- Register
-- Login
-- Logout
-- Change Password
-- Profile Management
-
-### Authorization
-
-- Member Role
-- Trainer Role
-- Admin Role
-
-### Membership
-
-- View Packages
-- Register Package
-- Renew Package
-- Membership Status
+* Knowledge Base
+* Documentation
+* AI Testing Support
 
 ---
 
-## Deliverables
+## Hoàng Long
 
-### Backend
+Role:
 
-- Identity Integration
-- Membership Services
+* Tester
+* Documentation Support
 
-### Frontend
+Responsibilities:
 
-- Login Page
-- Register Page
-- Membership Pages
-
----
-
-## Team Assignment
-
-### Phi
-
-- Authentication UI
-- Membership UI
-
-### Quang Trung
-
-- ASP.NET Identity
-- Membership Logic
-
-### Kiệt
-
-- Membership API & Services
-
-### Văn Quang
-
-- Form Validation
-- UI Testing
-
-### Hoàng Long
-
-- Membership Testing
+* System Testing
+* Bug Reporting
+* User Manual
+* Acceptance Testing
 
 ---
 
-# WEEK 3 - Trainer Management & Booking
+# Milestone 1 — Foundation & Setup
 
-## Sprint Goal
+Duration: Week 1
 
-Hoàn thành quản lý PT và lịch tập.
+Goal:
 
----
+Setup development environment, database architecture and authentication infrastructure.
 
-## Features
+Issues:
 
-### Trainer Management
+### Issue #1
 
-- Trainer Profile
-- Trainer CRUD
-- Trainer Schedule
+Project Setup & Solution Structure
 
-### Booking
+Owner: Phi
 
-- Create Booking
-- Cancel Booking
-- Booking History
-- Schedule Management
+### Issue #2
 
----
+Database Design
 
-## Deliverables
+Owner: Kiệt
 
-### Backend
+### Issue #3
 
-- Booking Service
-- Trainer Service
+Entity Framework Core Configuration
 
-### Frontend
+Owner: Kiệt
 
-- Booking Interface
-- Trainer Pages
+### Issue #4
 
----
+Authentication Infrastructure
 
-## Team Assignment
+Owner: Quang Trung
 
-### Phi
+### Issue #5
 
-- Trainer UI
-- Booking UI
+Project Documentation Setup
 
-### Quang Trung
+Owner: Văn Quang + Hoàng Long
 
-- Trainer Backend
+Deliverables:
 
-### Kiệt
-
-- Booking Backend
-
-### Văn Quang
-
-- Trainer Detail Page
-
-### Hoàng Long
-
-- Booking Test Cases
+* Solution Structure
+* Database Schema
+* Initial Migration
+* Authentication Setup
+* Core Documentation
 
 ---
 
-# WEEK 4 - Workout Progress & Payment
+# Milestone 2 — Membership Management
 
-## Sprint Goal
+Duration: Week 2
 
-Hoàn thành theo dõi tiến độ tập luyện và thanh toán.
+Goal:
 
----
+Develop membership management module.
 
-## Features
+Issues:
 
-### Workout Progress
+### Issue #6
 
-- Weight Tracking
-- Height Tracking
-- BMI Calculation
-- Body Fat Tracking
-- Progress History
+Membership Package CRUD Backend
 
-### Payment
+Owner: Quang Trung
 
-- VNPay Integration
-- Payment Status
-- Payment History
+### Issue #7
 
----
+Membership Package UI
 
-## Deliverables
+Owner: Phi
 
-### Backend
+### Issue #8
 
-- WorkoutProgress Service
-- Payment Service
+Membership Registration Module
 
-### Frontend
+Owner: Kiệt
 
-- Progress Dashboard
-- Payment Pages
+### Issue #9
 
----
+Membership Renewal Module
 
-## Team Assignment
+Owner: Kiệt
 
-### Phi
+### Issue #10
 
-- Progress UI
-- Payment UI
+Membership Testing
 
-### Quang Trung
+Owner: Hoàng Long
 
-- Payment Backend
+Deliverables:
 
-### Kiệt
-
-- Progress Backend
-
-### Văn Quang
-
-- Form Testing
-
-### Hoàng Long
-
-- Payment Testing
+* Membership Package Management
+* Membership Registration
+* Membership Renewal
+* Membership Validation
 
 ---
 
-# WEEK 5 - AI Chatbot Integration
+# Milestone 3 — Trainer & Booking
 
-## Sprint Goal
+Duration: Week 3
 
-Triển khai AI Chatbot hỗ trợ tập luyện.
+Goal:
 
----
+Develop trainer management and booking system.
 
-## Features
+Issues:
 
-### AI Chatbot
+### Issue #11
 
-- Chat Interface
-- Fitness Advice
-- Nutrition Suggestions
-- Workout Recommendations
+Trainer CRUD Backend
 
-### RAG Pipeline
+Owner: Quang Trung
 
-- Knowledge Base
-- Context Retrieval
-- Prompt Building
-- Gemini API Integration
+### Issue #12
 
-### Chat History
+Trainer Management UI
 
-- Conversation Storage
-- Conversation Retrieval
+Owner: Phi
 
----
+### Issue #13
 
-## Deliverables
+Trainer Schedule Module
 
-### Backend
+Owner: Kiệt
 
-- AI Service
-- RAG Service
+### Issue #14
 
-### Frontend
+Booking Creation Module
 
-- Chat Interface
-- Chat History Page
+Owner: Kiệt
 
----
+### Issue #15
 
-## Team Assignment
+Booking Cancellation & History
 
-### Phi
+Owner: Kiệt
 
-- Gemini Integration
-- Prompt Engineering
-- Chat UI
+### Issue #16
 
-### Văn Quang
+Booking UI
 
-- Knowledge Base Collection
-- Prompt Testing
+Owner: Phi
 
-### Quang Trung
+### Issue #17
 
-- Chat History Backend
+Booking Testing
 
-### Kiệt
+Owner: Hoàng Long
 
-- AI Service Integration
+Deliverables:
 
-### Hoàng Long
-
-- AI Testing
+* Trainer Management
+* Scheduling
+* Booking System
 
 ---
 
-# WEEK 6 - Dashboard, Testing & Release
+# Milestone 4 — Progress & Payment
 
-## Sprint Goal
+Duration: Week 4
 
-Hoàn thiện hệ thống và chuẩn bị bảo vệ.
+Goal:
 
----
+Implement workout tracking and payment system.
 
-## Features
+Issues:
 
-### Dashboard
+### Issue #18
 
-- Total Members
-- Active Memberships
-- Revenue Statistics
-- Booking Statistics
+Workout Progress Backend
 
-### Testing
+Owner: Kiệt
 
-- Functional Testing
-- Integration Testing
-- Bug Fixing
+### Issue #19
 
-### Release
+Workout Progress UI
 
-- Final Documentation
-- Deployment Guide
-- Demo Preparation
+Owner: Phi
 
----
+### Issue #20
 
-## Deliverables
+VNPay Configuration
 
-### Documents
+Owner: Quang Trung
 
-- README.md
-- Architecture.md
-- User Manual
-- Installation Guide
+### Issue #21
 
-### Source Code
+VNPay Payment Processing
 
-- Release Candidate
-- Production Build
+Owner: Quang Trung
 
-### Presentation
+### Issue #22
 
-- Slide Deck
-- Demo Script
+Payment Testing
+
+Owner: Hoàng Long
+
+Deliverables:
+
+* Workout Tracking
+* Payment Processing
+* Payment Validation
 
 ---
 
-## Team Assignment
+# Milestone 5 — AI Chatbot
 
-### Phi
+Duration: Week 5
 
-- Dashboard UI
-- Final Review
+Goal:
 
-### Quang Trung
+Develop AI Fitness Assistant.
 
-- Statistics Backend
+Issues:
 
-### Kiệt
+### Issue #23
 
-- Reporting Services
+Knowledge Base Preparation
 
-### Văn Quang
+Owner: Văn Quang
 
-- User Guide
+### Issue #24
 
-### Hoàng Long
+RAG Retrieval Service
 
-- Test Report
+Owner: Phi
 
----
+### Issue #25
 
-# 4. Milestone Summary
+Gemini API Integration
 
-| Week | Milestone | Status |
-|--------|--------|--------|
-| Week 1 | Setup & Database | Planned |
-| Week 2 | Authentication & Membership | Planned |
-| Week 3 | Trainer & Booking | Planned |
-| Week 4 | Progress & Payment | Planned |
-| Week 5 | AI Chatbot | Planned |
-| Week 6 | Dashboard & Release | Planned |
+Owner: Phi
 
----
+### Issue #26
 
-# 5. Definition of Done
+Chat History Module
 
-Một tính năng được xem là hoàn thành khi:
+Owner: Quang Trung
 
-- Source code đã commit lên GitHub.
-- Không có lỗi build.
-- Đã được review.
-- Đã được test thành công.
-- Có tài liệu mô tả.
-- Có giao diện hoàn chỉnh.
-- Không phá vỡ các chức năng hiện có.
+### Issue #27
 
----
+AI Chat Interface
 
-# 6. Risk Management
+Owner: Phi
 
-## Technical Risks
+### Issue #28
 
-- AI API quota exceeded.
-- VNPay sandbox issues.
-- Database migration conflicts.
+AI Testing
 
-## Team Risks
+Owner: Văn Quang + Hoàng Long
 
-- Thành viên chậm tiến độ.
-- Merge conflict.
-- Thiếu tài liệu.
+Deliverables:
 
-## Mitigation
-
-- Weekly progress review.
-- Pull Request workflow.
-- Daily communication.
-- Backup database thường xuyên.
+* AI Chatbot
+* RAG Pipeline
+* Knowledge Base
+* Chat History
 
 ---
 
-# 7. Success Criteria
+# Milestone 6 — Dashboard & Release
 
-Dự án được xem là thành công khi:
+Duration: Week 6
 
-- Hoàn thành toàn bộ Use Cases chính.
-- AI Chatbot hoạt động ổn định.
-- Thanh toán VNPay hoạt động.
-- Dashboard hiển thị chính xác.
-- Báo cáo hoàn chỉnh.
-- Demo thành công trong buổi bảo vệ.
+Goal:
+
+Finalize project and prepare for defense.
+
+Issues:
+
+### Issue #29
+
+Dashboard Statistics Backend
+
+Owner: Kiệt
+
+### Issue #30
+
+Dashboard UI
+
+Owner: Phi
+
+### Issue #31
+
+System Integration Testing
+
+Owner: Hoàng Long
+
+### Issue #32
+
+User Manual & Documentation
+
+Owner: Văn Quang
+
+### Issue #33
+
+Release Preparation
+
+Owner: Phi
+
+Deliverables:
+
+* Dashboard
+* Final Documentation
+* User Manual
+* Release v1.0.0
+
+---
+
+# Definition of Done
+
+A task is considered completed only when:
+
+* Code compiles successfully.
+* No critical bugs remain.
+* Pull Request approved.
+* Merged into develop branch.
+* Issue checklist completed.
+* Documentation updated.
+
+---
+
+# Notes For AI Agents
+
+Mandatory Rules:
+
+* Follow ARCHITECTURE.md.
+* Follow AGENTS.md.
+* Do not change technology stack.
+* Do not introduce React, Angular or Flutter.
+* Do not write SQL in Controllers.
+* Business Logic belongs to Services.
+* Each Issue should produce one Pull Request.
+* Do not modify unrelated modules.
+* Always update documentation when changing architecture.
+
+Project Stack:
+
+* ASP.NET Core MVC 8
+* Razor View
+* Bootstrap 5
+* SQL Server 2022
+* Entity Framework Core
+* ASP.NET Identity
+* VNPay
+* Gemini API
+* Serilog

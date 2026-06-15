@@ -1,78 +1,289 @@
-# ARCHITECTURE.md
+# 🏋️ Gym Management System
 
-# Gym Management System Architecture
-
-Version: 1.0
+A comprehensive Gym Management Platform built with ASP.NET Core MVC, supporting membership management, trainer scheduling, workout tracking, online payments, and an AI-powered Fitness Assistant.
 
 ---
 
-# 1. Architecture Overview
+# 📌 Project Overview
 
-Gym Management System được xây dựng theo mô hình:
+Gym Management System is a web-based application designed to support gym operations and improve member experience.
 
-```text
-ASP.NET Core MVC
-+
-Layered Architecture
-+
-Repository Pattern
-+
-Entity Framework Core
-```
+The system allows:
 
-Mục tiêu:
+* Member management
+* Membership package management
+* Trainer management
+* Training schedule booking
+* Workout progress tracking
+* Online payment processing
+* AI-based fitness consultation
 
-* Dễ bảo trì
-* Dễ mở rộng
-* Tách biệt trách nhiệm giữa các tầng
-* Thuận tiện cho phát triển nhóm
-* Hỗ trợ AI Agent coding
+A key innovation of this project is the integration of a Hybrid AI Architecture that combines a fine-tuned domain-specific language model with Gemini API to provide intelligent fitness guidance.
 
 ---
 
-# 2. High-Level Architecture
+# 🎯 Project Objectives
 
-```text
-┌──────────────────────────────┐
-│         Client Browser       │
-└───────────────┬──────────────┘
-                │
-                ▼
-┌──────────────────────────────┐
-│ ASP.NET MVC Controllers      │
-└───────────────┬──────────────┘
-                │
-                ▼
-┌──────────────────────────────┐
-│ Service Layer                │
-│ Business Logic               │
-└───────────────┬──────────────┘
-                │
-                ▼
-┌──────────────────────────────┐
-│ Repository Layer             │
-└───────────────┬──────────────┘
-                │
-                ▼
-┌──────────────────────────────┐
-│ Entity Framework Core        │
-└───────────────┬──────────────┘
-                │
-                ▼
-┌──────────────────────────────┐
-│ SQL Server 2022              │
-└──────────────────────────────┘
-```
+* Digitalize gym management processes.
+* Improve operational efficiency.
+* Provide personalized fitness consultation.
+* Track workout progress effectively.
+* Reduce manual administrative workload.
+* Apply AI technology to fitness management.
 
 ---
 
-# 3. System Architecture Layers
+# 👥 Team Members
+
+| Name        | Role                                |
+| ----------- | ----------------------------------- |
+| Phi         | Team Leader, Frontend Lead, AI Lead |
+| Quang Trung | Backend Developer                   |
+| Kiệt        | Backend Developer                   |
+| Văn Quang   | AI Support, Documentation           |
+| Hoàng Long  | Tester, Documentation Support       |
 
 ---
 
-# 3.1 Presentation Layer
+# 🚀 Main Features
 
-## Technologies
+## 1. User Management
+
+* User Registration
+* User Login
+* Profile Management
+* Password Management
+* Role-based Access Control
+
+Roles:
+
+* Admin
+* Trainer
+* Member
+
+---
+
+## 2. Membership Management
+
+* View Membership Packages
+* Register Membership
+* Renew Membership
+* Membership Status Tracking
+
+Admin Features:
+
+* Create Package
+* Update Package
+* Disable Package
+
+---
+
+## 3. Trainer Management
+
+* Trainer Profile Management
+* Trainer Availability Management
+* Trainer Assignment
+
+---
+
+## 4. Booking Management
+
+* Book Training Sessions
+* Cancel Bookings
+* Booking History
+* Schedule Tracking
+
+---
+
+## 5. Workout Progress Tracking
+
+Track:
+
+* Weight
+* Height
+* BMI
+* Body Fat Percentage
+* Workout Performance
+
+Progress data is stored historically for long-term analysis.
+
+---
+
+## 6. Online Payment
+
+Supported:
+
+* VNPay
+
+Functions:
+
+* Membership Payment
+* Membership Renewal Payment
+* Transaction History
+* Payment Status Tracking
+
+---
+
+## 7. AI Fitness Assistant
+
+The AI Assistant supports:
+
+* Fitness consultation
+* Workout recommendations
+* Nutrition suggestions
+* Gym-related Q&A
+* Fitness goal guidance
+
+Examples:
+
+* Weight loss plans
+* Muscle gain programs
+* Beginner workout recommendations
+* Nutrition planning
+
+---
+
+# 🤖 AI Architecture
+
+The system uses a Hybrid AI Architecture.
+
+Flow:
+
+User Question
+
+↓
+
+Knowledge Base Retrieval
+
+↓
+
+Fine-Tuned Gym Model
+
+(Qwen 2.5 + LoRA)
+
+↓
+
+Confidence Evaluation
+
+↓
+
+If confidence is high
+
+→ Return Response
+
+Else
+
+↓
+
+Gemini API
+
+↓
+
+Return Response
+
+↓
+
+Save Chat History
+
+---
+
+# 🧠 AI Components
+
+## Fine-Tuned Gym Model
+
+Base Model:
+
+* Qwen 2.5 Instruct
+
+Fine-Tuning Method:
+
+* LoRA (Low-Rank Adaptation)
+
+Training Domain:
+
+* Fitness
+* Gym Training
+* Nutrition
+* Workout Planning
+* Personal Training Knowledge
+
+Objectives:
+
+* Improve accuracy for gym-related questions
+* Reduce dependency on external APIs
+* Provide personalized recommendations
+
+---
+
+## Knowledge Base
+
+The knowledge base contains:
+
+* Workout Programs
+* Exercise Library
+* Nutrition Guidelines
+* Gym FAQs
+* Training Methodologies
+
+Purpose:
+
+* Enhance AI responses
+* Support Retrieval-Augmented Generation (RAG)
+
+---
+
+## Gemini Fallback Service
+
+Gemini API is used when:
+
+* Questions are outside the gym domain
+* Model confidence is low
+* General knowledge is required
+
+Benefits:
+
+* Better answer coverage
+* Improved user experience
+* Increased reliability
+
+---
+
+# 🏗️ System Architecture
+
+Architecture Pattern:
+
+MVC + Service Layer + Repository Pattern
+
+Layers:
+
+Presentation Layer
+
+* ASP.NET Core MVC
+* Razor Views
+* Bootstrap 5
+
+Business Layer
+
+* Services
+* Business Logic
+* AI Integration
+
+Data Layer
+
+* Repository Pattern
+* Entity Framework Core
+* SQL Server
+
+External Services
+
+* Gemini API
+* VNPay
+
+---
+
+# 💻 Technology Stack
+
+## Frontend
 
 * ASP.NET Core MVC
 * Razor View
@@ -81,593 +292,153 @@ Mục tiêu:
 * CSS3
 * JavaScript
 
----
-
-## Responsibilities
-
-### User Interface
-
-* Login
-* Register
-* Dashboard
-* Membership Pages
-* Booking Pages
-* Payment Pages
-* AI Chat Interface
-
-### Form Validation
-
-* Client-side validation
-* Display error messages
-* User interaction
-
----
-
-## Folder Structure
-
-```text
-Views/
-├── Account/
-├── Membership/
-├── Trainer/
-├── Booking/
-├── Payment/
-├── Dashboard/
-└── AIChat/
-```
-
----
-
-# 3.2 Controller Layer
-
-Controllers xử lý request từ người dùng.
-
-Controllers không chứa business logic.
-
----
-
-## Responsibilities
-
-### Receive Request
-
-Ví dụ:
-
-```http
-GET /Membership
-POST /Booking/Create
-```
-
----
-
-### Validate Request
-
-Ví dụ:
-
-```csharp
-ModelState.IsValid
-```
-
----
-
-### Call Services
-
-Ví dụ:
-
-```csharp
-_membershipService.Create();
-```
-
----
-
-### Return Response
-
-Ví dụ:
-
-```csharp
-View()
-RedirectToAction()
-Json()
-```
-
----
-
-# Controllers
-
-```text
-AccountController
-MembershipController
-TrainerController
-BookingController
-PaymentController
-DashboardController
-AIChatController
-```
-
----
-
-# 3.3 Service Layer
-
-Service Layer chứa toàn bộ nghiệp vụ của hệ thống.
-
-Đây là tầng quan trọng nhất.
-
----
-
-## Responsibilities
-
-### Membership Logic
-
-* Đăng ký gói tập
-* Gia hạn gói tập
-* Kiểm tra trạng thái
-
----
-
-### Booking Logic
-
-* Đặt lịch
-* Hủy lịch
-* Kiểm tra xung đột lịch
-
----
-
-### Payment Logic
-
-* Khởi tạo thanh toán
-* Xác thực giao dịch
-* Cập nhật trạng thái
-
----
-
-### AI Logic
-
-* Truy vấn Knowledge Base
-* Xây dựng Prompt
-* Gọi Gemini API
-* Lưu lịch sử chat
-
----
-
-## Services
-
-```text
-AccountService
-MembershipService
-TrainerService
-BookingService
-PaymentService
-WorkoutProgressService
-AIService
-DashboardService
-```
-
----
-
-# 3.4 Repository Layer
-
-Repository chịu trách nhiệm truy cập dữ liệu.
-
----
-
-## Responsibilities
-
-### Data Access
-
-* Select
-* Insert
-* Update
-* Delete
-
----
-
-## Repositories
-
-```text
-UserRepository
-MembershipRepository
-TrainerRepository
-BookingRepository
-PaymentRepository
-WorkoutProgressRepository
-ChatHistoryRepository
-```
-
----
-
-## Rules
-
-Repositories MUST NOT:
-
-* Chứa business logic
-* Gọi API bên ngoài
-
----
-
-# 3.5 Data Layer
-
----
-
-## Entity Framework Core
-
-Sử dụng:
-
-```text
-Code First
-Migration
-LINQ
-```
-
----
-
-## DbContext
-
-```csharp
-GymDbContext
-```
-
----
-
-## DbSets
-
-```csharp
-Users
-MembershipPackages
-Memberships
-Trainers
-Bookings
-Payments
-WorkoutProgresses
-ChatHistories
-```
-
----
-
-# 4. Database Architecture
+## Backend
+
+* ASP.NET Core 8
+* C#
+* Entity Framework Core
 
 ## Database
 
+* SQL Server 2022
+
+## Authentication
+
+* ASP.NET Core Identity
+* Cookie Authentication
+
+## AI
+
+* Qwen 2.5 Instruct
+* LoRA Fine-Tuning
+* RAG
+* Gemini API
+
+## Payment
+
+* VNPay
+
+## Logging
+
+* Serilog
+
+---
+
+# 🗄️ Core Database Entities
+
+Main Entities:
+
+* User
+* MembershipPackage
+* Membership
+* Trainer
+* Booking
+* Payment
+* WorkoutProgress
+* ChatHistory
+
+---
+
+# 📅 Development Roadmap
+
+Duration:
+
+6 Weeks
+
+Milestones:
+
+### Week 1
+
+Foundation & Setup
+
+### Week 2
+
+Membership Management
+
+### Week 3
+
+Trainer & Booking Management
+
+### Week 4
+
+Workout Progress & Payment
+
+### Week 5
+
+AI Fitness Assistant
+
+### Week 6
+
+Dashboard & Final Release
+
+Detailed roadmap can be found in:
+
+ROADMAP.md
+
+---
+
+# 📂 Project Structure
+
 ```text
-GymManagementDB
+GymManagementSystem
+│
+├── Controllers
+├── Models
+├── ViewModels
+├── Services
+├── Repositories
+├── Data
+├── Validators
+├── Views
+├── wwwroot
+│
+├── AI
+│   ├── Training
+│   ├── Models
+│   ├── KnowledgeBase
+│   └── Services
+│
+└── Documentation
 ```
 
 ---
 
-## Main Tables
+# 🔒 Security Features
 
-### Users
-
-Lưu thông tin người dùng.
-
----
-
-### Trainers
-
-Lưu thông tin huấn luyện viên.
-
----
-
-### MembershipPackages
-
-Lưu danh sách gói tập.
-
----
-
-### Memberships
-
-Lưu thông tin đăng ký gói tập.
-
----
-
-### Bookings
-
-Lưu lịch tập.
-
----
-
-### Payments
-
-Lưu giao dịch thanh toán.
-
----
-
-### WorkoutProgresses
-
-Lưu tiến độ luyện tập.
-
----
-
-### ChatHistories
-
-Lưu lịch sử AI Chatbot.
-
----
-
-# 5. Authentication Architecture
-
-## Technology
-
-```text
-ASP.NET Identity
-Cookie Authentication
-```
-
----
-
-## Login Flow
-
-```text
-User
- ↓
-Login Page
- ↓
-AccountController
- ↓
-Identity Service
- ↓
-Cookie Generated
- ↓
-Authenticated User
-```
-
----
-
-## Roles
-
-```text
-Admin
-Trainer
-Member
-```
-
----
-
-# 6. AI Chatbot Architecture
-
-## Technology
-
-```text
-Gemini API
-RAG
-Knowledge Base
-```
-
----
-
-## AI Flow
-
-```text
-User Question
-        ↓
-Knowledge Base Search
-        ↓
-Retrieve Context
-        ↓
-Prompt Builder
-        ↓
-Gemini API
-        ↓
-AI Response
-        ↓
-Save Chat History
-```
-
----
-
-## Components
-
-### Knowledge Base
-
-Chứa:
-
-* Gym Knowledge
-* Exercise Information
-* Nutrition Information
-
----
-
-### Retrieval Service
-
-Tìm kiếm dữ liệu liên quan.
-
----
-
-### Prompt Builder
-
-Tạo Prompt hoàn chỉnh.
-
----
-
-### Gemini Service
-
-Gửi yêu cầu tới Gemini API.
-
----
-
-# 7. Payment Architecture
-
-## Technology
-
-```text
-VNPay Sandbox
-```
-
----
-
-## Payment Flow
-
-```text
-Member
- ↓
-Choose Package
- ↓
-Create Payment
- ↓
-VNPay Gateway
- ↓
-Return Callback
- ↓
-Update Payment Status
-```
-
----
-
-## Payment States
-
-```text
-Pending
-Success
-Failed
-Cancelled
-```
-
----
-
-# 8. Logging Architecture
-
-## Technology
-
-```text
-Serilog
-```
-
----
-
-## Log Events
-
-### Authentication
-
-* Login Success
-* Login Failed
-
-### Membership
-
-* Register Package
-* Renew Package
-
-### Payment
-
-* Payment Success
-* Payment Failed
-
-### Booking
-
-* Booking Created
-* Booking Cancelled
-
-### AI
-
-* Gemini Request
-* Gemini Error
-
----
-
-# 9. Validation Architecture
-
-## Client Side
-
-```text
-HTML Validation
-JavaScript Validation
-```
-
----
-
-## Server Side
-
-```text
-Data Annotation
-FluentValidation
-```
-
----
-
-# 10. Project Structure
-
-```text
-src/
-
-├── Controllers/
-├── Services/
-├── Repositories/
-├── Models/
-├── Data/
-├── ViewModels/
-├── Views/
-├── Middleware/
-├── Helpers/
-├── Validators/
-├── Configurations/
-└── Logs/
-```
-
----
-
-# 11. Non-Functional Requirements
-
-## Performance
-
-* Page response < 3 seconds
-* Dashboard loading < 5 seconds
-
----
-
-## Security
-
+* ASP.NET Identity
 * Password Hashing
-* Role Authorization
-* CSRF Protection
-* Input Validation
+* Role-based Authorization
+* Session Management
+* Secure Payment Verification
 
 ---
 
-## Reliability
+# 📈 Future Enhancements
 
-* Error Logging
-* Exception Handling
-* Database Backup
+Potential future improvements:
 
----
-
-# 12. Deployment Architecture
-
-```text
-Client Browser
-      ↓
-IIS Server
-      ↓
-ASP.NET Core MVC
-      ↓
-SQL Server
-```
-
----
-
-# 13. Future Enhancements
-
-Không thuộc phạm vi đồ án hiện tại.
-
-Có thể phát triển:
-
+* Personalized Workout Recommendation Engine
+* Nutrition Recommendation System
+* Voice-Based AI Assistant
 * Mobile Application
-* QR Check-In
-* AI Recommendation Engine
-* Push Notification
-* Cloud Deployment
-* Multi-Branch Gym Management
+* Wearable Device Integration
+* Advanced Analytics Dashboard
 
 ---
 
-# 14. Architectural Principles
+# 📜 License
 
-Mọi thành viên và AI Agent phải tuân thủ:
+This project is developed for educational purposes as a university software engineering project.
 
-1. Controller mỏng.
-2. Business logic nằm trong Service.
-3. Repository chỉ truy cập dữ liệu.
-4. Không SQL trong Controller.
-5. Không đổi công nghệ khi chưa được phê duyệt.
-6. Ưu tiên đơn giản và dễ bảo trì.
-7. Tuân thủ AGENTS.md.
-8. Tuân thủ SOLID Principles.
-9. Mỗi tính năng phải có Issue tương ứng.
-10. Mỗi Issue phải có Pull Request tương ứng.
+---
+
+# ❤️ Acknowledgements
+
+Special thanks to:
+
+* ASP.NET Core Community
+* Microsoft Learn
+* Qwen Team
+* Google Gemini
+* VNPay
+* Open Source Contributors

@@ -1,288 +1,379 @@
-# Gym Management System
-
-<div align="center">
-
 # 🏋️ Gym Management System
 
-### AI-Powered Gym Management Platform
-
-A comprehensive gym management platform built with ASP.NET Core MVC, designed to streamline membership management, trainer scheduling, payment processing, and AI-assisted fitness consultation.
-
-![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-8.0-purple)
-![SQL Server](https://img.shields.io/badge/SQL%20Server-2022-red)
-![Bootstrap](https://img.shields.io/badge/Bootstrap-5-blue)
-![Entity Framework](https://img.shields.io/badge/Entity%20Framework-Core-green)
-![Gemini AI](https://img.shields.io/badge/Gemini-AI-orange)
-![License](https://img.shields.io/badge/License-Educational-lightgrey)
-
-</div>
+A comprehensive Gym Management Platform built with ASP.NET Core MVC, supporting membership management, trainer scheduling, workout tracking, online payments, and an AI-powered Fitness Assistant.
 
 ---
 
 # 📌 Project Overview
 
-Gym Management System is a web-based platform that helps fitness centers manage members, trainers, memberships, bookings, workout progress, online payments, and AI-powered fitness consultation.
+Gym Management System is a web-based application designed to support gym operations and improve member experience.
 
-The system is developed as a university software engineering project and follows modern web application architecture principles using ASP.NET Core MVC.
+The system allows:
+
+* Member management
+* Membership package management
+* Trainer management
+* Training schedule booking
+* Workout progress tracking
+* Online payment processing
+* AI-based fitness consultation
+
+A key innovation of this project is the integration of a Hybrid AI Architecture that combines a fine-tuned domain-specific language model with Gemini API to provide intelligent fitness guidance.
 
 ---
 
 # 🎯 Project Objectives
 
-The project aims to:
-
-- Digitize gym management operations.
-- Simplify membership registration and renewal.
-- Improve trainer scheduling and booking management.
-- Track workout progress effectively.
-- Support online payment processing.
-- Provide personalized fitness consultation using AI.
-- Enhance user experience through a centralized management platform.
+* Digitalize gym management processes.
+* Improve operational efficiency.
+* Provide personalized fitness consultation.
+* Track workout progress effectively.
+* Reduce manual administrative workload.
+* Apply AI technology to fitness management.
 
 ---
 
-# 👥 User Roles
+# 👥 Team Members
 
-## Member
-
-Members can:
-
-- Register account
-- Login to system
-- Update profile
-- View membership packages
-- Register membership
-- Renew membership
-- Book trainer sessions
-- Cancel bookings
-- Track workout progress
-- Make online payments
-- Chat with AI assistant
+| Name        | Role                                |
+| ----------- | ----------------------------------- |
+| Phi         | Team Leader, Frontend Lead, AI Lead |
+| Quang Trung | Backend Developer                   |
+| Kiệt        | Backend Developer                   |
+| Văn Quang   | AI Support, Documentation           |
+| Hoàng Long  | Tester, Documentation Support       |
 
 ---
 
-## Trainer
+# 🚀 Main Features
 
-Trainers can:
+## 1. User Management
 
-- View assigned members
-- Manage schedules
-- View booking requests
-- Update workout progress records
+* User Registration
+* User Login
+* Profile Management
+* Password Management
+* Role-based Access Control
 
----
+Roles:
 
-## Admin
-
-Administrators can:
-
-- Manage users
-- Manage trainers
-- Manage membership packages
-- Manage bookings
-- Monitor payments
-- View system statistics
-- Manage AI knowledge base
+* Admin
+* Trainer
+* Member
 
 ---
 
-# 🚀 Core Features
+## 2. Membership Management
 
-## 🔐 Authentication & Authorization
+* View Membership Packages
+* Register Membership
+* Renew Membership
+* Membership Status Tracking
 
-- User Registration
-- Login / Logout
-- Change Password
-- Profile Management
-- Role-Based Authorization
-- ASP.NET Identity Integration
+Admin Features:
 
----
-
-## 🏋 Membership Management
-
-- Membership Package Management
-- Membership Registration
-- Membership Renewal
-- Membership Status Tracking
+* Create Package
+* Update Package
+* Disable Package
 
 ---
 
-## 👨‍🏫 Trainer Management
+## 3. Trainer Management
 
-- Trainer Profiles
-- Trainer Scheduling
-- Trainer Assignment
-- Trainer Availability Tracking
-
----
-
-## 📅 Booking Management
-
-- Session Booking
-- Booking Cancellation
-- Booking History
-- Schedule Management
+* Trainer Profile Management
+* Trainer Availability Management
+* Trainer Assignment
 
 ---
 
-## 📈 Workout Progress Tracking
+## 4. Booking Management
 
-- Weight Tracking
-- Height Tracking
-- BMI Monitoring
-- Body Fat Tracking
-- Progress History
-
----
-
-## 💳 Online Payment
-
-- VNPay Integration
-- Payment History
-- Payment Status Tracking
-- Membership Payment Processing
+* Book Training Sessions
+* Cancel Bookings
+* Booking History
+* Schedule Tracking
 
 ---
 
-## 🤖 AI Fitness Assistant
+## 5. Workout Progress Tracking
 
-### Features
+Track:
 
-- Fitness Consultation
-- Nutrition Suggestions
-- Workout Recommendations
-- Frequently Asked Questions
-- Personalized Guidance
+* Weight
+* Height
+* BMI
+* Body Fat Percentage
+* Workout Performance
 
-### AI Architecture
+Progress data is stored historically for long-term analysis.
 
-```text
+---
+
+## 6. Online Payment
+
+Supported:
+
+* VNPay
+
+Functions:
+
+* Membership Payment
+* Membership Renewal Payment
+* Transaction History
+* Payment Status Tracking
+
+---
+
+## 7. AI Fitness Assistant
+
+The AI Assistant supports:
+
+* Fitness consultation
+* Workout recommendations
+* Nutrition suggestions
+* Gym-related Q&A
+* Fitness goal guidance
+
+Examples:
+
+* Weight loss plans
+* Muscle gain programs
+* Beginner workout recommendations
+* Nutrition planning
+
+---
+
+# 🤖 AI Architecture
+
+The system uses a Hybrid AI Architecture.
+
+Flow:
+
 User Question
-      ↓
-Knowledge Base
-      ↓
-RAG Retrieval
-      ↓
-Prompt Builder
-      ↓
+
+↓
+
+Knowledge Base Retrieval
+
+↓
+
+Fine-Tuned Gym Model
+
+(Qwen 2.5 + LoRA)
+
+↓
+
+Confidence Evaluation
+
+↓
+
+If confidence is high
+
+→ Return Response
+
+Else
+
+↓
+
 Gemini API
-      ↓
-AI Response
-```
+
+↓
+
+Return Response
+
+↓
+
+Save Chat History
 
 ---
 
-## 📊 Dashboard & Reporting
+# 🧠 AI Components
 
-### Admin Dashboard
+## Fine-Tuned Gym Model
 
-- Total Members
-- Active Memberships
-- Revenue Statistics
-- Booking Statistics
+Base Model:
 
-### Trainer Dashboard
+* Qwen 2.5 Instruct
 
-- Assigned Members
-- Upcoming Sessions
+Fine-Tuning Method:
 
-### Member Dashboard
+* LoRA (Low-Rank Adaptation)
 
-- Membership Status
-- Upcoming Bookings
-- Workout Progress
+Training Domain:
 
----
+* Fitness
+* Gym Training
+* Nutrition
+* Workout Planning
+* Personal Training Knowledge
 
-# 🏗 System Architecture Overview
+Objectives:
 
-```text
-┌─────────────────────────────┐
-│      Presentation Layer     │
-│ ASP.NET MVC + Razor + BS5   │
-└──────────────┬──────────────┘
-               │
-               ▼
-┌─────────────────────────────┐
-│      Business Layer         │
-│ Service + Business Logic    │
-└──────────────┬──────────────┘
-               │
-               ▼
-┌─────────────────────────────┐
-│      Data Access Layer      │
-│ Entity Framework Core       │
-└──────────────┬──────────────┘
-               │
-               ▼
-┌─────────────────────────────┐
-│        SQL Server 2022      │
-└─────────────────────────────┘
-```
+* Improve accuracy for gym-related questions
+* Reduce dependency on external APIs
+* Provide personalized recommendations
 
 ---
 
-# 🛠 Technology Stack
+## Knowledge Base
+
+The knowledge base contains:
+
+* Workout Programs
+* Exercise Library
+* Nutrition Guidelines
+* Gym FAQs
+* Training Methodologies
+
+Purpose:
+
+* Enhance AI responses
+* Support Retrieval-Augmented Generation (RAG)
+
+---
+
+## Gemini Fallback Service
+
+Gemini API is used when:
+
+* Questions are outside the gym domain
+* Model confidence is low
+* General knowledge is required
+
+Benefits:
+
+* Better answer coverage
+* Improved user experience
+* Increased reliability
+
+---
+
+# 🏗️ System Architecture
+
+Architecture Pattern:
+
+MVC + Service Layer + Repository Pattern
+
+Layers:
+
+Presentation Layer
+
+* ASP.NET Core MVC
+* Razor Views
+* Bootstrap 5
+
+Business Layer
+
+* Services
+* Business Logic
+* AI Integration
+
+Data Layer
+
+* Repository Pattern
+* Entity Framework Core
+* SQL Server
+
+External Services
+
+* Gemini API
+* VNPay
+
+---
+
+# 💻 Technology Stack
 
 ## Frontend
 
-| Technology | Purpose |
-|------------|----------|
-| ASP.NET Core MVC | Web Framework |
-| Razor View | Dynamic UI |
-| Bootstrap 5 | Responsive Design |
-| HTML5 | Page Structure |
-| CSS3 | Styling |
-| JavaScript | Client-side Interaction |
-
----
+* ASP.NET Core MVC
+* Razor View
+* Bootstrap 5
+* HTML5
+* CSS3
+* JavaScript
 
 ## Backend
 
-| Technology | Purpose |
-|------------|----------|
-| ASP.NET Core 8 | Application Framework |
-| C# | Programming Language |
-| Entity Framework Core | ORM |
-| ASP.NET Identity | Authentication |
-| SignalR | Real-time Communication |
-
----
+* ASP.NET Core 8
+* C#
+* Entity Framework Core
 
 ## Database
 
-| Technology | Purpose |
-|------------|----------|
-| SQL Server 2022 | Relational Database |
+* SQL Server 2022
 
----
+## Authentication
 
-## AI Services
+* ASP.NET Core Identity
+* Cookie Authentication
 
-| Technology | Purpose |
-|------------|----------|
-| Gemini API | LLM Provider |
-| RAG | Context Retrieval |
-| Knowledge Base | Domain Knowledge |
+## AI
 
----
+* Qwen 2.5 Instruct
+* LoRA Fine-Tuning
+* RAG
+* Gemini API
 
 ## Payment
 
-| Technology | Purpose |
-|------------|----------|
-| VNPay | Online Payment Gateway |
+* VNPay
+
+## Logging
+
+* Serilog
 
 ---
 
-## Logging & Validation
+# 🗄️ Core Database Entities
 
-| Technology | Purpose |
-|------------|----------|
-| Serilog | Logging |
-| Data Annotation | Validation |
-| FluentValidation | Advanced Validation |
+Main Entities:
+
+* User
+* MembershipPackage
+* Membership
+* Trainer
+* Booking
+* Payment
+* WorkoutProgress
+* ChatHistory
+
+---
+
+# 📅 Development Roadmap
+
+Duration:
+
+6 Weeks
+
+Milestones:
+
+### Week 1
+
+Foundation & Setup
+
+### Week 2
+
+Membership Management
+
+### Week 3
+
+Trainer & Booking Management
+
+### Week 4
+
+Workout Progress & Payment
+
+### Week 5
+
+AI Fitness Assistant
+
+### Week 6
+
+Dashboard & Final Release
+
+Detailed roadmap can be found in:
+
+ROADMAP.md
 
 ---
 
@@ -291,110 +382,63 @@ AI Response
 ```text
 GymManagementSystem
 │
-├── docs/
-│   ├── UseCase/
-│   ├── ERD/
-│   ├── ClassDiagram/
-│   ├── SequenceDiagram/
-│   └── Report/
+├── Controllers
+├── Models
+├── ViewModels
+├── Services
+├── Repositories
+├── Data
+├── Validators
+├── Views
+├── wwwroot
 │
-├── src/
-│   │
-│   ├── Controllers/
-│   ├── Models/
-│   ├── Views/
-│   ├── Services/
-│   ├── Repositories/
-│   ├── Data/
-│   ├── Middleware/
-│   └── Helpers/
+├── AI
+│   ├── Training
+│   ├── Models
+│   ├── KnowledgeBase
+│   └── Services
 │
-├── tests/
-│
-├── README.md
-├── ROADMAP.md
-├── ARCHITECTURE.md
-├── AGENTS.md
-└── LICENSE
+└── Documentation
 ```
 
 ---
 
-# 👨‍💻 Development Team
+# 🔒 Security Features
 
-| Member | Responsibility |
-|----------|----------|
-| Phi | Team Leader, Frontend Lead, AI Lead |
-| Quang Trung | Backend Development |
-| Kiệt | Backend Development |
-| Văn Quang | AI Support, UI Testing |
-| Hoàng Long | Testing & Documentation |
+* ASP.NET Identity
+* Password Hashing
+* Role-based Authorization
+* Session Management
+* Secure Payment Verification
 
 ---
 
-# 📅 Development Timeline
+# 📈 Future Enhancements
 
-| Week | Milestone |
-|--------|--------|
-| Week 1 | Setup & Database |
-| Week 2 | Authentication & Membership |
-| Week 3 | Trainer & Booking |
-| Week 4 | Progress & Payment |
-| Week 5 | AI Chatbot |
-| Week 6 | Dashboard & Release |
+Potential future improvements:
 
-For detailed planning, see:
-
-```text
-ROADMAP.md
-```
+* Personalized Workout Recommendation Engine
+* Nutrition Recommendation System
+* Voice-Based AI Assistant
+* Mobile Application
+* Wearable Device Integration
+* Advanced Analytics Dashboard
 
 ---
 
-# 📖 Documentation
+# 📜 License
 
-Project documents:
-
-- README.md
-- ROADMAP.md
-- ARCHITECTURE.md
-- AGENTS.md
-- User Manual
-- Installation Guide
+This project is developed for educational purposes as a university software engineering project.
 
 ---
 
-# ⚠ Development Guidelines
+# ❤️ Acknowledgements
 
-All contributors and AI agents must follow:
+Special thanks to:
 
-- Service Layer architecture.
-- No business logic inside Controllers.
-- No direct SQL in Controllers.
-- Entity Framework Core only.
-- SQL Server only.
-- ASP.NET MVC only.
-- Razor View only.
-- Pull Request required before merge.
-- Follow naming conventions.
-- Use migration for schema changes.
-
-Detailed rules can be found in:
-
-```text
-AGENTS.md
-```
-
----
-
-# 🎓 Academic Purpose
-
-This project is developed for educational and academic purposes as part of a university software engineering course.
-
----
-
-# 📄 License
-
-This project is intended for educational use only.
-
-© 2026 Gym Management System Team
+* ASP.NET Core Community
+* Microsoft Learn
+* Qwen Team
+* Google Gemini
+* VNPay
+* Open Source Contributors

@@ -1,518 +1,426 @@
-# AGENTS.md
 
-# AI Agent Development Guide
 
-This document defines mandatory rules for all AI coding agents contributing to the Gym Management System project.
+## Gym Management System
 
-Applicable to:
+This document defines the rules that all AI Coding Agents must follow.
 
-* Claude Code
-* GitHub Copilot
-* ChatGPT
-* Gemini
-* Cursor AI
-* Windsurf
-* Any autonomous coding agent
+Applies to:
+
+- Claude Code
+- GitHub Copilot Agent
+- Cursor Agent
+- OpenAI Codex Agents
+- Any automated coding assistant
 
 ---
 
-# Project Overview
+# 1. Project Overview
 
-Gym Management System is a web-based gym management platform built using ASP.NET Core MVC.
+Gym Management System is a web-based application developed using ASP.NET Core MVC.
 
-The system manages:
+Main features:
 
-* Members
-* Trainers
-* Membership Packages
-* Bookings
-* Workout Progress
-* Payments
-* AI Fitness Chatbot
-
----
-
-# Project Scope
-
-## Included Features
-
-### Authentication
-
-* Register
-* Login
-* Logout
-* Profile Management
-
-### Membership
-
-* View Packages
-* Register Membership
-* Renew Membership
-
-### Trainer
-
-* Trainer Management
-* Schedule Management
-
-### Booking
-
-* Create Booking
-* Cancel Booking
-* Booking History
-
-### Workout Progress
-
-* Weight Tracking
-* BMI Tracking
-* Body Fat Tracking
-
-### Payment
-
-* VNPay Integration
-* Payment History
-
-### AI Chatbot
-
-* RAG Pipeline
-* Gemini API
-* Chat History
-
-### Dashboard
-
-* Revenue Statistics
-* Member Statistics
-* Booking Statistics
+- User Management
+- Membership Management
+- Trainer Management
+- Booking System
+- Workout Progress Tracking
+- VNPay Integration
+- AI Fitness Assistant
 
 ---
 
-# Out Of Scope
+# 2. Technology Stack
 
-Agents MUST NOT implement:
+Frontend:
 
-* Mobile Application
-* React
-* React Native
-* Flutter
-* Angular
-* VueJS
-* Microservices
-* Docker Swarm
-* Kubernetes
-* Fine-Tuning LLM
-* Multi-Tenant Architecture
+- ASP.NET Core MVC
+- Razor View
+- Bootstrap 5
+- HTML
+- CSS
+- JavaScript
 
-If a task suggests any of the above, ignore it.
+Backend:
+
+- ASP.NET Core 8
+- C#
+
+Database:
+
+- SQL Server 2022
+- Entity Framework Core
+
+Authentication:
+
+- ASP.NET Identity
+- Cookie Authentication
+
+AI:
+
+- Fine-Tuned Qwen 2.5
+- LoRA
+- Gemini API
+- RAG Knowledge Base
+
+Payment:
+
+- VNPay
+
+Logging:
+
+- Serilog
 
 ---
 
-# Mandatory Technology Stack
+# 3. Project Structure
 
-## Frontend
-
-* ASP.NET Core MVC
-* Razor View
-* Bootstrap 5
-* HTML5
-* CSS3
-* JavaScript
-
-Agents MUST NOT generate:
-
-* React Components
-* NextJS Pages
-* Vue Components
-* Angular Components
-
----
-
-## Backend
-
-* ASP.NET Core 8 MVC
-* C#
-
-Business logic MUST be written in:
+Agents MUST follow this structure.
 
 ```text
-Services/
+GymManagementSystem
+│
+├── Controllers
+├── Models
+├── ViewModels
+├── Services
+├── Repositories
+├── Data
+├── Validators
+├── Views
+├── wwwroot
+│
+├── AI
+│   ├── Training
+│   ├── Models
+│   ├── KnowledgeBase
+│   └── Services
+│
+└── Documentation
 ```
 
-Controllers MUST remain thin.
+Do NOT create new top-level folders without approval.
 
 ---
 
-## Database
+# 4. Architectural Rules
 
-* SQL Server 2022
-* Entity Framework Core
+Mandatory Rules:
 
-Agents MUST NOT:
+- Controllers must remain thin.
+- Controllers must not contain business logic.
+- Controllers must not access DbContext directly.
+- Controllers must not execute raw SQL.
 
-* Use MySQL
-* Use PostgreSQL
-* Use MongoDB
-* Use SQLite
+Business Logic:
 
----
+- Must be placed in Services.
 
-## Authentication
+Data Access:
 
-Required:
+- Must be placed in Repositories.
 
-* ASP.NET Core Identity
-* Cookie Authentication
+Database:
 
-Do NOT generate:
-
-* JWT-only Authentication
-* OAuth-only Authentication
-
-unless explicitly requested.
+- Must be accessed through Entity Framework Core.
 
 ---
 
-## AI Stack
+# 5. Dependency Rules
 
-Required:
+Allowed:
 
-* Gemini API
-* RAG Architecture
+Controller
+→ Service
+→ Repository
+→ DbContext
+
+Not Allowed:
+
+Controller
+→ DbContext
+
+Controller
+→ SQL Query
+
+Controller
+→ External API
+
+---
+
+# 6. Frontend Rules
+
+Frontend Lead:
+
+Phi
+
+Agents working on frontend MUST:
+
+- Use Razor View
+- Use Bootstrap 5
+- Use ViewModels
+
+Do NOT:
+
+- Add React
+- Add Angular
+- Add Vue
+- Add Flutter
+
+Without approval.
+
+---
+
+# 7. Backend Rules
+
+Backend Developers:
+
+- Quang Trung
+- Kiệt
+
+Backend Agents MUST:
+
+- Follow Service Layer pattern
+- Follow Repository pattern
+- Use Dependency Injection
+
+Do NOT:
+
+- Put business logic inside Controllers
+- Duplicate repository logic
+- Use static database helpers
+
+---
+
+# 8. AI Module Rules
+
+AI Lead:
+
+Phi
+
+AI Support:
+
+Văn Quang
 
 Architecture:
 
 User Question
-→ Knowledge Base
-→ Retrieval
-→ Prompt Builder
-→ Gemini API
-→ Response
+    ↓
+Knowledge Retrieval
+    ↓
+Fine-Tuned Qwen Model
+    ↓
+Confidence Evaluation
+    ↓
+Gemini Fallback
+    ↓
+Response
+
+Agents MAY:
+
+- Train Qwen-based models
+- Improve prompts
+- Improve retrieval quality
+- Extend Knowledge Base
 
 Agents MUST NOT:
 
-* Fine-Tune Models
-* Train Custom LLMs
+- Replace Qwen without approval
+- Remove Gemini fallback
+- Remove chat history logging
+- Change AI architecture drastically
 
 ---
 
-# Architecture Rules
+# 9. Database Rules
 
-Project follows Layered Architecture.
+Primary Database:
 
-```text
-Controllers
-    ↓
-Services
-    ↓
-Repositories
-    ↓
-Entity Framework
-    ↓
-SQL Server
-```
+SQL Server 2022
 
----
+Migration Rules:
 
-# Controller Rules
+- Use EF Core Migration
+- Never modify database manually
+- Update migration files properly
 
-Controllers MUST:
+Naming Convention:
 
-* Receive requests
-* Validate requests
-* Call Services
-* Return Views
+Tables:
 
-Controllers MUST NOT:
-
-* Contain SQL
-* Contain business logic
-* Access DbContext directly
-
-Bad Example:
-
-```csharp
-public IActionResult Create()
-{
-    _context.Users.Add(user);
-    _context.SaveChanges();
-}
-```
-
-Good Example:
-
-```csharp
-public IActionResult Create()
-{
-    _userService.Create(user);
-}
-```
+- Users
+- Trainers
+- Memberships
+- MembershipPackages
+- Bookings
+- Payments
+- WorkoutProgresses
+- ChatHistories
 
 ---
 
-# Service Rules
+# 10. Payment Rules
 
-Services contain business logic.
+Gateway:
+
+VNPay
+
+Agents MUST:
+
+- Verify payment callback
+- Validate transaction signature
+- Log payment events
+
+Agents MUST NOT:
+
+- Store sensitive payment information
+- Skip payment verification
+
+---
+
+# 11. Security Rules
+
+Required:
+
+- ASP.NET Identity
+- Password Hashing
+- Role Authorization
+- Input Validation
+
+Agents MUST NOT:
+
+- Store plain text passwords
+- Disable authentication
+- Disable authorization
+
+---
+
+# 12. Logging Rules
+
+Logging Framework:
+
+Serilog
+
+Must Log:
+
+- Authentication events
+- Payment events
+- AI requests
+- Errors
+
+---
+
+# 13. Git Workflow
+
+Branch Naming:
+
+feature/<feature-name>
+
+bugfix/<bug-name>
+
+hotfix/<hotfix-name>
 
 Examples:
 
-* MembershipService
-* BookingService
-* PaymentService
-* AIService
+feature/membership-registration
 
-Services MUST:
+feature/ai-chatbot
 
-* Validate business rules
-* Coordinate repositories
-* Handle workflows
+feature/payment-vnpay
 
 ---
 
-# Repository Rules
+# 14. Commit Convention
 
-Repositories are responsible for data access only.
+Format:
 
-Repositories MUST:
+type(scope): description
 
-* Query data
-* Save data
-* Update data
+Examples:
 
-Repositories MUST NOT:
+feat(membership): add registration service
 
-* Contain business logic
-* Call external APIs
+feat(ai): integrate gemini fallback
+
+fix(payment): verify callback signature
+
+docs(readme): update installation guide
 
 ---
 
-# Database Rules
+# 15. Pull Request Rules
 
-All schema changes MUST use migrations.
+One Issue = One Pull Request
 
-Required workflow:
+Each Pull Request must:
 
-```bash
-Add-Migration MigrationName
-Update-Database
-```
+- Build successfully
+- Pass tests
+- Follow architecture
+- Update documentation if required
+
+---
+
+# 16. Issue Assignment Rules
+
+Phi
+
+- Frontend
+- Dashboard
+- AI
+- Final Integration
+
+Quang Trung
+
+- Authentication
+- Membership
+- Trainer
+- Payment
+
+Kiệt
+
+- Database
+- Booking
+- Workout Progress
+- Dashboard Statistics
+
+Văn Quang
+
+- Dataset Collection
+- Knowledge Base
+- Documentation
+
+Hoàng Long
+
+- Testing
+- User Manual
+- QA
+
+---
+
+# 17. Definition of Done
+
+A task is completed only when:
+
+- Code compiles successfully
+- No critical bugs remain
+- Pull Request approved
+- Merged into develop branch
+- Documentation updated
+- Issue checklist completed
+
+---
+
+# 18. Agent Restrictions
 
 Agents MUST NOT:
 
-* Modify database manually
-* Create SQL scripts outside migrations
-
----
-
-# Naming Conventions
-
-## Controllers
-
-```text
-UserController
-MembershipController
-TrainerController
-BookingController
-PaymentController
-```
-
----
-
-## Services
-
-```text
-UserService
-MembershipService
-TrainerService
-BookingService
-PaymentService
-AIService
-```
-
----
-
-## Repositories
-
-```text
-UserRepository
-MembershipRepository
-TrainerRepository
-BookingRepository
-PaymentRepository
-```
-
----
-
-## Models
-
-Use singular names:
-
-```text
-User
-Trainer
-Membership
-Booking
-Payment
-WorkoutProgress
-ChatHistory
-```
-
----
-
-# Git Workflow
-
-## Branch Naming
-
-Feature:
-
-```text
-feature/issue-xx-description
-```
-
-Bugfix:
-
-```text
-bugfix/issue-xx-description
-```
-
-Hotfix:
-
-```text
-hotfix/issue-xx-description
-```
-
----
-
-## Pull Requests
-
-Every Issue MUST have:
-
-* Dedicated branch
-* Pull Request
-* Review before merge
-
-Direct commits to main are prohibited.
-
----
-
-# Issue Workflow
-
-Issue Lifecycle:
-
-```text
-Backlog
-→ In Progress
-→ Review
-→ Testing
-→ Done
-```
-
-Agents MUST update issue status when work is completed.
-
----
-
-# Coding Standards
-
-## General Rules
-
-* Follow SOLID principles.
-* Avoid duplicated code.
-* Use dependency injection.
-* Write readable code.
-* Add comments only when necessary.
-
----
-
-## Error Handling
-
-Use:
-
-```csharp
-try
-{
-}
-catch(Exception ex)
-{
-}
-```
-
-and log errors through Serilog.
-
----
-
-## Logging
-
-Required:
-
-* Login Events
-* Payment Events
-* Booking Events
-* AI Errors
-* System Errors
-
-Use:
-
-```text
-Serilog
-```
-
----
-
-# Security Rules
-
-Required:
-
-* Password Hashing
-* Role Authorization
-* Input Validation
-* Anti-Forgery Token
-
-Never:
-
-* Store plain-text passwords
-* Hardcode API keys
-* Hardcode connection strings
-
----
-
-# AI Agent Restrictions
-
-Agents MUST NOT:
-
-* Change architecture
-* Change technology stack
-* Rename existing modules without approval
-* Create unnecessary abstractions
-* Introduce new frameworks
-
-When uncertain:
-
-* Create issue comment
-* Request clarification
-* Do not guess
-
----
-
-# Definition of Done
-
-A task is considered complete only if:
-
-* Code compiles successfully.
-* No build errors.
-* Follows architecture rules.
-* Follows coding standards.
-* Tested successfully.
-* Linked to issue.
-* Pull Request created.
-
----
-
-# Final Principle
-
-Consistency is more important than creativity.
-
-Agents should prioritize:
-
-1. Maintainability
-2. Readability
-3. Simplicity
-4. Project consistency
-
-over introducing new technologies or patterns.
+- Change architecture without approval
+- Introduce new frameworks
+- Delete existing modules
+- Rename database entities without approval
+- Modify unrelated modules
+
+When in doubt:
+
+Follow Architecture.md first.

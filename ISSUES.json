@@ -1,0 +1,379 @@
+[
+  {
+    "title": "Project Setup & Solution Structure",
+    "milestone": "Week 1 - Foundation & Setup",
+    "assignee": "Phi",
+    "labels": ["feature", "backend", "setup"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Initialize ASP.NET Core MVC solution, configure project structure, setup Git workflow, and establish coding standards.",
+    "acceptance_criteria": [
+      "ASP.NET Core MVC solution created",
+      "Folder structure follows Architecture.md",
+      "Git repository configured",
+      "Development branch created",
+      "Coding standards documented"
+    ]
+  },
+  {
+    "title": "Database Design & EF Core Configuration",
+    "milestone": "Week 1 - Foundation & Setup",
+    "assignee": "Kiet",
+    "labels": ["feature", "database"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Design database schema and configure Entity Framework Core.",
+    "acceptance_criteria": [
+      "ERD completed",
+      "DbContext created",
+      "Entity classes implemented",
+      "Initial migration generated",
+      "Database created successfully"
+    ]
+  },
+  {
+    "title": "ASP.NET Identity & Authentication Setup",
+    "milestone": "Week 1 - Foundation & Setup",
+    "assignee": "QuangTrung",
+    "labels": ["feature", "authentication"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Configure ASP.NET Identity, roles, and cookie authentication.",
+    "acceptance_criteria": [
+      "Identity configured",
+      "Roles Admin/Trainer/Member created",
+      "Cookie authentication working",
+      "User registration supported",
+      "Login supported"
+    ]
+  },
+  {
+    "title": "Documentation Foundation",
+    "milestone": "Week 1 - Foundation & Setup",
+    "assignee": "VanQuang",
+    "labels": ["documentation"],
+    "priority": "medium",
+    "story_points": 2,
+    "description": "Prepare README, roadmap, architecture and project documentation structure.",
+    "acceptance_criteria": [
+      "README created",
+      "Roadmap created",
+      "Architecture created",
+      "Documentation folder organized"
+    ]
+  },
+  {
+    "title": "Membership Package CRUD Module",
+    "milestone": "Week 2 - Membership",
+    "assignee": "QuangTrung",
+    "labels": ["feature", "membership"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Implement CRUD operations for membership packages.",
+    "acceptance_criteria": [
+      "Create package",
+      "Update package",
+      "Delete package",
+      "View package list"
+    ]
+  },
+  {
+    "title": "Membership Registration & Renewal",
+    "milestone": "Week 2 - Membership",
+    "assignee": "Kiet",
+    "labels": ["feature", "membership"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Allow members to register and renew memberships.",
+    "acceptance_criteria": [
+      "Membership registration works",
+      "Renewal works",
+      "Membership status updated correctly"
+    ]
+  },
+  {
+    "title": "Membership UI Implementation",
+    "milestone": "Week 2 - Membership",
+    "assignee": "Phi",
+    "labels": ["frontend", "membership"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Build membership management user interface.",
+    "acceptance_criteria": [
+      "Responsive pages",
+      "Bootstrap styling applied",
+      "Validation messages displayed"
+    ]
+  },
+  {
+    "title": "Membership Testing & Validation",
+    "milestone": "Week 2 - Membership",
+    "assignee": "HoangLong",
+    "labels": ["testing"],
+    "priority": "medium",
+    "story_points": 2,
+    "description": "Test membership workflows and validations.",
+    "acceptance_criteria": [
+      "Test cases documented",
+      "Validation verified",
+      "Bug report submitted"
+    ]
+  },
+
+  {
+    "title": "Trainer Management Module",
+    "milestone": "Week 3 - Trainer & Booking",
+    "assignee": "QuangTrung",
+    "labels": ["feature", "trainer"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Implement trainer management module.",
+    "acceptance_criteria": [
+      "Trainer CRUD implemented",
+      "Trainer profile page works"
+    ]
+  },
+  {
+    "title": "Trainer Schedule Management",
+    "milestone": "Week 3 - Trainer & Booking",
+    "assignee": "Kiet",
+    "labels": ["feature", "schedule"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Manage trainer schedules and availability.",
+    "acceptance_criteria": [
+      "Schedule CRUD works",
+      "Availability checking implemented"
+    ]
+  },
+  {
+    "title": "Booking Management Module",
+    "milestone": "Week 3 - Trainer & Booking",
+    "assignee": "Kiet",
+    "labels": ["feature", "booking"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Implement booking creation, cancellation, and history.",
+    "acceptance_criteria": [
+      "Create booking",
+      "Cancel booking",
+      "Booking history available"
+    ]
+  },
+  {
+    "title": "Trainer & Booking UI",
+    "milestone": "Week 3 - Trainer & Booking",
+    "assignee": "Phi",
+    "labels": ["frontend"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Build trainer and booking interfaces.",
+    "acceptance_criteria": [
+      "Responsive UI completed",
+      "Booking form validated"
+    ]
+  },
+  {
+    "title": "Booking Testing",
+    "milestone": "Week 3 - Trainer & Booking",
+    "assignee": "HoangLong",
+    "labels": ["testing"],
+    "priority": "medium",
+    "story_points": 2,
+    "description": "Test booking workflow.",
+    "acceptance_criteria": [
+      "Booking tests executed",
+      "Bug report submitted"
+    ]
+  },
+
+  {
+    "title": "Workout Progress Module",
+    "milestone": "Week 4 - Progress & Payment",
+    "assignee": "Kiet",
+    "labels": ["feature", "progress"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Implement workout progress tracking.",
+    "acceptance_criteria": [
+      "Weight tracking",
+      "BMI tracking",
+      "History tracking"
+    ]
+  },
+  {
+    "title": "VNPay Payment Integration",
+    "milestone": "Week 4 - Progress & Payment",
+    "assignee": "QuangTrung",
+    "labels": ["feature", "payment"],
+    "priority": "high",
+    "story_points": 8,
+    "description": "Integrate VNPay payment gateway.",
+    "acceptance_criteria": [
+      "Payment request works",
+      "Callback handled",
+      "Status updated correctly"
+    ]
+  },
+  {
+    "title": "Progress & Payment UI",
+    "milestone": "Week 4 - Progress & Payment",
+    "assignee": "Phi",
+    "labels": ["frontend"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Build workout progress and payment pages.",
+    "acceptance_criteria": [
+      "Progress dashboard works",
+      "Payment page works"
+    ]
+  },
+  {
+    "title": "Payment Testing",
+    "milestone": "Week 4 - Progress & Payment",
+    "assignee": "HoangLong",
+    "labels": ["testing"],
+    "priority": "medium",
+    "story_points": 2,
+    "description": "Verify payment workflow.",
+    "acceptance_criteria": [
+      "Payment tests executed",
+      "Test report submitted"
+    ]
+  },
+
+  {
+    "title": "Knowledge Base Preparation",
+    "milestone": "Week 5 - AI Chatbot",
+    "assignee": "VanQuang",
+    "labels": ["ai"],
+    "priority": "medium",
+    "story_points": 3,
+    "description": "Collect and organize fitness knowledge base.",
+    "acceptance_criteria": [
+      "Knowledge base created",
+      "Documents categorized"
+    ]
+  },
+  {
+    "title": "RAG Retrieval Service",
+    "milestone": "Week 5 - AI Chatbot",
+    "assignee": "Phi",
+    "labels": ["ai", "backend"],
+    "priority": "high",
+    "story_points": 8,
+    "description": "Implement retrieval logic for AI chatbot.",
+    "acceptance_criteria": [
+      "Relevant context retrieved",
+      "Retrieval accuracy tested"
+    ]
+  },
+  {
+    "title": "Gemini API Integration",
+    "milestone": "Week 5 - AI Chatbot",
+    "assignee": "Phi",
+    "labels": ["ai"],
+    "priority": "high",
+    "story_points": 8,
+    "description": "Integrate Gemini API with chatbot service.",
+    "acceptance_criteria": [
+      "API communication successful",
+      "Responses returned correctly"
+    ]
+  },
+  {
+    "title": "AI Chat Interface & Chat History",
+    "milestone": "Week 5 - AI Chatbot",
+    "assignee": "QuangTrung",
+    "labels": ["frontend", "ai"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Implement chat UI and chat history storage.",
+    "acceptance_criteria": [
+      "Chat interface works",
+      "History stored",
+      "History displayed"
+    ]
+  },
+  {
+    "title": "AI Chatbot Testing",
+    "milestone": "Week 5 - AI Chatbot",
+    "assignee": "HoangLong",
+    "labels": ["testing", "ai"],
+    "priority": "medium",
+    "story_points": 2,
+    "description": "Test AI chatbot functionality.",
+    "acceptance_criteria": [
+      "Prompt tests completed",
+      "Response quality evaluated"
+    ]
+  },
+
+  {
+    "title": "Dashboard Statistics Backend",
+    "milestone": "Week 6 - Dashboard & Release",
+    "assignee": "Kiet",
+    "labels": ["backend", "dashboard"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Build dashboard statistics services.",
+    "acceptance_criteria": [
+      "Revenue statistics available",
+      "Member statistics available",
+      "Booking statistics available"
+    ]
+  },
+  {
+    "title": "Dashboard UI",
+    "milestone": "Week 6 - Dashboard & Release",
+    "assignee": "Phi",
+    "labels": ["frontend", "dashboard"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Build admin dashboard interface.",
+    "acceptance_criteria": [
+      "Charts displayed",
+      "Statistics visible"
+    ]
+  },
+  {
+    "title": "System Integration Testing",
+    "milestone": "Week 6 - Dashboard & Release",
+    "assignee": "HoangLong",
+    "labels": ["testing"],
+    "priority": "high",
+    "story_points": 3,
+    "description": "Perform full system testing.",
+    "acceptance_criteria": [
+      "Core workflows tested",
+      "Critical bugs fixed"
+    ]
+  },
+  {
+    "title": "Documentation & User Manual",
+    "milestone": "Week 6 - Dashboard & Release",
+    "assignee": "VanQuang",
+    "labels": ["documentation"],
+    "priority": "medium",
+    "story_points": 3,
+    "description": "Prepare user manual and documentation.",
+    "acceptance_criteria": [
+      "User guide completed",
+      "Screenshots included"
+    ]
+  },
+  {
+    "title": "Release Preparation & Final Review",
+    "milestone": "Week 6 - Dashboard & Release",
+    "assignee": "Phi",
+    "labels": ["release"],
+    "priority": "high",
+    "story_points": 5,
+    "description": "Finalize project for submission and defense.",
+    "acceptance_criteria": [
+      "All issues closed",
+      "Documentation completed",
+      "Presentation ready"
+    ]
+  }
+]

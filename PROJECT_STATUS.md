@@ -121,63 +121,22 @@ Supported Topics:
 ---
 
 # Next Priority
+## Issue #24 - Dataset Collection
 
-## AI-04 FAQ Management
+Status: In Progress
 
-[ ] FAQController
+Progress: 0 / 1000 samples
 
-[ ] FAQ List Page
+Current Target:
+- 100 FAQ MVP
 
-[ ] Create FAQ
+Completed:
+- FAQ Database
+- Knowledge Base Service
+- SQL Server Integration
 
-[ ] Edit FAQ
-
-[ ] Delete FAQ
-
-[ ] Search FAQ
-
----
-
-## AI-05 Expand Knowledge Base
-
-[ ] 100 FAQ entries
-
-[ ] Nutrition knowledge
-
-[ ] Workout knowledge
-
-[ ] Supplement knowledge
-
-[ ] Weight loss knowledge
-
-[ ] Muscle gain knowledge
-
----
-
-## AI-06 Semantic Search
-
-[ ] Keyword matching improvement
-
-[ ] Similarity search
-
-[ ] Embedding preparation
-
----
-
-# Demo Readiness
-
-Current Status:
-
-AI Prototype Working
-
-Confidence Level:
-
-70%
-
-Demo Capable:
-
-Yes
-
-Production Ready:
-
+Next:
+- Create train.jsonl
+- Create validation.jsonl
+- Build first 100 gym samples
 No

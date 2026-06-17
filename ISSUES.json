@@ -1,0 +1,434 @@
+{
+  "project": "Gym Management System",
+  "total_issues": 33,
+  "issues": [
+    {
+      "id": 1,
+      "title": "Project Setup & Solution Structure",
+      "milestone": "Week 1 - Foundation & Setup",
+      "assignee": "Phi",
+      "labels": [
+        "setup",
+        "frontend",
+        "backend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Project Setup & Solution Structure."
+    },
+    {
+      "id": 2,
+      "title": "Database Design",
+      "milestone": "Week 1 - Foundation & Setup",
+      "assignee": "Kiet",
+      "labels": [
+        "database",
+        "backend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Database Design."
+    },
+    {
+      "id": 3,
+      "title": "Entity Framework Core Configuration",
+      "milestone": "Week 1 - Foundation & Setup",
+      "assignee": "Kiet",
+      "labels": [
+        "database",
+        "backend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Entity Framework Core Configuration."
+    },
+    {
+      "id": 4,
+      "title": "Authentication Infrastructure",
+      "milestone": "Week 1 - Foundation & Setup",
+      "assignee": "QuangTrung",
+      "labels": [
+        "authentication",
+        "backend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Authentication Infrastructure."
+    },
+    {
+      "id": 5,
+      "title": "Project Documentation Setup",
+      "milestone": "Week 1 - Foundation & Setup",
+      "assignee": "VanQuang",
+      "labels": [
+        "documentation",
+        "setup",
+        "priority:medium"
+      ],
+      "story_points": 3,
+      "description": "Implement and complete Project Documentation Setup."
+    },
+    {
+      "id": 6,
+      "title": "Membership Package CRUD Backend",
+      "milestone": "Week 2 - Membership Management",
+      "assignee": "QuangTrung",
+      "labels": [
+        "feature",
+        "backend",
+        "membership",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Membership Package CRUD Backend."
+    },
+    {
+      "id": 7,
+      "title": "Membership Package UI",
+      "milestone": "Week 2 - Membership Management",
+      "assignee": "Phi",
+      "labels": [
+        "frontend",
+        "membership",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Membership Package UI."
+    },
+    {
+      "id": 8,
+      "title": "Membership Registration Module",
+      "milestone": "Week 2 - Membership Management",
+      "assignee": "Kiet",
+      "labels": [
+        "backend",
+        "membership",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Membership Registration Module."
+    },
+    {
+      "id": 9,
+      "title": "Membership Renewal Module",
+      "milestone": "Week 2 - Membership Management",
+      "assignee": "Kiet",
+      "labels": [
+        "backend",
+        "membership",
+        "priority:medium"
+      ],
+      "story_points": 3,
+      "description": "Implement and complete Membership Renewal Module."
+    },
+    {
+      "id": 10,
+      "title": "Membership Testing",
+      "milestone": "Week 2 - Membership Management",
+      "assignee": "HoangLong",
+      "labels": [
+        "testing",
+        "membership",
+        "priority:medium"
+      ],
+      "story_points": 3,
+      "description": "Implement and complete Membership Testing."
+    },
+    {
+      "id": 11,
+      "title": "Trainer CRUD Backend",
+      "milestone": "Week 3 - Trainer & Booking",
+      "assignee": "QuangTrung",
+      "labels": [
+        "backend",
+        "trainer",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Trainer CRUD Backend."
+    },
+    {
+      "id": 12,
+      "title": "Trainer Management UI",
+      "milestone": "Week 3 - Trainer & Booking",
+      "assignee": "Phi",
+      "labels": [
+        "frontend",
+        "trainer",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Trainer Management UI."
+    },
+    {
+      "id": 13,
+      "title": "Trainer Schedule Management",
+      "milestone": "Week 3 - Trainer & Booking",
+      "assignee": "Kiet",
+      "labels": [
+        "backend",
+        "trainer",
+        "booking",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Trainer Schedule Management."
+    },
+    {
+      "id": 14,
+      "title": "Booking Creation Module",
+      "milestone": "Week 3 - Trainer & Booking",
+      "assignee": "Kiet",
+      "labels": [
+        "backend",
+        "booking",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Booking Creation Module."
+    },
+    {
+      "id": 15,
+      "title": "Booking History Module",
+      "milestone": "Week 3 - Trainer & Booking",
+      "assignee": "Kiet",
+      "labels": [
+        "backend",
+        "booking",
+        "priority:medium"
+      ],
+      "story_points": 3,
+      "description": "Implement and complete Booking History Module."
+    },
+    {
+      "id": 16,
+      "title": "Booking UI",
+      "milestone": "Week 3 - Trainer & Booking",
+      "assignee": "Phi",
+      "labels": [
+        "frontend",
+        "booking",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Booking UI."
+    },
+    {
+      "id": 17,
+      "title": "Booking Testing",
+      "milestone": "Week 3 - Trainer & Booking",
+      "assignee": "HoangLong",
+      "labels": [
+        "testing",
+        "booking",
+        "priority:medium"
+      ],
+      "story_points": 3,
+      "description": "Implement and complete Booking Testing."
+    },
+    {
+      "id": 18,
+      "title": "Workout Progress Backend",
+      "milestone": "Week 4 - Progress & Payment",
+      "assignee": "Kiet",
+      "labels": [
+        "backend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Workout Progress Backend."
+    },
+    {
+      "id": 19,
+      "title": "Workout Progress UI",
+      "milestone": "Week 4 - Progress & Payment",
+      "assignee": "Phi",
+      "labels": [
+        "frontend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Workout Progress UI."
+    },
+    {
+      "id": 20,
+      "title": "VNPay Configuration",
+      "milestone": "Week 4 - Progress & Payment",
+      "assignee": "QuangTrung",
+      "labels": [
+        "payment",
+        "backend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete VNPay Configuration."
+    },
+    {
+      "id": 21,
+      "title": "Payment Processing",
+      "milestone": "Week 4 - Progress & Payment",
+      "assignee": "QuangTrung",
+      "labels": [
+        "payment",
+        "backend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Payment Processing."
+    },
+    {
+      "id": 22,
+      "title": "Payment History Module",
+      "milestone": "Week 4 - Progress & Payment",
+      "assignee": "Kiet",
+      "labels": [
+        "payment",
+        "backend",
+        "priority:medium"
+      ],
+      "story_points": 3,
+      "description": "Implement and complete Payment History Module."
+    },
+    {
+      "id": 23,
+      "title": "Payment Testing",
+      "milestone": "Week 4 - Progress & Payment",
+      "assignee": "HoangLong",
+      "labels": [
+        "testing",
+        "payment",
+        "priority:medium"
+      ],
+      "story_points": 3,
+      "description": "Implement and complete Payment Testing."
+    },
+    {
+      "id": 24,
+      "title": "Gym Dataset Collection",
+      "milestone": "Week 5 - AI Fitness Assistant",
+      "assignee": "VanQuang",
+      "labels": [
+        "ai",
+        "dataset",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Gym Dataset Collection."
+    },
+    {
+      "id": 25,
+      "title": "Fine-Tuning Pipeline",
+      "milestone": "Week 5 - AI Fitness Assistant",
+      "assignee": "Phi",
+      "labels": [
+        "ai",
+        "backend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Fine-Tuning Pipeline."
+    },
+    {
+      "id": 26,
+      "title": "AI Service Integration",
+      "milestone": "Week 5 - AI Fitness Assistant",
+      "assignee": "Phi",
+      "labels": [
+        "ai",
+        "backend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete AI Service Integration."
+    },
+    {
+      "id": 27,
+      "title": "Gemini Fallback Service",
+      "milestone": "Week 5 - AI Fitness Assistant",
+      "assignee": "QuangTrung",
+      "labels": [
+        "ai",
+        "backend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Gemini Fallback Service."
+    },
+    {
+      "id": 28,
+      "title": "AI Chat UI & Evaluation",
+      "milestone": "Week 5 - AI Fitness Assistant",
+      "assignee": "Phi",
+      "labels": [
+        "ai",
+        "frontend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete AI Chat UI & Evaluation."
+    },
+    {
+      "id": 29,
+      "title": "Dashboard Backend",
+      "milestone": "Week 6 - Dashboard & Release",
+      "assignee": "Kiet",
+      "labels": [
+        "dashboard",
+        "backend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Dashboard Backend."
+    },
+    {
+      "id": 30,
+      "title": "Dashboard Statistics",
+      "milestone": "Week 6 - Dashboard & Release",
+      "assignee": "Kiet",
+      "labels": [
+        "dashboard",
+        "backend",
+        "priority:medium"
+      ],
+      "story_points": 3,
+      "description": "Implement and complete Dashboard Statistics."
+    },
+    {
+      "id": 31,
+      "title": "Dashboard UI",
+      "milestone": "Week 6 - Dashboard & Release",
+      "assignee": "Phi",
+      "labels": [
+        "dashboard",
+        "frontend",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Dashboard UI."
+    },
+    {
+      "id": 32,
+      "title": "Documentation & User Manual",
+      "milestone": "Week 6 - Dashboard & Release",
+      "assignee": "VanQuang",
+      "labels": [
+        "documentation",
+        "priority:medium"
+      ],
+      "story_points": 3,
+      "description": "Implement and complete Documentation & User Manual."
+    },
+    {
+      "id": 33,
+      "title": "Final Release Preparation",
+      "milestone": "Week 6 - Dashboard & Release",
+      "assignee": "Phi",
+      "labels": [
+        "release",
+        "priority:high"
+      ],
+      "story_points": 5,
+      "description": "Implement and complete Final Release Preparation."
+    }
+  ]
+}

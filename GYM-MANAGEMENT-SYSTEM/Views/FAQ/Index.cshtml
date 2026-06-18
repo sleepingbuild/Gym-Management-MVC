@@ -1,0 +1,32 @@
+@model List<GYM_MANAGEMENT_SYSTEM.Models.FAQ>
+
+<h2>Danh sách FAQ</h2>
+
+<a asp-action="Create"
+   class="btn btn-success mb-3">
+    Thêm FAQ
+</a>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Câu hỏi</th>
+            <th>Trả lời</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    @foreach(var item in Model)
+    {
+        <tr>
+            <td>@item.Id</td>
+            <td>@item.Question</td>
+            <td>@item.Answer</td>
+        </tr>
+    }
+
+    </tbody>
+
+</table>

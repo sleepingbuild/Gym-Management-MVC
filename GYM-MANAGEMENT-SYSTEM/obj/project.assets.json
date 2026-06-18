@@ -4455,11 +4455,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\ADMIN\\source\\repos\\GYM-MANAGEMENT-SYSTEM\\GYM-MANAGEMENT-SYSTEM\\GYM-MANAGEMENT-SYSTEM.csproj",
+      "projectUniqueName": "C:\\Users\\ADMIN\\Desktop\\GYM-MANAGEMENT-SYSTEM\\GYM-MANAGEMENT-SYSTEM\\GYM-MANAGEMENT-SYSTEM.csproj",
       "projectName": "GYM-MANAGEMENT-SYSTEM",
-      "projectPath": "C:\\Users\\ADMIN\\source\\repos\\GYM-MANAGEMENT-SYSTEM\\GYM-MANAGEMENT-SYSTEM\\GYM-MANAGEMENT-SYSTEM.csproj",
+      "projectPath": "C:\\Users\\ADMIN\\Desktop\\GYM-MANAGEMENT-SYSTEM\\GYM-MANAGEMENT-SYSTEM\\GYM-MANAGEMENT-SYSTEM.csproj",
       "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\ADMIN\\source\\repos\\GYM-MANAGEMENT-SYSTEM\\GYM-MANAGEMENT-SYSTEM\\obj\\",
+      "outputPath": "C:\\Users\\ADMIN\\Desktop\\GYM-MANAGEMENT-SYSTEM\\GYM-MANAGEMENT-SYSTEM\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

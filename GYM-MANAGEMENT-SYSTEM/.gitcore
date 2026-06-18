@@ -1,12 +1,14 @@
+# Visual Studio
 .vs/
 bin/
 obj/
 
+# User files
 *.user
 *.suo
 
-packages/
+# Rider
+.idea/
 
-TestResults/
-
-publish/
+# VS Code
+.vscode/

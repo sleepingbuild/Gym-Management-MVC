@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: Microsoft.AspNetCore.Identity.UI.UIFrameworkAttribute("Bootstrap5")]
 [assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("aspnet-GYM_MANAGEMENT_SYSTEM-a875a8e7-a110-4a60-82ff-39f26b7d56a4")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("GYM-MANAGEMENT-SYSTEM")]
-[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3fc048d137990d7a6cc255732a0d68ed4dc70753")]
 [assembly: System.Reflection.AssemblyProductAttribute("GYM-MANAGEMENT-SYSTEM")]

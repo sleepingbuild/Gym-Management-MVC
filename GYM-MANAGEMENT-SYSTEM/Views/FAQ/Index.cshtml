@@ -1,7 +1,59 @@
 @model List<GYM_MANAGEMENT_SYSTEM.Models.FAQ>
 
 <h2>Danh sách FAQ</h2>
+<form method="get" class="mb-3">
 
+    <div class="row">
+
+        <div class="col-md-6">
+
+            <input type="text"
+                   name="search"
+                   value="@ViewBag.Search"
+                   class="form-control"
+                   placeholder="Nhập từ khóa..." />
+
+        </div>
+        <div class="col-md-3">
+
+            <select name="category"
+                    class="form-select">
+
+                <option value="">
+                    Tất cả danh mục
+                </option>
+                @foreach (var cat in ViewBag.Categories)
+                {
+                    if (ViewBag.Category == cat)
+                    {
+                        <option value="@cat" selected>
+                            @cat
+                        </option>
+                    }
+                    else
+                    {
+                        <option value="@cat">
+                            @cat
+                        </option>
+                    }
+                }
+
+            </select>
+
+        </div>
+
+        <div class="col-md-2">
+
+            <button type="submit"
+                    class="btn btn-primary">
+                Tìm kiếm
+            </button>
+
+        </div>
+
+    </div>
+
+</form>
 <a asp-action="Create"
    class="btn btn-success mb-3">
     Thêm FAQ
@@ -13,19 +65,36 @@
             <th>ID</th>
             <th>Câu hỏi</th>
             <th>Trả lời</th>
+            <th>Thao tác</th>
         </tr>
     </thead>
 
     <tbody>
 
-    @foreach(var item in Model)
-    {
-        <tr>
-            <td>@item.Id</td>
-            <td>@item.Question</td>
-            <td>@item.Answer</td>
-        </tr>
-    }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Question</td>
+                <td>@item.Answer</td>
+
+                <td>
+                    <a asp-action="Edit"
+                       asp-route-id="@item.Id"
+                       class="btn btn-warning btn-sm">
+                        Sửa
+                    </a>
+
+                    <a asp-action="Delete"
+                       asp-route-id="@item.Id"
+                       class="btn btn-danger btn-sm"
+                       onclick="return confirm('Bạn có chắc muốn xóa FAQ này?');">
+                        Xóa
+                    </a>
+                </td>
+
+            </tr>
+        }
 
     </tbody>
 

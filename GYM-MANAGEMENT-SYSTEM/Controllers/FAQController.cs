@@ -30,11 +30,32 @@ public class FAQController : Controller
         return Content($"Imported {count} FAQs");
     }
 
-    public IActionResult Index()
+    public IActionResult Index(string search, string category)
     {
-        var faqs = _context.FAQs.ToList();
+        ViewBag.Search = search;
+        ViewBag.Category = category;
 
-        return View(faqs);
+        var faqs = _context.FAQs.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            faqs = faqs.Where(x =>
+                x.Question.Contains(search) ||
+                x.Answer.Contains(search));
+        }
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            faqs = faqs.Where(x =>
+                x.Category == category);
+        }
+
+        ViewBag.Categories = _context.FAQs
+            .Select(x => x.Category)
+            .Distinct()
+            .ToList();
+
+        return View(faqs.ToList());
     }
 
     [HttpGet]

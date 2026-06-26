@@ -1,0 +1,953 @@
+﻿/* ========================================
+   FITNESS STYLE - GYM MANAGEMENT SYSTEM
+======================================== */
+
+/* ===== IMPORT FONTS ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@700;800;900&display=swap');
+
+/* ===== ROOT VARIABLES ===== */
+:root {
+    /* Orange Palette */
+    --orange-primary: #FF6B00;
+    --orange-primary-dark: #E55A00;
+    --orange-primary-light: #FF8C38;
+    --orange-neon: #FF4500;
+    --orange-gradient: linear-gradient(135deg, #FF6B00, #FF8C00);
+    --orange-gradient-dark: linear-gradient(135deg, #E55A00, #FF6B00);
+    --orange-gradient-light: linear-gradient(135deg, #FF8C38, #FFA55A);
+    --orange-glow: 0 0 30px rgba(255, 107, 0, 0.3);
+    /* Dark Palette */
+    --dark-bg: #0A0A0A;
+    --dark-card: #1A1A1A;
+    --dark-card-hover: #2A2A2A;
+    --dark-border: #2C2C2C;
+    --dark-border-light: #3D3D3D;
+    /* Light Palette */
+    --light-bg: #F8F6F5;
+    --text-light: #FFFFFF;
+    --text-dark: #1A1A1A;
+    --text-muted: #AAAAAA;
+    --text-muted-light: #888888;
+    /* Status Colors */
+    --success-green: #00E676;
+    --success-green-dark: #00C853;
+    --success-gradient: linear-gradient(135deg, #00E676, #00C853);
+    --error-red: #FF1744;
+    --error-red-dark: #D50000;
+    --error-gradient: linear-gradient(135deg, #FF1744, #D50000);
+    --info-blue: #2979FF;
+    --info-gradient: linear-gradient(135deg, #2979FF, #0D47A1);
+    --warning-yellow: #FFD700;
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
+    --shadow-orange: 0 4px 25px rgba(255, 107, 0, 0.4);
+    --shadow-orange-lg: 0 8px 40px rgba(255, 107, 0, 0.5);
+}
+
+/* ===== GLOBAL STYLES ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: var(--dark-bg);
+    color: var(--text-light);
+    min-height: 100vh;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--dark-card);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--orange-gradient);
+    border-radius: 10px;
+}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--orange-primary-dark);
+    }
+
+/* ===== HEADINGS ===== */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.fitness-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    background: var(--orange-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+}
+
+.fitness-subtitle {
+    color: var(--text-muted);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+}
+
+/* ===== NAVBAR ===== */
+.navbar-fitness {
+    background: var(--dark-bg) !important;
+    border-bottom: 3px solid var(--orange-primary);
+    padding: 0.8rem 0;
+    box-shadow: 0 4px 30px rgba(255, 107, 0, 0.15);
+}
+
+    .navbar-fitness .navbar-brand {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 900;
+        font-size: 1.6rem;
+        color: var(--text-light) !important;
+        padding: 0.5rem 0;
+    }
+
+        .navbar-fitness .navbar-brand span {
+            background: var(--orange-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .navbar-fitness .navbar-brand i {
+            color: var(--orange-primary);
+            margin-right: 8px;
+        }
+
+    .navbar-fitness .nav-link {
+        color: var(--text-muted) !important;
+        font-weight: 600;
+        padding: 0.7rem 1.2rem !important;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+        .navbar-fitness .nav-link:hover,
+        .navbar-fitness .nav-link.active {
+            color: var(--text-light) !important;
+            background: rgba(255, 107, 0, 0.1);
+        }
+
+        .navbar-fitness .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: var(--orange-gradient);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+            border-radius: 10px;
+        }
+
+        .navbar-fitness .nav-link:hover::after,
+        .navbar-fitness .nav-link.active::after {
+            width: 60%;
+        }
+
+    /* Dropdown Menu */
+    .navbar-fitness .dropdown-menu {
+        background: var(--dark-card);
+        border: 1px solid var(--dark-border);
+        border-radius: 12px;
+        padding: 0.5rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .navbar-fitness .dropdown-item {
+        color: var(--text-muted);
+        border-radius: 8px;
+        padding: 0.6rem 1.2rem;
+        transition: all 0.3s ease;
+    }
+
+        .navbar-fitness .dropdown-item:hover {
+            background: rgba(255, 107, 0, 0.15);
+            color: var(--text-light);
+        }
+
+    .navbar-fitness .dropdown-divider {
+        border-color: var(--dark-border);
+    }
+
+/* ===== BUTTONS ===== */
+.btn-fitness-primary {
+    background: var(--orange-gradient);
+    color: var(--text-light);
+    border: none;
+    padding: 12px 32px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-orange);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+    .btn-fitness-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn-fitness-primary:hover::before {
+        left: 100%;
+    }
+
+    .btn-fitness-primary:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: var(--shadow-orange-lg);
+        color: var(--text-light);
+    }
+
+    .btn-fitness-primary:active {
+        transform: translateY(0) scale(0.98);
+    }
+
+.btn-fitness-secondary {
+    background: transparent;
+    color: var(--text-light);
+    border: 2px solid var(--orange-primary);
+    padding: 10px 28px;
+    border-radius: 50px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+    .btn-fitness-secondary:hover {
+        background: var(--orange-gradient);
+        border-color: transparent;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-orange);
+        color: var(--text-light);
+    }
+
+.btn-fitness-success {
+    background: var(--success-gradient);
+    color: var(--text-light);
+    border: none;
+    padding: 10px 28px;
+    border-radius: 50px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 230, 118, 0.3);
+}
+
+    .btn-fitness-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 30px rgba(0, 230, 118, 0.4);
+        color: var(--text-light);
+    }
+
+.btn-fitness-danger {
+    background: var(--error-gradient);
+    color: var(--text-light);
+    border: none;
+    padding: 10px 28px;
+    border-radius: 50px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(255, 23, 68, 0.3);
+}
+
+    .btn-fitness-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 30px rgba(255, 23, 68, 0.4);
+        color: var(--text-light);
+    }
+
+.btn-fitness-outline-light {
+    background: transparent;
+    color: var(--text-light);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+    .btn-fitness-outline-light:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--text-light);
+        color: var(--text-light);
+    }
+
+/* ===== CARDS ===== */
+.card-fitness {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: var(--shadow-sm);
+}
+
+    .card-fitness:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--orange-primary);
+    }
+
+    .card-fitness .card-header {
+        background: var(--orange-gradient);
+        color: var(--text-light);
+        padding: 1.2rem 1.5rem;
+        border: none;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+        .card-fitness .card-header i {
+            margin-right: 10px;
+        }
+
+    .card-fitness .card-body {
+        padding: 1.8rem;
+    }
+
+    .card-fitness .card-footer {
+        background: rgba(255, 107, 0, 0.05);
+        border-top: 1px solid var(--dark-border);
+        padding: 1rem 1.5rem;
+    }
+
+/* Card Glow Effect */
+.card-fitness-glow {
+    border-color: var(--orange-primary);
+    box-shadow: var(--shadow-orange);
+}
+
+/* ===== FORM STYLES ===== */
+.form-fitness {
+    background: var(--dark-card);
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid var(--dark-border);
+}
+
+    .form-fitness .form-label {
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.9rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 0.3rem;
+    }
+
+    .form-fitness .form-control {
+        background: var(--dark-bg);
+        border: 2px solid var(--dark-border);
+        border-radius: 12px;
+        color: var(--text-light);
+        padding: 12px 16px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-fitness .form-control:focus {
+            background: var(--dark-bg);
+            border-color: var(--orange-primary);
+            color: var(--text-light);
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.15);
+        }
+
+        .form-fitness .form-control::placeholder {
+            color: var(--text-muted-light);
+        }
+
+    .form-fitness .input-group-text {
+        background: var(--dark-bg);
+        border: 2px solid var(--dark-border);
+        border-right: none;
+        color: var(--orange-primary);
+        border-radius: 12px 0 0 12px;
+    }
+
+    .form-fitness .input-group .form-control {
+        border-radius: 0 12px 12px 0;
+        border-left: none;
+    }
+
+    .form-fitness .form-check-input {
+        background-color: var(--dark-bg);
+        border: 2px solid var(--dark-border);
+    }
+
+        .form-fitness .form-check-input:checked {
+            background-color: var(--orange-primary);
+            border-color: var(--orange-primary);
+        }
+
+    .form-fitness .form-check-label {
+        color: var(--text-muted);
+    }
+
+/* ===== AUTH PAGES (Login/Register) ===== */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    background: var(--dark-bg);
+    position: relative;
+    overflow: hidden;
+}
+
+    /* Animated background */
+    .auth-wrapper::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -30%;
+        width: 800px;
+        height: 800px;
+        background: radial-gradient(circle, rgba(255, 107, 0, 0.08), transparent 70%);
+        border-radius: 50%;
+        animation: pulseGlow 8s ease-in-out infinite;
+    }
+
+    .auth-wrapper::after {
+        content: '';
+        position: absolute;
+        bottom: -40%;
+        left: -20%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(255, 68, 0, 0.05), transparent 70%);
+        border-radius: 50%;
+        animation: pulseGlow 10s ease-in-out infinite reverse;
+    }
+
+@keyframes pulseGlow {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.5;
+    }
+}
+
+.auth-card {
+    position: relative;
+    z-index: 1;
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 24px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    max-width: 450px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+    .auth-card .auth-header {
+        background: var(--orange-gradient);
+        padding: 2rem 2rem 1.5rem;
+        text-align: center;
+    }
+
+        .auth-card .auth-header .auth-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2.5rem;
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .auth-card .auth-header h3 {
+            color: white;
+            font-weight: 800;
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .auth-card .auth-header p {
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+    .auth-card .auth-body {
+        padding: 2rem;
+    }
+
+    .auth-card .auth-footer {
+        padding: 1.2rem 2rem;
+        background: rgba(255, 107, 0, 0.05);
+        border-top: 1px solid var(--dark-border);
+        text-align: center;
+    }
+
+        .auth-card .auth-footer a {
+            color: var(--orange-primary);
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+            .auth-card .auth-footer a:hover {
+                color: var(--orange-primary-light);
+            }
+
+/* ===== AI CHAT STYLES ===== */
+.chat-fitness-container {
+    background: var(--dark-card);
+    border-radius: 16px;
+    border: 1px solid var(--dark-border);
+    overflow: hidden;
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-fitness-header {
+    background: var(--orange-gradient);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+    .chat-fitness-header .chat-avatar {
+        width: 45px;
+        height: 45px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .chat-fitness-header h5 {
+        color: white;
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .chat-fitness-header .chat-status {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.8rem;
+    }
+
+.chat-fitness-messages {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--dark-bg);
+}
+
+.chat-message-user {
+    align-self: flex-end;
+    background: var(--dark-border);
+    color: var(--text-light);
+    padding: 12px 18px;
+    border-radius: 18px 18px 4px 18px;
+    max-width: 80%;
+    border: 1px solid var(--dark-border-light);
+}
+
+.chat-message-ai {
+    align-self: flex-start;
+    background: var(--orange-gradient);
+    color: white;
+    padding: 12px 18px;
+    border-radius: 18px 18px 18px 4px;
+    max-width: 80%;
+}
+
+.chat-fitness-input {
+    padding: 1rem 1.5rem;
+    background: var(--dark-bg);
+    border-top: 1px solid var(--dark-border);
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+    .chat-fitness-input input {
+        flex: 1;
+        background: var(--dark-card);
+        border: 2px solid var(--dark-border);
+        border-radius: 50px;
+        color: var(--text-light);
+        padding: 12px 20px;
+        transition: all 0.3s ease;
+    }
+
+        .chat-fitness-input input:focus {
+            border-color: var(--orange-primary);
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.15);
+            outline: none;
+        }
+
+    .chat-fitness-input .btn-send {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--orange-gradient);
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+        .chat-fitness-input .btn-send:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-orange);
+        }
+
+/* ===== DASHBOARD STATS ===== */
+.stat-card {
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--orange-gradient);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stat-card .stat-icon {
+        width: 55px;
+        height: 55px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+        .stat-card .stat-icon.orange {
+            background: rgba(255, 107, 0, 0.15);
+            color: var(--orange-primary);
+        }
+
+        .stat-card .stat-icon.green {
+            background: rgba(0, 230, 118, 0.15);
+            color: var(--success-green);
+        }
+
+        .stat-card .stat-icon.blue {
+            background: rgba(41, 121, 255, 0.15);
+            color: var(--info-blue);
+        }
+
+        .stat-card .stat-icon.yellow {
+            background: rgba(255, 215, 0, 0.15);
+            color: var(--warning-yellow);
+        }
+
+    .stat-card .stat-number {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--text-light);
+        margin: 0;
+    }
+
+    .stat-card .stat-label {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin: 0;
+    }
+
+    .stat-card .stat-change {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 2px 12px;
+        border-radius: 50px;
+        display: inline-block;
+        margin-top: 0.5rem;
+    }
+
+        .stat-card .stat-change.positive {
+            color: var(--success-green);
+            background: rgba(0, 230, 118, 0.1);
+        }
+
+        .stat-card .stat-change.negative {
+            color: var(--error-red);
+            background: rgba(255, 23, 68, 0.1);
+        }
+
+/* ===== TABLE STYLES ===== */
+.table-fitness {
+    background: var(--dark-card);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--dark-border);
+}
+
+    .table-fitness thead {
+        background: var(--orange-gradient);
+        color: white;
+    }
+
+        .table-fitness thead th {
+            padding: 1rem 1.2rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: none;
+        }
+
+    .table-fitness tbody td {
+        padding: 1rem 1.2rem;
+        color: var(--text-light);
+        border-bottom: 1px solid var(--dark-border);
+        vertical-align: middle;
+    }
+
+    .table-fitness tbody tr {
+        transition: all 0.3s ease;
+    }
+
+        .table-fitness tbody tr:hover {
+            background: rgba(255, 107, 0, 0.05);
+        }
+
+        .table-fitness tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+/* ===== BADGES ===== */
+.badge-fitness {
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+    .badge-fitness.orange {
+        background: var(--orange-gradient);
+        color: white;
+    }
+
+    .badge-fitness.green {
+        background: var(--success-gradient);
+        color: white;
+    }
+
+    .badge-fitness.red {
+        background: var(--error-gradient);
+        color: white;
+    }
+
+    .badge-fitness.blue {
+        background: var(--info-gradient);
+        color: white;
+    }
+
+    .badge-fitness.yellow {
+        background: linear-gradient(135deg, #FFD700, #FFA000);
+        color: var(--text-dark);
+    }
+
+    .badge-fitness.dark {
+        background: var(--dark-border);
+        color: var(--text-light);
+    }
+
+/* ===== PRICING CARDS ===== */
+.pricing-card {
+    background: var(--dark-card);
+    border: 2px solid var(--dark-border);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.4s ease;
+    position: relative;
+}
+
+    .pricing-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--orange-primary);
+        box-shadow: var(--shadow-orange);
+    }
+
+    .pricing-card.popular {
+        border-color: var(--orange-primary);
+        box-shadow: var(--shadow-orange);
+    }
+
+    .pricing-card .pricing-badge {
+        position: absolute;
+        top: -12px;
+        right: 20px;
+        background: var(--orange-gradient);
+        color: white;
+        padding: 4px 20px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+    }
+
+    .pricing-card .pricing-name {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+    }
+
+    .pricing-card .pricing-price {
+        font-size: 3rem;
+        font-weight: 900;
+        color: var(--orange-primary);
+        margin: 0.5rem 0;
+    }
+
+        .pricing-card .pricing-price span {
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+    .pricing-card .pricing-features {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0;
+        text-align: left;
+    }
+
+        .pricing-card .pricing-features li {
+            padding: 0.5rem 0;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .pricing-card .pricing-features li i {
+                color: var(--orange-primary);
+                font-size: 1rem;
+            }
+
+/* ===== FOOTER ===== */
+.footer-fitness {
+    background: var(--dark-bg);
+    border-top: 3px solid var(--orange-primary);
+    padding: 3rem 0 1.5rem;
+    margin-top: 3rem;
+}
+
+    .footer-fitness .footer-brand {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 900;
+        font-size: 1.5rem;
+        color: var(--text-light);
+    }
+
+        .footer-fitness .footer-brand span {
+            background: var(--orange-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+    .footer-fitness .footer-text {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .footer-fitness .footer-links a {
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: color 0.3s;
+        display: block;
+        padding: 0.2rem 0;
+    }
+
+        .footer-fitness .footer-links a:hover {
+            color: var(--orange-primary);
+        }
+
+    .footer-fitness .footer-bottom {
+        border-top: 1px solid var(--dark-border);
+        padding-top: 1.5rem;
+        margin-top: 2rem;
+        color: var(--text-muted-light);
+        font-size: 0.85rem;
+    }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .auth-card {
+        margin: 1rem;
+        max-width: 100%;
+    }
+
+    .stat-card .stat-number {
+        font-size: 1.6rem;
+    }
+
+    .pricing-card {
+        margin-bottom: 1.5rem;
+    }
+
+    .navbar-fitness .navbar-brand {
+        font-size: 1.2rem;
+    }
+}

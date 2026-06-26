@@ -1,0 +1,38 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.Models.FAQ
+
+<h2>Sửa FAQ</h2>
+
+<form method="post">
+
+    <input asp-for="Id" type="hidden" />
+
+    <div class="mb-3">
+        <label>Câu hỏi</label>
+        <input asp-for="Question"
+               class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Trả lời</label>
+        <textarea asp-for="Answer"
+                  rows="5"
+                  class="form-control"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label>Danh mục</label>
+        <input asp-for="Category"
+               class="form-control" />
+    </div>
+
+    <button type="submit"
+            class="btn btn-warning">
+        Cập nhật
+    </button>
+
+    <a asp-action="Index"
+       class="btn btn-secondary">
+        Quay lại
+    </a>
+
+</form>

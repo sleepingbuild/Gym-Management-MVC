@@ -16,6 +16,9 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<KnowledgeBaseService>();
+
+builder.Services.AddScoped<DatasetImportService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

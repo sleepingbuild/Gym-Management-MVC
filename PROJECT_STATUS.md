@@ -118,26 +118,26 @@ Supported Topics:
 * Creatine
 * Other FAQ records in database
 
+## Completed Today
+
+### FAQ Management
+- FAQ List
+- FAQ Create
+- FAQ Edit
+- FAQ Delete
+
+### AI Knowledge Base
+- Database FAQ Storage
+- Dataset Import Service
+- JSON Dataset Import
+- Chat History
+
+### Current Progress
+Issue #24: In Progress
+Issue #26: In Progress
 ---
 
 # Next Priority
-
-## AI-04 FAQ Management
-
-[ ] FAQController
-
-[ ] FAQ List Page
-
-[ ] Create FAQ
-
-[ ] Edit FAQ
-
-[ ] Delete FAQ
-
-[ ] Search FAQ
-
----
-
 ## AI-05 Expand Knowledge Base
 
 [ ] 100 FAQ entries

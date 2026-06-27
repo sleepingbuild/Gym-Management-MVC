@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace GYM_MANAGEMENT_SYSTEM.Views.Package
+namespace GYM_MANAGEMENT_SYSTEM.Views.Membership
 {
-    public class DetailsModel : PageModel
+    public class RegisterModel : PageModel
     {
         public void OnGet()
         {

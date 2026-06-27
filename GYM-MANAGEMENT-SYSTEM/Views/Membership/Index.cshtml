@@ -1,0 +1,111 @@
+﻿@model IEnumerable<GYM_MANAGEMENT_SYSTEM.ViewModels.UserMembershipViewModel>
+@{
+    ViewData["Title"] = "Gói tập của tôi";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fitness-title">💪 Gói tập của tôi</h1>
+            <p class="text-muted">Quản lý gói tập luyện của bạn</p>
+        </div>
+        @if (ViewBag.HasActive != null && ViewBag.HasActive == false)
+        {
+            <a asp-action="Register" class="btn btn-fitness-primary">
+                <i class="fas fa-plus-circle me-2"></i>Đăng ký gói tập
+            </a>
+        }
+    </div>
+
+    <!-- Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Membership Cards -->
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var membership in Model)
+            {
+                <div class="col-lg-6 mb-4">
+                    <div class="card-fitness">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h4 class="text-white">@membership.PackageName</h4>
+                                    <p class="text-muted">@membership.PriceFormatted</p>
+                                </div>
+                                <span class="badge-fitness @membership.StatusBadgeClass">
+                                    @membership.Status
+                                </span>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Ngày bắt đầu</small>
+                                    <p class="text-white">@membership.StartDate.ToString("dd/MM/yyyy")</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Ngày kết thúc</small>
+                                    <p class="text-white">@membership.EndDate.ToString("dd/MM/yyyy")</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-2">
+                                <small class="text-muted">Trạng thái:</small>
+                                <span class="badge-fitness @membership.StatusBadgeClass">
+                                    @membership.DaysRemainingDisplay
+                                </span>
+                            </div>
+
+                            <div class="mt-3 d-flex gap-2">
+                                @if (membership.IsActive)
+                                {
+                                    <form asp-action="Cancel" asp-route-id="@membership.Id" method="post" style="flex:1;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-fitness-danger w-100"
+                                                onclick="return confirm('Bạn có chắc muốn hủy gói tập này?')">
+                                            <i class="fas fa-times me-2"></i>Hủy gói
+                                        </button>
+                                    </form>
+                                }
+                                @if (membership.IsActive && membership.DaysRemaining <= 7)
+                                {
+                                    <form asp-action="Renew" asp-route-id="@membership.Id" method="post" style="flex:1;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-fitness-success w-100">
+                                            <i class="fas fa-sync me-2"></i>Gia hạn
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-ticket-alt" style="font-size: 4rem; color: var(--text-muted);"></i>
+            <h4 class="text-muted mt-3">Bạn chưa có gói tập nào</h4>
+            <p class="text-muted">Đăng ký ngay để bắt đầu tập luyện</p>
+            <a asp-action="Register" class="btn btn-fitness-primary mt-3">
+                <i class="fas fa-plus-circle me-2"></i>Đăng ký gói tập
+            </a>
+        </div>
+    }
+</div>

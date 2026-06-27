@@ -63,7 +63,8 @@
                             </li>
                             <li>
                                 <i class="fas fa-clock"></i>
-                                <span>Trạng thái: 
+                                <span>
+                                    Trạng thái:
                                     <span class="badge-fitness @(package.IsActive ? "green" : "red")">
                                         @package.StatusText
                                     </span>
@@ -76,13 +77,13 @@
                         </ul>
 
                         <div class="d-flex gap-2 mt-3">
-                            <a asp-action="Edit" asp-route-id="@package.Id" 
+                            <a asp-action="Edit" asp-route-id="@package.Id"
                                class="btn btn-fitness-secondary flex-grow-1" style="padding: 8px 16px; font-size: 0.9rem;">
                                 <i class="fas fa-edit"></i> Sửa
                             </a>
                             <form asp-action="ToggleStatus" asp-route-id="@package.Id" method="post" style="flex:1;">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn @(package.IsActive ? "btn-fitness-danger" : "btn-fitness-success") w-100" 
+                                <button type="submit" class="btn @(package.IsActive ? "btn-fitness-danger" : "btn-fitness-success") w-100"
                                         style="padding: 8px 16px; font-size: 0.9rem;">
                                     <i class="fas @(package.IsActive ? "fa-lock" : "fa-unlock")"></i>
                                     @(package.IsActive ? "Khóa" : "Mở khóa")
@@ -90,7 +91,7 @@
                             </form>
                             <form asp-action="Delete" asp-route-id="@package.Id" method="post" style="flex:0.5;">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-fitness-danger" 
+                                <button type="submit" class="btn btn-fitness-danger"
                                         style="padding: 8px 16px; font-size: 0.9rem;"
                                         onclick="return confirm('Bạn có chắc muốn xóa gói tập này?')">
                                     <i class="fas fa-trash"></i>

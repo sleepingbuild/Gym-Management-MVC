@@ -21,9 +21,11 @@ builder.Services.AddScoped<KnowledgeBaseService>();
 
 builder.Services.AddScoped<DatasetImportService>();
 
-// Thêm vào phần Đăng ký các Service
 builder.Services.AddScoped<IMembershipPackageRepository, MembershipPackageRepository>();
 builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>();
+
+builder.Services.AddScoped<IMembershipRepository, MembershipRepository>();
+builder.Services.AddScoped<IMembershipService, MembershipService>();
 
 var app = builder.Build();
 

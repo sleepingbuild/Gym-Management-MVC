@@ -1,445 +1,181 @@
-
 # Gym Management System Roadmap
 
-Project Duration: 6 Weeks
-
-Development Methodology: Agile Sprint-Based Development
-
-Repository Strategy:
-
-* main → Stable Release
-* develop → Integration Branch
-* feature/* → Feature Development
+**Project Duration:** 6 Weeks  
+**Development Methodology:** Agile Sprint-Based Development  
+**Current Status:** Phase 1 Completed ✅
 
 ---
 
-# Team Responsibilities
+## Repository Strategy
 
-## Phi
-
-Role:
-
-* Team Leader
-* Frontend Lead
-* AI Lead
-
-Responsibilities:
-
-* UI/UX Development
-* Dashboard Development
-* AI Chatbot Development
-* Integration Review
-* Final Release
+- `main` → Stable Release
+- `develop` → Integration Branch
+- `feature/*` → Feature Development
 
 ---
 
-## Quang Trung
+## Team Responsibilities
 
-Role:
+### Phi
+- Team Leader
+- Frontend Lead
+- AI Lead
+- UI/UX Development
+- Dashboard Development
+- AI Chatbot Development
 
-* Backend Developer
+### Quang Trung
+- Backend Developer
+- Authentication
+- Membership Module
+- Trainer Module
+- Payment Integration
 
-Responsibilities:
+### Kiệt
+- Backend Developer
+- Database
+- Booking Module
+- Workout Progress
+- Dashboard Statistics
 
-* Authentication
-* Membership Module
-* Trainer Module
-* Payment Integration
+### Văn Quang
+- AI Support
+- Documentation
+- Knowledge Base
+- AI Testing Support
 
----
-
-## Kiệt
-
-Role:
-
-* Backend Developer
-
-Responsibilities:
-
-* Database
-* Booking Module
-* Workout Progress
-* Dashboard Statistics
-
----
-
-## Văn Quang
-
-Role:
-
-* AI Support
-* Documentation
-
-Responsibilities:
-
-* Knowledge Base
-* Documentation
-* AI Testing Support
+### Hoàng Long
+- Tester
+- Documentation Support
+- System Testing
+- User Manual
 
 ---
 
-## Hoàng Long
+## Milestone 1 — Foundation & Setup ✅ (Completed)
 
-Role:
+**Duration:** Week 1
 
-* Tester
-* Documentation Support
+| Issue | Title | Owner | Status |
+|-------|-------|-------|--------|
+| #1 | Project Setup & Solution Structure | Phi | ✅ Done |
+| #2 | Database Design | Kiệt | ✅ Done |
+| #3 | Entity Framework Core Configuration | Kiệt | ✅ Done |
+| #4 | Authentication Infrastructure | Quang Trung | ✅ Done |
+| #5 | Project Documentation Setup | Văn Quang + Hoàng Long | ✅ Done |
 
-Responsibilities:
-
-* System Testing
-* Bug Reporting
-* User Manual
-* Acceptance Testing
-
----
-
-# Milestone 1 — Foundation & Setup
-
-Duration: Week 1
-
-Goal:
-
-Setup development environment, database architecture and authentication infrastructure.
-
-Issues:
-
-### Issue #1
-
-Project Setup & Solution Structure
-
-Owner: Phi
-
-### Issue #2
-
-Database Design
-
-Owner: Kiệt
-
-### Issue #3
-
-Entity Framework Core Configuration
-
-Owner: Kiệt
-
-### Issue #4
-
-Authentication Infrastructure
-
-Owner: Quang Trung
-
-### Issue #5
-
-Project Documentation Setup
-
-Owner: Văn Quang + Hoàng Long
-
-Deliverables:
-
-* Solution Structure
-* Database Schema
-* Initial Migration
-* Authentication Setup
-* Core Documentation
+**Deliverables:**
+- [x] Solution Structure
+- [x] Database Schema
+- [x] Initial Migration
+- [x] Authentication Setup
+- [x] Core Documentation
 
 ---
 
-# Milestone 2 — Membership Management
+## Milestone 2 — Membership Management 🔄 (In Progress)
 
-Duration: Week 2
+**Duration:** Week 2
 
-Goal:
+| Issue | Title | Owner | Status |
+|-------|-------|-------|--------|
+| #6 | Membership Package CRUD Backend | Quang Trung | ⏳ Pending |
+| #7 | Membership Package UI | Phi | ⏳ Pending |
+| #8 | Membership Registration Module | Kiệt | ⏳ Pending |
+| #9 | Membership Renewal Module | Kiệt | ⏳ Pending |
+| #10 | Membership Testing | Hoàng Long | ⏳ Pending |
 
-Develop membership management module.
-
-Issues:
-
-### Issue #6
-
-Membership Package CRUD Backend
-
-Owner: Quang Trung
-
-### Issue #7
-
-Membership Package UI
-
-Owner: Phi
-
-### Issue #8
-
-Membership Registration Module
-
-Owner: Kiệt
-
-### Issue #9
-
-Membership Renewal Module
-
-Owner: Kiệt
-
-### Issue #10
-
-Membership Testing
-
-Owner: Hoàng Long
-
-Deliverables:
-
-* Membership Package Management
-* Membership Registration
-* Membership Renewal
-* Membership Validation
+**Deliverables:**
+- [ ] Membership Package Management
+- [ ] Membership Registration
+- [ ] Membership Renewal
+- [ ] Membership Validation
 
 ---
 
-# Milestone 3 — Trainer & Booking
+## Milestone 3 — Trainer & Booking (Week 3)
 
-Duration: Week 3
-
-Goal:
-
-Develop trainer management and booking system.
-
-Issues:
-
-### Issue #11
-
-Trainer CRUD Backend
-
-Owner: Quang Trung
-
-### Issue #12
-
-Trainer Management UI
-
-Owner: Phi
-
-### Issue #13
-
-Trainer Schedule Module
-
-Owner: Kiệt
-
-### Issue #14
-
-Booking Creation Module
-
-Owner: Kiệt
-
-### Issue #15
-
-Booking Cancellation & History
-
-Owner: Kiệt
-
-### Issue #16
-
-Booking UI
-
-Owner: Phi
-
-### Issue #17
-
-Booking Testing
-
-Owner: Hoàng Long
-
-Deliverables:
-
-* Trainer Management
-* Scheduling
-* Booking System
+| Issue | Title | Owner | Status |
+|-------|-------|-------|--------|
+| #11 | Trainer CRUD Backend | Quang Trung | ⏳ Pending |
+| #12 | Trainer Management UI | Phi | ⏳ Pending |
+| #13 | Trainer Schedule Module | Kiệt | ⏳ Pending |
+| #14 | Booking Creation Module | Kiệt | ⏳ Pending |
+| #15 | Booking Cancellation & History | Kiệt | ⏳ Pending |
+| #16 | Booking UI | Phi | ⏳ Pending |
+| #17 | Booking Testing | Hoàng Long | ⏳ Pending |
 
 ---
 
-# Milestone 4 — Progress & Payment
+## Milestone 4 — Progress & Payment (Week 4)
 
-Duration: Week 4
-
-Goal:
-
-Implement workout tracking and payment system.
-
-Issues:
-
-### Issue #18
-
-Workout Progress Backend
-
-Owner: Kiệt
-
-### Issue #19
-
-Workout Progress UI
-
-Owner: Phi
-
-### Issue #20
-
-VNPay Configuration
-
-Owner: Quang Trung
-
-### Issue #21
-
-VNPay Payment Processing
-
-Owner: Quang Trung
-
-### Issue #22
-
-Payment Testing
-
-Owner: Hoàng Long
-
-Deliverables:
-
-* Workout Tracking
-* Payment Processing
-* Payment Validation
+| Issue | Title | Owner | Status |
+|-------|-------|-------|--------|
+| #18 | Workout Progress Backend | Kiệt | ⏳ Pending |
+| #19 | Workout Progress UI | Phi | ⏳ Pending |
+| #20 | VNPay Configuration | Quang Trung | ⏳ Pending |
+| #21 | VNPay Payment Processing | Quang Trung | ⏳ Pending |
+| #22 | Payment Testing | Hoàng Long | ⏳ Pending |
 
 ---
 
-# Milestone 5 — AI Chatbot
+## Milestone 5 — AI Fitness Assistant (Week 5)
 
-Duration: Week 5
-
-Goal:
-
-Develop AI Fitness Assistant.
-
-Issues:
-
-### Issue #23
-
-Knowledge Base Preparation
-
-Owner: Văn Quang
-
-### Issue #24
-
-RAG Retrieval Service
-
-Owner: Phi
-
-### Issue #25
-
-Gemini API Integration
-
-Owner: Phi
-
-### Issue #26
-
-Chat History Module
-
-Owner: Quang Trung
-
-### Issue #27
-
-AI Chat Interface
-
-Owner: Phi
-
-### Issue #28
-
-AI Testing
-
-Owner: Văn Quang + Hoàng Long
-
-Deliverables:
-
-* AI Chatbot
-* RAG Pipeline
-* Knowledge Base
-* Chat History
+| Issue | Title | Owner | Status |
+|-------|-------|-------|--------|
+| #23 | Knowledge Base Preparation | Văn Quang | ✅ Done |
+| #24 | RAG Retrieval Service | Phi | ✅ Done |
+| #25 | Gemini API Integration | Phi | ✅ Done |
+| #26 | Chat History Module | Quang Trung | ✅ Done |
+| #27 | AI Chat Interface | Phi | ✅ Done |
+| #28 | AI Testing | Văn Quang + Hoàng Long | ⏳ Pending |
 
 ---
 
-# Milestone 6 — Dashboard & Release
+## Milestone 6 — Dashboard & Release (Week 6)
 
-Duration: Week 6
-
-Goal:
-
-Finalize project and prepare for defense.
-
-Issues:
-
-### Issue #29
-
-Dashboard Statistics Backend
-
-Owner: Kiệt
-
-### Issue #30
-
-Dashboard UI
-
-Owner: Phi
-
-### Issue #31
-
-System Integration Testing
-
-Owner: Hoàng Long
-
-### Issue #32
-
-User Manual & Documentation
-
-Owner: Văn Quang
-
-### Issue #33
-
-Release Preparation
-
-Owner: Phi
-
-Deliverables:
-
-* Dashboard
-* Final Documentation
-* User Manual
-* Release v1.0.0
+| Issue | Title | Owner | Status |
+|-------|-------|-------|--------|
+| #29 | Dashboard Statistics Backend | Kiệt | ⏳ Pending |
+| #30 | Dashboard UI | Phi | ⏳ Pending |
+| #31 | System Integration Testing | Hoàng Long | ⏳ Pending |
+| #32 | User Manual & Documentation | Văn Quang | ⏳ Pending |
+| #33 | Release Preparation | Phi | ⏳ Pending |
 
 ---
 
-# Definition of Done
+## Definition of Done
 
 A task is considered completed only when:
-
-* Code compiles successfully.
-* No critical bugs remain.
-* Pull Request approved.
-* Merged into develop branch.
-* Issue checklist completed.
-* Documentation updated.
+- [x] Code compiles successfully
+- [x] No critical bugs remain
+- [x] Pull Request approved
+- [x] Merged into `develop` branch
+- [x] Issue checklist completed
+- [x] Documentation updated
 
 ---
 
-# Notes For AI Agents
+## Notes For AI Agents
 
-Mandatory Rules:
+### Mandatory Rules
+- Follow `ARCHITECTURE.md`
+- Follow `AGENTS.md`
+- Do not change technology stack
+- Do not introduce React, Angular or Flutter
+- Do not write SQL in Controllers
+- Business Logic belongs to Services
+- Each Issue should produce one Pull Request
+- Do not modify unrelated modules
+- Always update documentation when changing architecture
 
-* Follow ARCHITECTURE.md.
-* Follow AGENTS.md.
-* Do not change technology stack.
-* Do not introduce React, Angular or Flutter.
-* Do not write SQL in Controllers.
-* Business Logic belongs to Services.
-* Each Issue should produce one Pull Request.
-* Do not modify unrelated modules.
-* Always update documentation when changing architecture.
-
-Project Stack:
-
-* ASP.NET Core MVC 8
-* Razor View
-* Bootstrap 5
-* SQL Server 2022
-* Entity Framework Core
-* ASP.NET Identity
-* VNPay
-* Gemini API
-* Serilog
+### Project Stack
+- ASP.NET Core MVC 8
+- Razor View
+- Bootstrap 5
+- SQL Server 2022
+- Entity Framework Core
+- ASP.NET Identity
+- VNPay
+- Gemini API
+- Serilog

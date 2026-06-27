@@ -1,0 +1,150 @@
+﻿@model IEnumerable<GYM_MANAGEMENT_SYSTEM.ViewModels.PackageIndexViewModel>
+@{
+    ViewData["Title"] = "Quản lý gói tập";
+}
+
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fitness-title">📦 Quản lý gói tập</h1>
+            <p class="text-muted">Quản lý các gói tập luyện của phòng gym</p>
+        </div>
+        <a asp-action="Create" class="btn btn-fitness-primary">
+            <i class="fas fa-plus-circle me-2"></i>Thêm gói tập
+        </a>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Package Cards -->
+    <div class="row">
+        @if (Model.Any())
+        {
+            @foreach (var package in Model)
+            {
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="pricing-card @(package.IsActive ? "" : "opacity-50")">
+                        @if (package.IsActive)
+                        {
+                            <div class="pricing-badge">Hoạt động</div>
+                        }
+                        else
+                        {
+                            <div class="pricing-badge" style="background: var(--error-gradient);">Đã khóa</div>
+                        }
+
+                        <div class="pricing-name">@package.Name</div>
+                        <div class="pricing-price">
+                            @package.PriceFormatted
+                            <span>/ @package.DurationDisplay</span>
+                        </div>
+
+                        <p class="text-muted" style="min-height: 60px;">@package.Description</p>
+
+                        <ul class="pricing-features">
+                            <li>
+                                <i class="fas fa-calendar-day"></i>
+                                <span>Thời hạn: <strong>@package.DurationDisplay</strong></span>
+                            </li>
+                            <li>
+                                <i class="fas fa-clock"></i>
+                                <span>Trạng thái: 
+                                    <span class="badge-fitness @(package.IsActive ? "green" : "red")">
+                                        @package.StatusText
+                                    </span>
+                                </span>
+                            </li>
+                            <li>
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Ngày tạo: @package.CreatedAt.ToString("dd/MM/yyyy")</span>
+                            </li>
+                        </ul>
+
+                        <div class="d-flex gap-2 mt-3">
+                            <a asp-action="Edit" asp-route-id="@package.Id" 
+                               class="btn btn-fitness-secondary flex-grow-1" style="padding: 8px 16px; font-size: 0.9rem;">
+                                <i class="fas fa-edit"></i> Sửa
+                            </a>
+                            <form asp-action="ToggleStatus" asp-route-id="@package.Id" method="post" style="flex:1;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn @(package.IsActive ? "btn-fitness-danger" : "btn-fitness-success") w-100" 
+                                        style="padding: 8px 16px; font-size: 0.9rem;">
+                                    <i class="fas @(package.IsActive ? "fa-lock" : "fa-unlock")"></i>
+                                    @(package.IsActive ? "Khóa" : "Mở khóa")
+                                </button>
+                            </form>
+                            <form asp-action="Delete" asp-route-id="@package.Id" method="post" style="flex:0.5;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-fitness-danger" 
+                                        style="padding: 8px 16px; font-size: 0.9rem;"
+                                        onclick="return confirm('Bạn có chắc muốn xóa gói tập này?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-box-open" style="font-size: 4rem; color: var(--text-muted);"></i>
+                <h4 class="text-muted mt-3">Chưa có gói tập nào</h4>
+                <p class="text-muted">Hãy tạo gói tập đầu tiên để bắt đầu</p>
+                <a asp-action="Create" class="btn btn-fitness-primary mt-3">
+                    <i class="fas fa-plus-circle me-2"></i>Tạo gói tập
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- Statistics -->
+    @if (Model.Any())
+    {
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="stat-number">@Model.Count()</div>
+                    <div class="stat-label">Tổng số gói tập</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-number">@Model.Count(p => p.IsActive)</div>
+                    <div class="stat-label">Đang hoạt động</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="stat-number">@Model.Count(p => !p.IsActive)</div>
+                    <div class="stat-label">Đã khóa</div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

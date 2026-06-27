@@ -23,8 +23,6 @@
     <Folder Include="AI\Prompts\" />
     <Folder Include="Documentation\" />
     <Folder Include="Validators\" />
-    <Folder Include="Services\" />
-    <Folder Include="Repositories\" />
   </ItemGroup>
 
 </Project>

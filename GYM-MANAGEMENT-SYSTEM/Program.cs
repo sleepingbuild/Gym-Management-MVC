@@ -1,5 +1,7 @@
 using GYM_MANAGEMENT_SYSTEM.AI.Services;
 using GYM_MANAGEMENT_SYSTEM.Data;
+using GYM_MANAGEMENT_SYSTEM.Repositories;
+using GYM_MANAGEMENT_SYSTEM.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +20,10 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<KnowledgeBaseService>();
 
 builder.Services.AddScoped<DatasetImportService>();
+
+// Thêm vào phần Đăng ký các Service
+builder.Services.AddScoped<IMembershipPackageRepository, MembershipPackageRepository>();
+builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>();
 
 var app = builder.Build();
 

@@ -70,27 +70,51 @@
                                 </span>
                             </div>
 
-                            <div class="mt-3 d-flex gap-2">
+                            <div class="mt-3 d-flex gap-2 flex-wrap">
                                 @if (membership.IsActive)
                                 {
+                                    <!-- Nút Hủy -->
                                     <form asp-action="Cancel" asp-route-id="@membership.Id" method="post" style="flex:1;">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-fitness-danger w-100"
+                                        <button type="submit" class="btn btn-fitness-danger w-100" 
                                                 onclick="return confirm('Bạn có chắc muốn hủy gói tập này?')">
                                             <i class="fas fa-times me-2"></i>Hủy gói
                                         </button>
                                     </form>
+
+                                    <!-- Nút Gia hạn - hiển thị khi còn 30 ngày hoặc ít hơn -->
+                                    @if (membership.DaysRemaining <= 30 && membership.DaysRemaining >= 0)
+                                    {
+                                        <a asp-action="Renew" asp-route-id="@membership.Id" class="btn btn-fitness-primary" style="flex:1;">
+                                            <i class="fas fa-sync me-2"></i>Gia hạn ngay
+                                        </a>
+                                    }
                                 }
-                                @if (membership.IsActive && membership.DaysRemaining <= 7)
+                                else if (membership.IsExpired)
                                 {
-                                    <form asp-action="Renew" asp-route-id="@membership.Id" method="post" style="flex:1;">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-fitness-success w-100">
-                                            <i class="fas fa-sync me-2"></i>Gia hạn
-                                        </button>
-                                    </form>
+                                    <!-- Nút Gia hạn cho gói đã hết hạn -->
+                                    <a asp-action="Renew" asp-route-id="@membership.Id" class="btn btn-fitness-primary" style="flex:1;">
+                                        <i class="fas fa-sync me-2"></i>Gia hạn
+                                    </a>
                                 }
                             </div>
+
+                            <!-- Hiển thị thông báo nếu sắp hết hạn -->
+                            @if (membership.IsActive && membership.DaysRemaining <= 7 && membership.DaysRemaining >= 0)
+                            {
+                                <div class="alert alert-warning mt-3 mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Chú ý:</strong> Gói tập của bạn sắp hết hạn!
+                                    @if (membership.DaysRemaining == 0)
+                                    {
+                                        <span>Hôm nay là ngày cuối cùng!</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Còn <strong>@membership.DaysRemaining</strong> ngày.</span>
+                                    }
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>

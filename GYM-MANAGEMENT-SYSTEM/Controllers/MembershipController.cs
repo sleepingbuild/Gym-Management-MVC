@@ -10,13 +10,16 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
     {
         private readonly IMembershipService _membershipService;
         private readonly IMembershipPackageService _packageService;
+        private readonly IMembershipRenewalService _renewalService;
 
         public MembershipController(
             IMembershipService membershipService,
-            IMembershipPackageService packageService)
+            IMembershipPackageService packageService,
+            IMembershipRenewalService renewalService)
         {
             _membershipService = membershipService;
             _packageService = packageService;
+            _renewalService = renewalService;
         }
 
         // GET: /Membership
@@ -59,7 +62,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Kiểm tra user đã có membership active chưa
             if (!await _membershipService.IsUserEligibleForRegistrationAsync(userId))
             {
                 TempData["ErrorMessage"] = "Bạn đã có gói tập đang hoạt động. Vui lòng gia hạn hoặc hủy gói hiện tại.";
@@ -133,21 +135,43 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Membership/Renew/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // GET: /Membership/Renew/5
         public async Task<IActionResult> Renew(int id)
         {
             try
             {
-                await _membershipService.RenewMembershipAsync(id);
-                TempData["SuccessMessage"] = "Gia hạn gói tập thành công!";
+                var renewalInfo = await _renewalService.GetRenewalInfoAsync(id);
+                return View(renewalInfo);
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy gói tập.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: /Membership/RenewConfirm/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RenewConfirm(int id)
+        {
+            try
+            {
+                var result = await _renewalService.RenewMembershipAsync(id);
+                TempData["SuccessMessage"] = "Gia hạn gói tập thành công! Ngày kết thúc mới: " +
+                                             result.EndDate.ToString("dd/MM/yyyy");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (KeyNotFoundException ex)
             {
                 TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index));
             }
-            return RedirectToAction(nameof(Index));
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }

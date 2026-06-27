@@ -27,6 +27,7 @@ builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>(
 builder.Services.AddScoped<IMembershipRepository, MembershipRepository>();
 builder.Services.AddScoped<IMembershipService, MembershipService>();
 
+builder.Services.AddScoped<IMembershipRenewalService, MembershipRenewalService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

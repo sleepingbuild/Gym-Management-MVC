@@ -40,7 +40,6 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromDays(1);
 });
 
-// Đăng ký các Service
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMembershipPackageRepository, MembershipPackageRepository>();
 builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>();
@@ -49,6 +48,10 @@ builder.Services.AddScoped<IMembershipService, MembershipService>();
 builder.Services.AddScoped<IMembershipRenewalService, MembershipRenewalService>();
 builder.Services.AddScoped<ITrainerRepository, TrainerRepository>();     
 builder.Services.AddScoped<ITrainerService, TrainerService>();
+builder.Services.AddScoped<ITrainerScheduleRepository, TrainerScheduleRepository>();
+builder.Services.AddScoped<ITrainerScheduleService, TrainerScheduleService>();
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<IBookingService, BookingService>();
 
 var app = builder.Build();
 

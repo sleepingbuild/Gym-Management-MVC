@@ -21,7 +21,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Models
         public string TimeSlot { get; set; } = string.Empty;
 
         [Required]
-        public string Status { get; set; } = string.Empty; // Pending, Confirmed, Completed, Cancelled
+        public string Status { get; set; } = string.Empty; 
 
         public string Notes { get; set; } = string.Empty;
 

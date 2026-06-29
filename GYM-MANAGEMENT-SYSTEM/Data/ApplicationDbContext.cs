@@ -21,6 +21,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Data
         public DbSet<ChatHistory> ChatHistories { get; set; }
         public DbSet<FAQ> FAQs { get; set; }
 
+        public DbSet<TrainerSchedule> TrainerSchedules { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

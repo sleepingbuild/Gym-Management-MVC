@@ -1,0 +1,63 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.TrainerIndexViewModel
+@{
+    ViewData["Title"] = "Chi tiết huấn luyện viên";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-id-card me-2"></i>Chi tiết huấn luyện viên
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="auth-icon" style="width: 100px; height: 100px; margin: 0 auto;">
+                            <i class="fas fa-user-tie" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="text-white mt-3">@Model.FullName</h3>
+                        <span class="badge-fitness @Model.StatusBadgeClass">
+                            @Model.StatusText
+                        </span>
+                    </div>
+
+                    <dl class="row">
+                        <dt class="col-sm-3 text-muted">
+                            <i class="fas fa-tag me-2" style="color: var(--orange-primary);"></i>Chuyên môn
+                        </dt>
+                        <dd class="col-sm-9">@Model.Specialization</dd>
+
+                        <dt class="col-sm-3 text-muted">
+                            <i class="fas fa-align-left me-2" style="color: var(--orange-primary);"></i>Tiểu sử
+                        </dt>
+                        <dd class="col-sm-9">@Model.Bio</dd>
+
+                        <dt class="col-sm-3 text-muted">
+                            <i class="fas fa-envelope me-2" style="color: var(--orange-primary);"></i>Email
+                        </dt>
+                        <dd class="col-sm-9">@Model.Email</dd>
+
+                        <dt class="col-sm-3 text-muted">
+                            <i class="fas fa-phone me-2" style="color: var(--orange-primary);"></i>Số điện thoại
+                        </dt>
+                        <dd class="col-sm-9">@Model.Phone</dd>
+
+                        <dt class="col-sm-3 text-muted">
+                            <i class="fas fa-calendar-alt me-2" style="color: var(--orange-primary);"></i>Ngày tham gia
+                        </dt>
+                        <dd class="col-sm-9">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+                    </dl>
+
+                    <div class="d-flex gap-2 mt-3">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-fitness-primary">
+                            <i class="fas fa-edit me-2"></i>Sửa
+                        </a>
+                        <a asp-action="Index" class="btn btn-fitness-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,14 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GYM_MANAGEMENT_SYSTEM.Models
+namespace GYM_MANAGEMENT_SYSTEM.ViewModels
 {
-    public class Trainer
+    public class TrainerEditViewModel
     {
-        [Key]
         public int Id { get; set; }
-
-        [Required]
-        public string UserId { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Vui lòng nhập tên huấn luyện viên")]
         [StringLength(100, MinimumLength = 2, ErrorMessage = "Tên phải từ 2-100 ký tự")]
@@ -29,10 +25,5 @@ namespace GYM_MANAGEMENT_SYSTEM.Models
         public string Email { get; set; } = string.Empty;
 
         public bool IsAvailable { get; set; } = true;
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        // Navigation property
-        public ICollection<Booking>? Bookings { get; set; }
     }
 }

@@ -47,6 +47,8 @@ builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>(
 builder.Services.AddScoped<IMembershipRepository, MembershipRepository>();
 builder.Services.AddScoped<IMembershipService, MembershipService>();
 builder.Services.AddScoped<IMembershipRenewalService, MembershipRenewalService>();
+builder.Services.AddScoped<ITrainerRepository, TrainerRepository>();     
+builder.Services.AddScoped<ITrainerService, TrainerService>();
 
 var app = builder.Build();
 

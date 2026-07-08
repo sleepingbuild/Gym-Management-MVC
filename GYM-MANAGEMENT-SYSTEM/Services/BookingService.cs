@@ -173,5 +173,86 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
         {
             return await _bookingRepository.CountBookingsForTrainerAsync(trainerId, date);
         }
+
+        public async Task<IEnumerable<Booking>> GetBookingHistoryAsync(string userId, DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+
+            if (fromDate.HasValue)
+            {
+                bookings = bookings.Where(b => b.SessionDate >= fromDate.Value);
+            }
+
+            if (toDate.HasValue)
+            {
+                bookings = bookings.Where(b => b.SessionDate <= toDate.Value);
+            }
+
+            return bookings.OrderByDescending(b => b.SessionDate);
+        }
+
+        public async Task<IEnumerable<Booking>> GetBookingHistoryByStatusAsync(string userId, string status)
+        {
+            var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+            return bookings.Where(b => b.Status == status)
+                           .OrderByDescending(b => b.SessionDate);
+        }
+
+        public async Task<IEnumerable<Booking>> SearchBookingsAsync(string userId, string? searchTerm = null, DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+
+            // Lọc theo từ khóa (tìm trong Notes hoặc Trainer Name)
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                bookings = bookings.Where(b =>
+                    b.Notes.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    (b.Trainer != null && b.Trainer.FullName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                );
+            }
+
+            if (fromDate.HasValue)
+            {
+                bookings = bookings.Where(b => b.SessionDate >= fromDate.Value);
+            }
+
+            if (toDate.HasValue)
+            {
+                bookings = bookings.Where(b => b.SessionDate <= toDate.Value);
+            }
+
+            return bookings.OrderByDescending(b => b.SessionDate);
+        }
+
+        public async Task<BookingStatisticsViewModel> GetBookingStatisticsAsync(string userId)
+        {
+            var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+
+            var stats = new BookingStatisticsViewModel
+            {
+                TotalBookings = bookings.Count(),
+                PendingBookings = bookings.Count(b => b.Status == "Pending"),
+                ConfirmedBookings = bookings.Count(b => b.Status == "Confirmed"),
+                CompletedBookings = bookings.Count(b => b.Status == "Completed"),
+                CancelledBookings = bookings.Count(b => b.Status == "Cancelled"),
+                UpcomingBookings = bookings.Count(b => b.SessionDate >= DateTime.UtcNow && b.Status != "Cancelled"),
+                PastBookings = bookings.Count(b => b.SessionDate < DateTime.UtcNow)
+            };
+
+            // Tính tổng số buổi đã hoàn thành (gần đây)
+            stats.RecentCompleted = bookings
+                .Where(b => b.Status == "Completed")
+                .OrderByDescending(b => b.SessionDate)
+                .Take(5)
+                .Select(b => new BookingSummaryViewModel
+                {
+                    Id = b.Id,
+                    TrainerName = b.Trainer?.FullName ?? "N/A",
+                    SessionDate = b.SessionDate,
+                    Status = b.Status
+                }).ToList();
+
+            return stats;
+        }
     }
 }

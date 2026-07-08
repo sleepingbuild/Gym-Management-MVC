@@ -1,0 +1,183 @@
+﻿@model IEnumerable<GYM_MANAGEMENT_SYSTEM.ViewModels.BookingIndexViewModel>
+@{
+    ViewData["Title"] = "Lịch sử đặt lịch";
+    var stats = ViewBag.Statistics as GYM_MANAGEMENT_SYSTEM.ViewModels.BookingStatisticsViewModel;
+}
+
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fitness-title">📋 Lịch sử đặt lịch</h1>
+            <p class="text-muted">Xem tất cả các buổi tập đã đặt</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Create" class="btn btn-fitness-primary">
+                <i class="fas fa-plus-circle me-2"></i>Đặt lịch mới
+            </a>
+            <a asp-action="Export" class="btn btn-fitness-secondary">
+                <i class="fas fa-file-export me-2"></i>Xuất CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Statistics Cards -->
+    @if (stats != null)
+    {
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-number">@stats.TotalBookings</div>
+                    <div class="stat-label">Tổng số buổi</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-number">@stats.UpcomingBookings</div>
+                    <div class="stat-label">Sắp diễn ra</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-number">@stats.CompletionRate%</div>
+                    <div class="stat-label">Tỷ lệ hoàn thành</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-number">@stats.CancellationRate%</div>
+                    <div class="stat-label">Tỷ lệ hủy</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Filter -->
+    <div class="card-fitness mb-4">
+        <div class="card-body">
+            <form asp-action="History" method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Từ ngày</label>
+                    <input type="date" name="FromDate" class="form-control" 
+                           value="@Context.Request.Query["FromDate"]" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Đến ngày</label>
+                    <input type="date" name="ToDate" class="form-control" 
+                           value="@Context.Request.Query["ToDate"]" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select name="Status" class="form-control">
+                        <option value="">Tất cả</option>
+                        <option value="Pending" selected="@(Context.Request.Query["Status"] == "Pending")">Chờ xác nhận</option>
+                        <option value="Confirmed" selected="@(Context.Request.Query["Status"] == "Confirmed")">Đã xác nhận</option>
+                        <option value="Completed" selected="@(Context.Request.Query["Status"] == "Completed")">Đã hoàn thành</option>
+                        <option value="Cancelled" selected="@(Context.Request.Query["Status"] == "Cancelled")">Đã hủy</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Tìm kiếm</label>
+                    <input type="text" name="SearchTerm" class="form-control" 
+                           placeholder="Tên HLV hoặc ghi chú..." 
+                           value="@Context.Request.Query["SearchTerm"]" />
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-fitness-primary w-100">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Booking List -->
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-fitness">
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Giờ</th>
+                        <th>Huấn luyện viên</th>
+                        <th>Trạng thái</th>
+                        <th>Ghi chú</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var booking in Model)
+                    {
+                        <tr>
+                            <td>@booking.DateDisplay</td>
+                            <td>@booking.TimeDisplay</td>
+                            <td>@booking.TrainerName</td>
+                            <td>
+                                <span class="badge-fitness @booking.StatusBadgeClass">
+                                    @booking.StatusDisplay
+                                </span>
+                            </td>
+                            <td>@(string.IsNullOrEmpty(booking.Notes) ? "-" : booking.Notes)</td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@booking.Id" 
+                                   class="btn btn-sm btn-fitness-outline-light">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                @if (booking.Status == "Pending" || booking.Status == "Confirmed")
+                                {
+                                    <form asp-action="Cancel" asp-route-id="@booking.Id" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-fitness-danger" 
+                                                onclick="return confirm('Bạn có chắc muốn hủy đặt lịch này?')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-calendar-times" style="font-size: 4rem; color: var(--text-muted);"></i>
+            <h4 class="text-muted mt-3">Chưa có lịch sử đặt lịch</h4>
+            <p class="text-muted">Bắt đầu đặt lịch tập ngay hôm nay</p>
+            <a asp-action="Create" class="btn btn-fitness-primary mt-3">
+                <i class="fas fa-plus-circle me-2"></i>Đặt lịch ngay
+            </a>
+        </div>
+    }
+</div>

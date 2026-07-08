@@ -1,0 +1,126 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.BookingStatisticsViewModel
+@{
+    ViewData["Title"] = "Thống kê đặt lịch";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fitness-title">📊 Thống kê đặt lịch</h1>
+            <p class="text-muted">Tổng quan về hoạt động đặt lịch của bạn</p>
+        </div>
+        <a asp-action="History" class="btn btn-fitness-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Summary Cards -->
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-number">@Model.TotalBookings</div>
+                <div class="stat-label">Tổng số buổi</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-number">@Model.UpcomingBookings</div>
+                <div class="stat-label">Sắp diễn ra</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-number">@Model.CompletedBookings</div>
+                <div class="stat-label">Đã hoàn thành</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="stat-number">@Model.CancelledBookings</div>
+                <div class="stat-label">Đã hủy</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Breakdown -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-2"></i>Phân bố trạng thái
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between py-2">
+                        <span>Chờ xác nhận</span>
+                        <span class="fw-bold" style="color: var(--orange-primary);">@Model.PendingBookings</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2">
+                        <span>Đã xác nhận</span>
+                        <span class="fw-bold" style="color: var(--info-blue);">@Model.ConfirmedBookings</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2">
+                        <span>Đã hoàn thành</span>
+                        <span class="fw-bold" style="color: var(--success-green);">@Model.CompletedBookings</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2">
+                        <span>Đã hủy</span>
+                        <span class="fw-bold" style="color: var(--error-red);">@Model.CancelledBookings</span>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between py-2">
+                        <span><strong>Tỷ lệ hoàn thành</strong></span>
+                        <span class="fw-bold" style="color: var(--success-green);">@Model.CompletionRate%</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2">
+                        <span><strong>Tỷ lệ hủy</strong></span>
+                        <span class="fw-bold" style="color: var(--error-red);">@Model.CancellationRate%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-history me-2"></i>5 buổi gần đây
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentCompleted.Any())
+                    {
+                        <ul class="list-unstyled">
+                            @foreach (var item in Model.RecentCompleted)
+                            {
+                                <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-dark">
+                                    <div>
+                                        <strong>@item.TrainerName</strong>
+                                        <br />
+                                        <small class="text-muted">@item.DateDisplay</small>
+                                    </div>
+                                    <span class="badge-fitness @item.StatusBadgeClass">
+                                        @item.Status
+                                    </span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">Chưa có buổi tập nào hoàn thành</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

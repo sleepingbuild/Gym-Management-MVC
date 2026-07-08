@@ -18,5 +18,9 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
         Task<bool> IsSlotAvailableAsync(int trainerId, DateTime sessionDate, string timeSlot, int? excludeId = null);
         Task<IEnumerable<Booking>> GetUpcomingBookingsAsync(string userId);
         Task<int> GetBookingCountForTrainerAsync(int trainerId, DateTime date);
+        Task<IEnumerable<Booking>> GetBookingHistoryAsync(string userId, DateTime? fromDate = null, DateTime? toDate = null);
+        Task<IEnumerable<Booking>> GetBookingHistoryByStatusAsync(string userId, string status);
+        Task<IEnumerable<Booking>> SearchBookingsAsync(string userId, string? searchTerm = null, DateTime? fromDate = null, DateTime? toDate = null);
+        Task<BookingStatisticsViewModel> GetBookingStatisticsAsync(string userId);
     }
 }

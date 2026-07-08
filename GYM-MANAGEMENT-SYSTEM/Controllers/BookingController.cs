@@ -1,4 +1,5 @@
-﻿using GYM_MANAGEMENT_SYSTEM.Services;
+﻿using GYM_MANAGEMENT_SYSTEM.Models;
+using GYM_MANAGEMENT_SYSTEM.Services;
 using GYM_MANAGEMENT_SYSTEM.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -195,6 +196,94 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                                     .ToList();
 
             return Json(new { bookedSlots = trainerSlots });
+        }
+
+        // GET: /Booking/History
+        public async Task<IActionResult> History(BookingHistoryFilterViewModel filter)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Lấy dữ liệu với filter
+            IEnumerable<Booking> bookings;
+
+            if (!string.IsNullOrEmpty(filter.Status) && filter.Status != "Tất cả")
+            {
+                bookings = await _bookingService.GetBookingHistoryByStatusAsync(userId, filter.Status);
+            }
+            else if (!string.IsNullOrEmpty(filter.SearchTerm) || filter.FromDate.HasValue || filter.ToDate.HasValue)
+            {
+                bookings = await _bookingService.SearchBookingsAsync(userId, filter.SearchTerm, filter.FromDate, filter.ToDate);
+            }
+            else
+            {
+                bookings = await _bookingService.GetBookingHistoryAsync(userId);
+            }
+
+            var viewModels = bookings.Select(b => new BookingIndexViewModel
+            {
+                Id = b.Id,
+                UserId = b.UserId,
+                TrainerId = b.TrainerId,
+                TrainerName = b.Trainer?.FullName ?? "N/A",
+                SessionDate = b.SessionDate,
+                TimeSlot = b.TimeSlot,
+                Status = b.Status,
+                Notes = b.Notes,
+                CreatedAt = b.CreatedAt
+            }).ToList();
+
+            // Lấy thống kê
+            var stats = await _bookingService.GetBookingStatisticsAsync(userId);
+            ViewBag.Statistics = stats;
+
+            return View(viewModels);
+        }
+
+        // GET: /Booking/Statistics
+        public async Task<IActionResult> Statistics()
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var stats = await _bookingService.GetBookingStatisticsAsync(userId);
+            return View(stats);
+        }
+
+        // GET: /Booking/Export
+        public async Task<IActionResult> Export(DateTime? fromDate, DateTime? toDate)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var bookings = await _bookingService.GetBookingHistoryAsync(userId, fromDate, toDate);
+
+            // Tạo file CSV
+            var csv = new System.Text.StringBuilder();
+            csv.AppendLine("Ngày,Giờ,HLV,Trạng thái,Ghi chú");
+
+            foreach (var b in bookings)
+            {
+                csv.AppendLine($"{b.SessionDate:dd/MM/yyyy},{b.SessionDate:HH:mm},{b.Trainer?.FullName},{b.Status},{b.Notes}");
+            }
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+            return File(bytes, "text/csv", $"booking_history_{DateTime.Now:yyyyMMdd}.csv");
         }
     }
 }

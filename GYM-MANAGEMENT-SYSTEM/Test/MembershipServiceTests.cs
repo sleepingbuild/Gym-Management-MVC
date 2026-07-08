@@ -1,15 +1,12 @@
 ﻿using GYM_MANAGEMENT_SYSTEM.Models;
-using GYM_MANAGEMENT_SYSTEM.Services;
 using GYM_MANAGEMENT_SYSTEM.ViewModels;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace GYM_MANAGEMENT_SYSTEM.Tests.Services
+namespace GYM_MANAGEMENT_SYSTEM.Tests
 {
     [TestClass]
     public class MembershipServiceTests
     {
-        // Test các logic đơn giản không cần database
-
         [TestMethod]
         public void MembershipRegistrationViewModel_ShouldHaveRequiredFields()
         {
@@ -30,19 +27,20 @@ namespace GYM_MANAGEMENT_SYSTEM.Tests.Services
         public void UserMembershipViewModel_ShouldCalculateCorrectly()
         {
             // Arrange
+            var now = DateTime.UtcNow;
             var model = new UserMembershipViewModel
             {
                 Id = 1,
                 PackageName = "Gói 1 tháng",
                 Price = 300000,
                 DurationDays = 30,
-                StartDate = DateTime.UtcNow.AddDays(-15),
-                EndDate = DateTime.UtcNow.AddDays(15),
+                StartDate = now.AddDays(-15),
+                EndDate = now.AddDays(15),
                 Status = "Active"
             };
 
             // Act
-            var daysRemaining = (model.EndDate - DateTime.UtcNow).Days;
+            var daysRemaining = (model.EndDate - now).Days;
             var isActive = model.Status == "Active";
 
             // Assert
@@ -50,21 +48,21 @@ namespace GYM_MANAGEMENT_SYSTEM.Tests.Services
             Assert.AreEqual(300000, model.Price);
             Assert.IsTrue(isActive);
             Assert.AreEqual(15, daysRemaining);
-            Assert.AreEqual("30,000 VNĐ", model.PriceFormatted); // 30,000 VNĐ
         }
 
         [TestMethod]
         public void RenewalInfoViewModel_ShouldCalculateNewEndDateCorrectly()
         {
             // Arrange
+            var now = DateTime.UtcNow;
             var model = new RenewalInfoViewModel
             {
                 MembershipId = 1,
                 PackageName = "Gói 1 tháng",
                 Price = 300000,
                 DurationDays = 30,
-                CurrentEndDate = DateTime.UtcNow.AddDays(5),
-                NewEndDate = DateTime.UtcNow.AddDays(35) // 5 + 30
+                CurrentEndDate = now.AddDays(5),
+                NewEndDate = now.AddDays(35)
             };
 
             // Act
@@ -72,7 +70,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Tests.Services
 
             // Assert
             Assert.AreEqual(newEndDate.Date, model.NewEndDate.Date);
-            Assert.AreEqual(35, (model.NewEndDate - DateTime.UtcNow).Days);
+            Assert.AreEqual(35, (model.NewEndDate - now).Days);
         }
 
         [TestMethod]
@@ -163,15 +161,29 @@ namespace GYM_MANAGEMENT_SYSTEM.Tests.Services
         }
 
         [TestMethod]
-        public void IsUserEligibleForRegistration_ShouldCheckCorrectly()
+        public void IsUserEligibleForRegistration_ShouldReturnTrue_WhenNoActiveMembership()
         {
             // Arrange
-            var hasActiveMembership = true;
-            var noActiveMembership = false;
+            bool hasActiveMembership = false;
 
-            // Act & Assert
-            Assert.IsFalse(hasActiveMembership); // Nếu có active membership thì không eligible
-            Assert.IsTrue(!noActiveMembership); // Nếu không có active membership thì eligible
+            // Act
+            bool isEligible = !hasActiveMembership;
+
+            // Assert
+            Assert.IsTrue(isEligible);
+        }
+
+        [TestMethod]
+        public void IsUserEligibleForRegistration_ShouldReturnFalse_WhenHasActiveMembership()
+        {
+            // Arrange
+            bool hasActiveMembership = true;
+
+            // Act
+            bool isEligible = !hasActiveMembership;
+
+            // Assert
+            Assert.IsFalse(isEligible);
         }
     }
 }

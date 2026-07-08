@@ -1,0 +1,82 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.BookingIndexViewModel
+@{
+    ViewData["Title"] = "Chi tiết đặt lịch";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>Chi tiết đặt lịch
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="auth-icon" style="width: 100px; height: 100px; margin: 0 auto;">
+                            <i class="fas fa-calendar-check" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="text-white mt-3">Buổi tập với @Model.TrainerName</h3>
+                        <span class="badge-fitness @Model.StatusBadgeClass">
+                            @Model.StatusDisplay
+                        </span>
+                    </div>
+
+                    <dl class="row">
+                        <dt class="col-sm-3 text-muted">
+                            <i class="fas fa-calendar-day me-2" style="color: var(--orange-primary);"></i>Ngày tập
+                        </dt>
+                        <dd class="col-sm-9">@Model.DateDisplay</dd>
+
+                        <dt class="col-sm-3 text-muted">
+                            <i class="fas fa-clock me-2" style="color: var(--orange-primary);"></i>Giờ tập
+                        </dt>
+                        <dd class="col-sm-9">@Model.TimeDisplay</dd>
+
+                        <dt class="col-sm-3 text-muted">
+                            <i class="fas fa-user-tie me-2" style="color: var(--orange-primary);"></i>Huấn luyện viên
+                        </dt>
+                        <dd class="col-sm-9">@Model.TrainerName</dd>
+
+                        <dt class="col-sm-3 text-muted">
+                            <i class="fas fa-tag me-2" style="color: var(--orange-primary);"></i>Trạng thái
+                        </dt>
+                        <dd class="col-sm-9">
+                            <span class="badge-fitness @Model.StatusBadgeClass">
+                                @Model.StatusDisplay
+                            </span>
+                        </dd>
+
+                        @if (!string.IsNullOrEmpty(Model.Notes))
+                        {
+                            <dt class="col-sm-3 text-muted">
+                                <i class="fas fa-align-left me-2" style="color: var(--orange-primary);"></i>Ghi chú
+                            </dt>
+                            <dd class="col-sm-9">@Model.Notes</dd>
+                        }
+
+                        <dt class="col-sm-3 text-muted">
+                            <i class="fas fa-calendar-alt me-2" style="color: var(--orange-primary);"></i>Ngày đặt
+                        </dt>
+                        <dd class="col-sm-9">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+                    </dl>
+
+                    <div class="d-flex gap-2 mt-3">
+                        @if (Model.Status == "Pending" || Model.Status == "Confirmed")
+                        {
+                            <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" style="flex:1;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-fitness-danger w-100"
+                                        onclick="return confirm('Bạn có chắc muốn hủy đặt lịch này?')">
+                                    <i class="fas fa-times me-2"></i>Hủy đặt lịch
+                                </button>
+                            </form>
+                        }
+                        <a asp-action="Index" class="btn btn-fitness-secondary" style="flex:1;">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

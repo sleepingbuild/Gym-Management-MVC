@@ -86,12 +86,12 @@
             <form asp-action="History" method="get" class="row g-3 align-items-end">
                 <div class="col-md-3">
                     <label class="form-label">Từ ngày</label>
-                    <input type="date" name="FromDate" class="form-control" 
+                    <input type="date" name="FromDate" class="form-control"
                            value="@Context.Request.Query["FromDate"]" />
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Đến ngày</label>
-                    <input type="date" name="ToDate" class="form-control" 
+                    <input type="date" name="ToDate" class="form-control"
                            value="@Context.Request.Query["ToDate"]" />
                 </div>
                 <div class="col-md-3">
@@ -106,8 +106,8 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Tìm kiếm</label>
-                    <input type="text" name="SearchTerm" class="form-control" 
-                           placeholder="Tên HLV hoặc ghi chú..." 
+                    <input type="text" name="SearchTerm" class="form-control"
+                           placeholder="Tên HLV hoặc ghi chú..."
                            value="@Context.Request.Query["SearchTerm"]" />
                 </div>
                 <div class="col-md-1">
@@ -148,7 +148,7 @@
                             </td>
                             <td>@(string.IsNullOrEmpty(booking.Notes) ? "-" : booking.Notes)</td>
                             <td>
-                                <a asp-action="Details" asp-route-id="@booking.Id" 
+                                <a asp-action="Details" asp-route-id="@booking.Id"
                                    class="btn btn-sm btn-fitness-outline-light">
                                     <i class="fas fa-eye"></i>
                                 </a>
@@ -156,7 +156,7 @@
                                 {
                                     <form asp-action="Cancel" asp-route-id="@booking.Id" method="post" style="display:inline;">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-fitness-danger" 
+                                        <button type="submit" class="btn btn-sm btn-fitness-danger"
                                                 onclick="return confirm('Bạn có chắc muốn hủy đặt lịch này?')">
                                             <i class="fas fa-times"></i>
                                         </button>

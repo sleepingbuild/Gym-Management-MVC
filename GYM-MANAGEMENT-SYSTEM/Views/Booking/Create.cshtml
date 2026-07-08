@@ -1,0 +1,175 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.BookingCreateViewModel
+@{
+    ViewData["Title"] = "Đặt lịch tập";
+    var trainers = ViewBag.Trainers as IEnumerable<GYM_MANAGEMENT_SYSTEM.Models.Trainer>;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-calendar-plus me-2"></i>Đặt lịch tập
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post" id="bookingForm">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="TrainerId" class="form-label">
+                                <i class="fas fa-user-tie me-2"></i>Chọn huấn luyện viên
+                            </label>
+                            <select asp-for="TrainerId" class="form-control" id="trainerSelect">
+                                <option value="">-- Chọn huấn luyện viên --</option>
+                                @if (trainers != null)
+                                {
+                                    @foreach (var trainer in trainers)
+                                    {
+                                        <option value="@trainer.Id">@trainer.FullName - @trainer.Specialization</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="TrainerId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="SessionDate" class="form-label">
+                                <i class="fas fa-calendar-day me-2"></i>Ngày tập
+                            </label>
+                            <input asp-for="SessionDate" class="form-control" type="date" id="sessionDate" />
+                            <span asp-validation-for="SessionDate" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-clock me-2"></i>Khung giờ
+                            </label>
+                            <div id="timeSlotContainer">
+                                <div class="d-flex flex-wrap gap-2" id="timeSlotList">
+                                    <!-- Time slots sẽ được load bằng AJAX -->
+                                </div>
+                                <input type="hidden" name="TimeSlot" id="selectedTimeSlot" />
+                            </div>
+                            <span id="timeSlotError" class="text-danger small" style="display: none;">Vui lòng chọn khung giờ</span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Notes" class="form-label">
+                                <i class="fas fa-align-left me-2"></i>Ghi chú
+                            </label>
+                            <textarea asp-for="Notes" class="form-control" rows="3"
+                                      placeholder="Ghi chú thêm cho huấn luyện viên..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-fitness-primary flex-grow-1" id="submitBtn" disabled>
+                                <i class="fas fa-check-circle me-2"></i>Xác nhận đặt lịch
+                            </button>
+                            <a asp-action="Index" class="btn btn-fitness-secondary">
+                                <i class="fas fa-times me-2"></i>Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            var trainerSelect = $('#trainerSelect');
+            var sessionDate = $('#sessionDate');
+            var timeSlotList = $('#timeSlotList');
+            var selectedTimeSlot = $('#selectedTimeSlot');
+            var submitBtn = $('#submitBtn');
+            var timeSlotError = $('#timeSlotError');
+
+            function loadTimeSlots() {
+                var trainerId = trainerSelect.val();
+                var date = sessionDate.val();
+
+                if (trainerId && date) {
+                    $.ajax({
+                        url: '@Url.Action("GetSlots", "Booking")',
+                        type: 'GET',
+                        data: { trainerId: trainerId, date: date },
+                        success: function(data) {
+                            timeSlotList.empty();
+                            if (data.bookedSlots && data.bookedSlots.length > 0) {
+                                // Tạo các khung giờ (giả định: 8:00 - 20:00)
+                                var slots = [];
+                                for (var hour = 8; hour <= 20; hour++) {
+                                    var time = hour.toString().padStart(2, '0') + ':00';
+                                    var isBooked = data.bookedSlots.includes(time);
+                                    slots.push({
+                                        time: time,
+                                        isBooked: isBooked
+                                    });
+                                }
+
+                                $.each(slots, function(index, slot) {
+                                    var btn = $('<button>')
+                                        .addClass('btn')
+                                        .addClass(slot.isBooked ? 'btn-fitness-secondary' : 'btn-fitness-outline-light')
+                                        .attr('type', 'button')
+                                        .attr('data-time', slot.time)
+                                        .text(slot.time)
+                                        .prop('disabled', slot.isBooked);
+
+                                    if (!slot.isBooked) {
+                                        btn.click(function() {
+                                            $('.btn-time-slot').removeClass('btn-fitness-primary').addClass('btn-fitness-outline-light');
+                                            $(this).removeClass('btn-fitness-outline-light').addClass('btn-fitness-primary');
+                                            selectedTimeSlot.val($(this).data('time'));
+                                            submitBtn.prop('disabled', false);
+                                            timeSlotError.hide();
+                                        });
+                                    }
+
+                                    btn.addClass('btn-time-slot');
+                                    timeSlotList.append(btn);
+                                });
+                            } else {
+                                timeSlotList.html('<p class="text-muted">Không có khung giờ khả dụng</p>');
+                            }
+                        },
+                        error: function() {
+                            timeSlotList.html('<p class="text-danger">Lỗi tải khung giờ</p>');
+                        }
+                    });
+                } else {
+                    timeSlotList.empty();
+                    submitBtn.prop('disabled', true);
+                }
+            }
+
+            trainerSelect.change(loadTimeSlots);
+            sessionDate.change(loadTimeSlots);
+
+            // Form submit validation
+            $('#bookingForm').submit(function(e) {
+                if (!selectedTimeSlot.val()) {
+                    e.preventDefault();
+                    timeSlotError.show();
+                    return false;
+                }
+                return true;
+            });
+        });
+    </script>
+    <style>
+        .btn-time-slot {
+            min-width: 80px;
+            margin: 4px;
+        }
+
+            .btn-time-slot:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+    </style>
+}

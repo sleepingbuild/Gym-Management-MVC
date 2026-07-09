@@ -52,6 +52,8 @@ builder.Services.AddScoped<ITrainerScheduleRepository, TrainerScheduleRepository
 builder.Services.AddScoped<ITrainerScheduleService, TrainerScheduleService>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IWorkoutProgressRepository, WorkoutProgressRepository>();
+builder.Services.AddScoped<IWorkoutProgressService, WorkoutProgressService>();
 
 var app = builder.Build();
 

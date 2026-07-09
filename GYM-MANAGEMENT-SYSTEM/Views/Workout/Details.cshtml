@@ -1,0 +1,95 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.WorkoutIndexViewModel
+@{
+    ViewData["Title"] = "Chi tiết tiến trình";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>Chi tiết tiến trình
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="auth-icon" style="width: 100px; height: 100px; margin: 0 auto;">
+                            <i class="fas fa-chart-line" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="text-white mt-3">Tiến trình ngày @Model.DateDisplay</h3>
+                        <span class="badge-fitness @(Model.BMIStatus == "success" ? "green" : "orange")">
+                            BMI: @Model.BMI - @Model.BMICategory
+                        </span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-icon orange">
+                                    <i class="fas fa-weight"></i>
+                                </div>
+                                <div class="stat-number">@Model.WeightDisplay</div>
+                                <div class="stat-label">Cân nặng</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-icon blue">
+                                    <i class="fas fa-ruler-vertical"></i>
+                                </div>
+                                <div class="stat-number">@Model.BMI</div>
+                                <div class="stat-label">BMI</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-icon green">
+                                    <i class="fas fa-percent"></i>
+                                </div>
+                                <div class="stat-number">@Model.BodyFatDisplay</div>
+                                <div class="stat-label">Tỷ lệ mỡ</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="stat-card">
+                                <div class="stat-icon yellow">
+                                    <i class="fas fa-dumbbell"></i>
+                                </div>
+                                <div class="stat-number">@Model.MuscleMass</div>
+                                <div class="stat-label">Cơ bắp</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-card">
+                                <div class="stat-icon red">
+                                    <i class="fas fa-arrows-alt-h"></i>
+                                </div>
+                                <div class="stat-number">@Model.WaistCircumference cm</div>
+                                <div class="stat-label">Vòng eo</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <div class="mt-4">
+                            <h6 class="text-muted"><i class="fas fa-align-left me-2"></i>Ghi chú</h6>
+                            <p class="text-white">@Model.Notes</p>
+                        </div>
+                    }
+
+                    <div class="d-flex gap-2 mt-4">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-fitness-primary">
+                            <i class="fas fa-edit me-2"></i>Sửa
+                        </a>
+                        <a asp-action="Index" class="btn btn-fitness-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

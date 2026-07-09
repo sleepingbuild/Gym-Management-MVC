@@ -1,0 +1,120 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.WorkoutCreateViewModel
+@{
+    ViewData["Title"] = "Ghi nhận tiến trình";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-plus-circle me-2"></i>Ghi nhận tiến trình mới
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <input type="hidden" asp-for="UserId" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Weight" class="form-label">
+                                    <i class="fas fa-weight me-2"></i>Cân nặng (kg)
+                                </label>
+                                <input asp-for="Weight" class="form-control" type="number" step="0.1" placeholder="65.5" />
+                                <span asp-validation-for="Weight" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Height" class="form-label">
+                                    <i class="fas fa-ruler-vertical me-2"></i>Chiều cao (cm)
+                                </label>
+                                <input asp-for="Height" class="form-control" type="number" step="0.1" placeholder="170" />
+                                <span asp-validation-for="Height" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="BodyFatPercentage" class="form-label">
+                                    <i class="fas fa-percent me-2"></i>Tỷ lệ mỡ (%)
+                                </label>
+                                <input asp-for="BodyFatPercentage" class="form-control" type="number" step="0.1" placeholder="18.5" />
+                                <span asp-validation-for="BodyFatPercentage" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="MuscleMass" class="form-label">
+                                    <i class="fas fa-dumbbell me-2"></i>Cơ bắp
+                                </label>
+                                <input asp-for="MuscleMass" class="form-control" type="number" step="0.1" placeholder="35" />
+                                <span asp-validation-for="MuscleMass" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="WaistCircumference" class="form-label">
+                                    <i class="fas fa-arrows-alt-h me-2"></i>Vòng eo (cm)
+                                </label>
+                                <input asp-for="WaistCircumference" class="form-control" type="number" step="0.1" placeholder="75" />
+                                <span asp-validation-for="WaistCircumference" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Notes" class="form-label">
+                                <i class="fas fa-align-left me-2"></i>Ghi chú
+                            </label>
+                            <textarea asp-for="Notes" class="form-control" rows="2"
+                                      placeholder="Cảm nhận khi tập, chế độ ăn, v.v..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="alert alert-info mb-4" id="previewAlert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>BMI:</strong> <span id="bmiPreview">-</span> |
+                            <strong>Phân loại:</strong> <span id="bmiCategoryPreview">-</span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-fitness-primary flex-grow-1">
+                                <i class="fas fa-save me-2"></i>Lưu tiến trình
+                            </button>
+                            <a asp-action="Index" class="btn btn-fitness-secondary">
+                                <i class="fas fa-times me-2"></i>Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            function updatePreview() {
+                var weight = parseFloat($('#Weight').val());
+                var height = parseFloat($('#Height').val());
+
+                if (weight && height && height > 0) {
+                    var bmi = weight / ((height / 100) * (height / 100));
+                    $('#bmiPreview').text(bmi.toFixed(1));
+
+                    var category = '';
+                    if (bmi < 18.5) category = 'Thiếu cân';
+                    else if (bmi < 25) category = 'Bình thường';
+                    else if (bmi < 30) category = 'Thừa cân';
+                    else category = 'Béo phì';
+
+                    var color = bmi < 18.5 ? '#FFA500' : bmi < 25 ? '#00E676' : '#FF1744';
+                    $('#bmiCategoryPreview').text(category).css('color', color);
+                } else {
+                    $('#bmiPreview').text('-');
+                    $('#bmiCategoryPreview').text('-').css('color', '#AAAAAA');
+                }
+            }
+
+            $('#Weight, #Height').on('input', updatePreview);
+            updatePreview();
+        });
+    </script>
+}

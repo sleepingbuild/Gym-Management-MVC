@@ -1,0 +1,175 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.WorkoutStatisticsViewModel
+@{
+    ViewData["Title"] = "Thống kê tiến trình";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fitness-title">📈 Thống kê tiến trình</h1>
+            <p class="text-muted">Tổng quan về sự phát triển của bạn</p>
+        </div>
+        <a asp-action="Index" class="btn btn-fitness-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+
+    @if (Model.TotalRecords > 0)
+    {
+        <!-- Summary -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-weight"></i>
+                    </div>
+                    <div class="stat-number">@Model.LatestWeightDisplay</div>
+                    <div class="stat-label">Cân nặng hiện tại</div>
+                    <div class="stat-change @(Model.WeightChange >= 0 ? "positive" : "negative")">
+                        <i class="fas @(Model.WeightChange >= 0 ? "fa-arrow-up" : "fa-arrow-down")"></i>
+                        @Model.WeightChangeDisplay
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-ruler-vertical"></i>
+                    </div>
+                    <div class="stat-number">@Model.LatestBMIDisplay</div>
+                    <div class="stat-label">BMI hiện tại</div>
+                    <div class="stat-change @(Model.BMIChange >= 0 ? "positive" : "negative")">
+                        <i class="fas @(Model.BMIChange >= 0 ? "fa-arrow-up" : "fa-arrow-down")"></i>
+                        @Model.BMIChangeDisplay
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <div class="stat-number">@Model.LatestBodyFatDisplay</div>
+                    <div class="stat-label">Tỷ lệ mỡ</div>
+                    <div class="stat-change @(Model.BodyFatChange <= 0 ? "positive" : "negative")">
+                        <i class="fas @(Model.BodyFatChange <= 0 ? "fa-arrow-down" : "fa-arrow-up")"></i>
+                        @Model.BodyFatChangeDisplay
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon yellow">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <div class="stat-number">@Model.TotalRecords</div>
+                    <div class="stat-label">Tổng ghi nhận</div>
+                    <div class="stat-change" style="font-size: 0.75rem;">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        Cập nhật: @Model.LastUpdatedDisplay
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Stats -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card-fitness">
+                    <div class="card-header">
+                        <i class="fas fa-chart-pie me-2"></i>Thông tin chi tiết
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between py-2 border-bottom border-dark">
+                            <span class="text-muted">Cân nặng bắt đầu</span>
+                            <span>@(Model.StartWeight > 0 ? $"{Model.StartWeight:F1} kg" : "Chưa có")</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom border-dark">
+                            <span class="text-muted">BMI bắt đầu</span>
+                            <span>@(Model.StartBMI > 0 ? $"{Model.StartBMI:F1}" : "Chưa có")</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom border-dark">
+                            <span class="text-muted">Tỷ lệ mỡ bắt đầu</span>
+                            <span>@(Model.StartBodyFat > 0 ? $"{Model.StartBodyFat:F1}%" : "Chưa có")</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom border-dark">
+                            <span class="text-muted">Số lần ghi nhận gần đây (7 ngày)</span>
+                            <span>@Model.RecentRecords</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2">
+                            <span class="text-muted">Trung bình ghi nhận</span>
+                            <span>@(Model.TotalRecords > 0 ? $"{Model.TotalRecords} lần" : "Chưa có")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card-fitness">
+                    <div class="card-header">
+                        <i class="fas fa-lightbulb me-2"></i>Đánh giá tổng quan
+                    </div>
+                    <div class="card-body">
+                        @if (Model.WeightChange < 0 && Model.BodyFatChange < 0)
+                        {
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Tuyệt vời!</strong> Cân nặng và tỷ lệ mỡ đều giảm. Bạn đang đi đúng hướng!
+                            </div>
+                        }
+                        else if (Model.WeightChange < 0 && Model.BodyFatChange > 0)
+                        {
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Lưu ý:</strong> Cân nặng giảm nhưng tỷ lệ mỡ tăng. Có thể bạn đang mất cơ.
+                            </div>
+                        }
+                        else if (Model.WeightChange > 0 && Model.BodyFatChange < 0)
+                        {
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Rất tốt!</strong> Cân nặng tăng nhưng tỷ lệ mỡ giảm. Bạn đang tăng cơ.
+                            </div>
+                        }
+                        else if (Model.WeightChange > 0 && Model.BodyFatChange > 0)
+                        {
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <strong>Cảnh báo:</strong> Cân nặng và tỷ lệ mỡ đều tăng. Cần điều chỉnh chế độ.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Chưa đủ dữ liệu</strong> để đánh giá. Hãy ghi nhận thường xuyên hơn.
+                            </div>
+                        }
+
+                        <div class="mt-3">
+                            <p class="text-muted small">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Tổng số ngày theo dõi: @((DateTime.UtcNow - Model.LastUpdated).Days) ngày
+                            </p>
+                            <p class="text-muted small">
+                                <i class="fas fa-flag me-1"></i>
+                                Mục tiêu: Giảm mỡ, tăng cơ
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-chart-line" style="font-size: 4rem; color: var(--text-muted);"></i>
+            <h4 class="text-muted mt-3">Chưa có dữ liệu thống kê</h4>
+            <p class="text-muted">Hãy ghi nhận tiến trình để xem thống kê</p>
+            <a asp-action="Create" class="btn btn-fitness-primary mt-3">
+                <i class="fas fa-plus-circle me-2"></i>Ghi nhận ngay
+            </a>
+        </div>
+    }
+</div>

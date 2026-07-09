@@ -20,9 +20,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Data
         public DbSet<WorkoutProgress> WorkoutProgresses { get; set; }
         public DbSet<ChatHistory> ChatHistories { get; set; }
         public DbSet<FAQ> FAQs { get; set; }
-
         public DbSet<TrainerSchedule> TrainerSchedules { get; set; }
-        public DbSet<WorkoutProgress> WorkoutProgresses { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

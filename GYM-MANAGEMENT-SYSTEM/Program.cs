@@ -2,6 +2,7 @@ using GYM_MANAGEMENT_SYSTEM.Data;
 using GYM_MANAGEMENT_SYSTEM.Models;
 using GYM_MANAGEMENT_SYSTEM.Repositories;
 using GYM_MANAGEMENT_SYSTEM.Services;
+using GYM_MANAGEMENT_SYSTEM.VNPay;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -54,6 +55,9 @@ builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IWorkoutProgressRepository, WorkoutProgressRepository>();
 builder.Services.AddScoped<IWorkoutProgressService, WorkoutProgressService>();
+builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("VNPay"));
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 var app = builder.Build();
 

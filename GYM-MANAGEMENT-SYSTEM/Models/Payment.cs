@@ -18,16 +18,22 @@ namespace GYM_MANAGEMENT_SYSTEM.Models
         public decimal Amount { get; set; }
 
         [Required]
-        public string Method { get; set; } = string.Empty; // VNPay, Cash, Bank
+        [StringLength(50)]
+        public string Method { get; set; } = string.Empty; 
 
         [Required]
-        public string Status { get; set; } = string.Empty; // Pending, Success, Failed
+        [StringLength(50)]
+        public string Status { get; set; } = string.Empty; 
 
+        [StringLength(100)]
         public string TransactionId { get; set; } = string.Empty;
+
+        [StringLength(500)]
+        public string PaymentInfo { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation property
+
         [ForeignKey("MembershipId")]
         public Membership? Membership { get; set; }
     }

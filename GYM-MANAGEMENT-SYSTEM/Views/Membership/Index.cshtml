@@ -32,7 +32,13 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
-
+    @if (membership.Status == "Pending" || membership.Status == "Active")
+    {
+    <a asp-controller="Payment" asp-action="Create" asp-route-membershipId="@membership.Id" 
+       class="btn btn-fitness-primary w-100">
+        <i class="fas fa-credit-card me-2"></i>Thanh toán ngay
+    </a>
+    }
     <!-- Membership Cards -->
     @if (Model.Any())
     {
@@ -132,4 +138,5 @@
             </a>
         </div>
     }
+
 </div>

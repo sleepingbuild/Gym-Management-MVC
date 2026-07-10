@@ -1,0 +1,139 @@
+@model IEnumerable<GYM_MANAGEMENT_SYSTEM.ViewModels.PaymentIndexViewModel>
+@{
+    ViewData["Title"] = "Lịch sử thanh toán";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fitness-title">📋 Lịch sử thanh toán</h1>
+            <p class="text-muted">Xem tất cả các giao dịch thanh toán</p>
+        </div>
+        <a asp-action="Index" class="btn btn-fitness-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="stat-number">@string.Format("{0:N0} VNĐ", ViewBag.TotalSuccess ?? 0)</div>
+                <div class="stat-label">Tổng tiền đã thanh toán</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="fas fa-list"></i>
+                </div>
+                <div class="stat-number">@ViewBag.TotalCount</div>
+                <div class="stat-label">Tổng giao dịch</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-number">@ViewBag.SuccessCount</div>
+                <div class="stat-label">Thành công</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="stat-number">@ViewBag.FailedCount</div>
+                <div class="stat-label">Thất bại</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="card-fitness mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Từ ngày</label>
+                    <input type="date" name="fromDate" class="form-control" 
+                           value="@Context.Request.Query["fromDate"]" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Đến ngày</label>
+                    <input type="date" name="toDate" class="form-control" 
+                           value="@Context.Request.Query["toDate"]" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select name="status" class="form-control">
+                        <option value="">Tất cả</option>
+                        <option value="Success" selected="@(Context.Request.Query["status"] == "Success")">Thành công</option>
+                        <option value="Pending" selected="@(Context.Request.Query["status"] == "Pending")">Đang xử lý</option>
+                        <option value="Failed" selected="@(Context.Request.Query["status"] == "Failed")">Thất bại</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-fitness-primary w-100">
+                        <i class="fas fa-search me-1"></i>Lọc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payment List -->
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-fitness">
+                <thead>
+                    <tr>
+                        <th>Mã GD</th>
+                        <th>Số tiền</th>
+                        <th>Phương thức</th>
+                        <th>Trạng thái</th>
+                        <th>Mã GD VNPay</th>
+                        <th>Ngày</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var payment in Model)
+                    {
+                        <tr>
+                            <td>#@payment.Id</td>
+                            <td class="fw-bold">@payment.AmountDisplay</td>
+                            <td>@payment.MethodDisplay</td>
+                            <td>
+                                <span class="badge-fitness @payment.StatusBadgeClass">
+                                    @payment.StatusDisplay
+                                </span>
+                            </td>
+                            <td>@(string.IsNullOrEmpty(payment.TransactionId) ? "-" : payment.TransactionId)</td>
+                            <td>@payment.DateDisplay</td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@payment.Id" 
+                                   class="btn btn-sm btn-fitness-outline-light">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-credit-card" style="font-size: 4rem; color: var(--text-muted);"></i>
+            <h4 class="text-muted mt-3">Không tìm thấy giao dịch</h4>
+            <p class="text-muted">Thử thay đổi bộ lọc hoặc tạo giao dịch mới</p>
+        </div>
+    }
+</div>

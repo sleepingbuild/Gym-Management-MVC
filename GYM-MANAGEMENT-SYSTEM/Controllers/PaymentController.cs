@@ -1,10 +1,11 @@
+using GYM_MANAGEMENT_SYSTEM.Models;
 using GYM_MANAGEMENT_SYSTEM.Services;
 using GYM_MANAGEMENT_SYSTEM.ViewModels;
+using GYM_MANAGEMENT_SYSTEM.VNPay;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Net;
-using GYM_MANAGEMENT_SYSTEM.VNPay;
 
 namespace GYM_MANAGEMENT_SYSTEM.Controllers
 {
@@ -117,7 +118,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
 			var queryString = Request.QueryString.ToString();
 			var response = new Dictionary<string, string>();
 
-			// Parse query string
+
 			if (!string.IsNullOrEmpty(queryString))
 			{
 				var query = queryString.TrimStart('?').Split('&');
@@ -131,7 +132,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
 				}
 			}
 
-			// Xử lý kết quả từ VNPay
+
 			var result = await _paymentService.ProcessVNPayReturn(response);
 
 			if (result)
@@ -216,5 +217,91 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
 			}
 			return ipAddress ?? "127.0.0.1";
 		}
-	}
+
+        // GET: /Payment/History
+        public async Task<IActionResult> History(PaymentHistoryFilterViewModel filter)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+
+            IEnumerable<Payment> payments;
+
+            if (!string.IsNullOrEmpty(filter.Status) && filter.Status != "Tất cả")
+            {
+                payments = await _paymentService.GetPaymentHistoryByStatusAsync(userId, filter.Status);
+            }
+            else if (!string.IsNullOrEmpty(filter.SearchTerm) || filter.FromDate.HasValue || filter.ToDate.HasValue)
+            {
+                payments = await _paymentService.SearchPaymentsAsync(userId, filter.SearchTerm, filter.FromDate, filter.ToDate);
+            }
+            else
+            {
+                payments = await _paymentService.GetPaymentHistoryAsync(userId);
+            }
+
+            var viewModels = payments.Select(p => new PaymentIndexViewModel
+            {
+                Id = p.Id,
+                UserId = p.UserId,
+                MembershipId = p.MembershipId,
+                Amount = p.Amount,
+                Method = p.Method,
+                Status = p.Status,
+                TransactionId = p.TransactionId,
+                PaymentInfo = p.PaymentInfo,
+                CreatedAt = p.CreatedAt
+            }).ToList();
+
+            var stats = await _paymentService.GetPaymentStatisticsAsync(userId);
+            ViewBag.Statistics = stats;
+
+            return View(viewModels);
+        }
+
+        // GET: /Payment/Statistics
+        public async Task<IActionResult> Statistics()
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var stats = await _paymentService.GetPaymentStatisticsAsync(userId);
+            return View(stats);
+        }
+
+        // GET: /Payment/ExportCSV
+        public async Task<IActionResult> ExportCSV(DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var payments = await _paymentService.GetPaymentHistoryAsync(userId, fromDate, toDate);
+
+            var csv = new System.Text.StringBuilder();
+            csv.AppendLine("Mã GD,Số tiền,Phương thức,Trạng thái,Mã GD VNPay,Ngày,Thông tin");
+
+            foreach (var p in payments)
+            {
+                csv.AppendLine($"{p.Id},{p.Amount:N0},{p.Method},{p.Status},{p.TransactionId},{p.CreatedAt:dd/MM/yyyy HH:mm},{p.PaymentInfo}");
+            }
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+            return File(bytes, "text/csv", $"payment_history_{DateTime.Now:yyyyMMdd}.csv");
+        }
+    }
 }

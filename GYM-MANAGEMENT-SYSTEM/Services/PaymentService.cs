@@ -173,5 +173,90 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
         {
             return await _paymentRepository.GetByMembershipIdAsync(membershipId);
         }
+
+        public async Task<IEnumerable<Payment>> GetPaymentHistoryAsync(string userId, DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            var payments = await _paymentRepository.GetByUserIdAsync(userId);
+
+            if (fromDate.HasValue)
+            {
+                payments = payments.Where(p => p.CreatedAt >= fromDate.Value);
+            }
+
+            if (toDate.HasValue)
+            {
+                payments = payments.Where(p => p.CreatedAt <= toDate.Value);
+            }
+
+            return payments.OrderByDescending(p => p.CreatedAt);
+        }
+
+        public async Task<IEnumerable<Payment>> GetPaymentHistoryByStatusAsync(string userId, string status)
+        {
+            var payments = await _paymentRepository.GetByUserIdAsync(userId);
+            return payments.Where(p => p.Status == status)
+                           .OrderByDescending(p => p.CreatedAt);
+        }
+
+        public async Task<IEnumerable<Payment>> SearchPaymentsAsync(string userId, string? searchTerm = null, DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            var payments = await _paymentRepository.GetByUserIdAsync(userId);
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                payments = payments.Where(p =>
+                    p.TransactionId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    p.PaymentInfo.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    p.Method.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                );
+            }
+
+            if (fromDate.HasValue)
+            {
+                payments = payments.Where(p => p.CreatedAt >= fromDate.Value);
+            }
+
+            if (toDate.HasValue)
+            {
+                payments = payments.Where(p => p.CreatedAt <= toDate.Value);
+            }
+
+            return payments.OrderByDescending(p => p.CreatedAt);
+        }
+
+        public async Task<PaymentStatisticsViewModel> GetPaymentStatisticsAsync(string userId)
+        {
+            var payments = await _paymentRepository.GetByUserIdAsync(userId);
+
+            var stats = new PaymentStatisticsViewModel
+            {
+                TotalPayments = payments.Count(),
+                TotalAmount = payments.Where(p => p.Status == "Success").Sum(p => p.Amount),
+                SuccessCount = payments.Count(p => p.Status == "Success"),
+                PendingCount = payments.Count(p => p.Status == "Pending"),
+                FailedCount = payments.Count(p => p.Status == "Failed"),
+                RecentPayments = payments
+                    .OrderByDescending(p => p.CreatedAt)
+                    .Take(5)
+                    .Select(p => new PaymentSummaryViewModel
+                    {
+                        Id = p.Id,
+                        Amount = p.Amount,
+                        Method = p.Method,
+                        Status = p.Status,
+                        CreatedAt = p.CreatedAt
+                    }).ToList()
+            };
+
+
+            stats.TotalSuccessAmount = stats.TotalAmount;
+
+
+            stats.SuccessRate = stats.TotalPayments > 0
+                ? Math.Round((double)stats.SuccessCount / stats.TotalPayments * 100, 1)
+                : 0;
+
+            return stats;
+        }
     }
 }

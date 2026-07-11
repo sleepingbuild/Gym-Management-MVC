@@ -79,11 +79,11 @@
 
 | Issue | Title | Owner | Status |
 |-------|-------|-------|--------|
-| #6 | Membership Package CRUD Backend | Quang Trung | ⏳ Pending |
-| #7 | Membership Package UI | Phi | ⏳ Pending |
-| #8 | Membership Registration Module | Kiệt | ⏳ Pending |
-| #9 | Membership Renewal Module | Kiệt | ⏳ Pending |
-| #10 | Membership Testing | Hoàng Long | ⏳ Pending |
+| #6 | Membership Package CRUD Backend | Quang Trung | ✅ Done |
+| #7 | Membership Package UI | Phi | ✅ Done |
+| #8 | Membership Registration Module | Kiệt | ✅ Done |
+| #9 | Membership Renewal Module | Kiệt | ✅ Done |
+| #10 | Membership Testing | Hoàng Long | ✅ Done |
 
 **Deliverables:**
 - [ ] Membership Package Management
@@ -97,13 +97,13 @@
 
 | Issue | Title | Owner | Status |
 |-------|-------|-------|--------|
-| #11 | Trainer CRUD Backend | Quang Trung | ⏳ Pending |
-| #12 | Trainer Management UI | Phi | ⏳ Pending |
-| #13 | Trainer Schedule Module | Kiệt | ⏳ Pending |
-| #14 | Booking Creation Module | Kiệt | ⏳ Pending |
-| #15 | Booking Cancellation & History | Kiệt | ⏳ Pending |
+| #11 | Trainer CRUD Backend | Quang Trung | ✅ Done |
+| #12 | Trainer Management UI | Phi | ✅ Done |
+| #13 | Trainer Schedule Module | Kiệt | ✅ Done |
+| #14 | Booking Creation Module | Kiệt | ✅ Done |
+| #15 | Booking Cancellation & History | Kiệt | ✅ Done |
 | #16 | Booking UI | Phi | ⏳ Pending |
-| #17 | Booking Testing | Hoàng Long | ⏳ Pending |
+| #17 | Booking Testing | Hoàng Long | ✅ Done |
 
 ---
 
@@ -111,11 +111,11 @@
 
 | Issue | Title | Owner | Status |
 |-------|-------|-------|--------|
-| #18 | Workout Progress Backend | Kiệt | ⏳ Pending |
-| #19 | Workout Progress UI | Phi | ⏳ Pending |
-| #20 | VNPay Configuration | Quang Trung | ⏳ Pending |
-| #21 | VNPay Payment Processing | Quang Trung | ⏳ Pending |
-| #22 | Payment Testing | Hoàng Long | ⏳ Pending |
+| #18 | Workout Progress Backend | Kiệt | ✅ Done |
+| #19 | Workout Progress UI | Phi | ✅ Done |
+| #20 | VNPay Configuration | Quang Trung | ✅ Done|
+| #21 | VNPay Payment Processing | Quang Trung | ✅ Done |
+| #22 | Payment Testing | Hoàng Long | ✅ Done |
 
 ---
 

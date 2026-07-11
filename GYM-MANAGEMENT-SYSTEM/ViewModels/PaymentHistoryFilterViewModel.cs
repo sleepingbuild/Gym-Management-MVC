@@ -18,7 +18,6 @@ namespace GYM_MANAGEMENT_SYSTEM.ViewModels
         [Display(Name = "Tìm kiếm")]
         public string? SearchTerm { get; set; }
 
-        // Danh sách status để dropdown
         public List<string> StatusOptions { get; set; } = new()
         {
             "Tất cả", "Pending", "Success", "Failed"

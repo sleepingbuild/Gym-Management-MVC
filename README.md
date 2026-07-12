@@ -10,11 +10,11 @@ Gym Management System is a web-based application designed to support gym operati
 
 The system allows:
 - Member management
-- Membership package management
+- Membership package management  
 - Trainer management
 - Training schedule booking
 - Workout progress tracking
-- Online payment processing
+- Online payment processing (VNPay)
 - AI-based fitness consultation
 
 ---
@@ -49,27 +49,19 @@ The system allows:
 - User Login
 - Profile Management
 - Password Management
-- Role-based Access Control
-
-**Roles:**
-- Admin
-- Trainer
-- Member
+- Role-based Access Control (Admin, Trainer, Member)
 
 ### 2. Membership Management
 - View Membership Packages
 - Register Membership
 - Renew Membership
 - Membership Status Tracking
-
-**Admin Features:**
-- Create Package
-- Update Package
-- Disable Package
+- Admin CRUD for Packages
 
 ### 3. Trainer Management
 - Trainer Profile Management
 - Trainer Availability Management
+- Trainer Schedule Management
 - Trainer Assignment
 
 ### 4. Booking Management
@@ -77,51 +69,36 @@ The system allows:
 - Cancel Bookings
 - Booking History
 - Schedule Tracking
+- Calendar View
 
 ### 5. Workout Progress Tracking
-Track:
-- Weight
-- Height
-- BMI
+- Weight Tracking
+- Height Tracking
+- BMI Calculation
 - Body Fat Percentage
+- Muscle Mass Tracking
 - Workout Performance
 
 ### 6. Online Payment
-**Supported:** VNPay
-
-**Functions:**
+- VNPay Integration
 - Membership Payment
 - Membership Renewal Payment
 - Transaction History
 - Payment Status Tracking
 
 ### 7. AI Fitness Assistant
-The AI Assistant supports:
 - Fitness consultation
 - Workout recommendations
 - Nutrition suggestions
 - Gym-related Q&A
 - Fitness goal guidance
 
----
-
-## 🤖 AI Architecture
-
-**Hybrid AI Architecture:**
-User Question
-↓
-Knowledge Base Retrieval
-↓
-Fine-Tuned Gym Model (Qwen 2.5 + LoRA)
-↓
-Confidence Evaluation
-↓
-If confidence is high → Return Response
-Else → Gemini API → Return Response
-↓
-Save Chat History
-
-text
+### 8. Dashboard
+- Revenue Statistics
+- Membership Analytics
+- Booking Analytics
+- Trainer Performance
+- Payment Analytics
 
 ---
 
@@ -144,6 +121,7 @@ text
 - Razor View
 - Bootstrap 5
 - HTML5, CSS3, JavaScript
+- Chart.js
 
 ### Backend
 - ASP.NET Core 8
@@ -178,6 +156,7 @@ text
 - MembershipPackage
 - Membership
 - Trainer
+- TrainerSchedule
 - Booking
 - Payment
 - WorkoutProgress
@@ -193,11 +172,11 @@ text
 | Week | Milestone | Status |
 |------|-----------|--------|
 | Week 1 | Foundation & Setup | ✅ Completed |
-| Week 2 | Membership Management | 🔄 In Progress |
-| Week 3 | Trainer & Booking Management | ⏳ Pending |
-| Week 4 | Workout Progress & Payment | ⏳ Pending |
-| Week 5 | AI Fitness Assistant | ⏳ Pending |
-| Week 6 | Dashboard & Final Release | ⏳ Pending |
+| Week 2 | Membership Management | ✅ Completed |
+| Week 3 | Trainer & Booking Management | ✅ Completed |
+| Week 4 | Progress & Payment | ✅ Completed |
+| Week 5 | AI Fitness Assistant | ✅ Completed |
+| Week 6 | Dashboard & Final Release | 🔄 In Progress |
 
 ---
 
@@ -207,31 +186,38 @@ GYM-MANAGEMENT-SYSTEM/
 ├── Controllers/
 │ ├── AccountController.cs
 │ ├── HomeController.cs
-│ └── ...
+│ ├── PackageController.cs
+│ ├── MembershipController.cs
+│ ├── TrainerController.cs
+│ ├── ScheduleController.cs
+│ ├── BookingController.cs
+│ ├── WorkoutController.cs
+│ ├── PaymentController.cs
+│ └── DashboardController.cs
+│
 ├── Models/
 │ ├── ApplicationUser.cs
 │ ├── UserProfile.cs
+│ ├── MembershipPackage.cs
+│ ├── Membership.cs
+│ ├── Trainer.cs
+│ ├── TrainerSchedule.cs
+│ ├── Booking.cs
+│ ├── Payment.cs
+│ ├── WorkoutProgress.cs
 │ └── ...
+│
 ├── ViewModels/
-│ ├── LoginViewModel.cs
-│ ├── RegisterViewModel.cs
-│ └── ...
 ├── Services/
-│ ├── AuthService.cs
-│ └── ...
+├── Repositories/
 ├── Data/
-│ └── ApplicationDbContext.cs
 ├── Views/
-│ ├── Account/
-│ ├── Home/
-│ └── Shared/
 ├── wwwroot/
-│ └── css/
 ├── AI/
 │ ├── Services/
 │ ├── Models/
 │ └── Datasets/
-└── Migrations/
+└── Tests/
 
 text
 
@@ -243,7 +229,7 @@ text
 - Password Hashing
 - Role-based Authorization
 - Session Management
-- Secure Payment Verification
+- Secure Payment Verification (VNPay)
 
 ---
 
@@ -279,6 +265,56 @@ Access the application:
 
 text
 http://localhost:5225
+📊 API Endpoints (Dashboard)
+Endpoint	Method	Description
+/Dashboard/Revenue	GET	Monthly revenue data
+/Dashboard/Membership	GET	Monthly membership data
+/Dashboard/BookingStatus	GET	Booking status distribution
+/Dashboard/PaymentStatus	GET	Payment status distribution
+/Dashboard/RevenueByMethod	GET	Revenue by payment method
+/Dashboard/DailyRevenue	GET	Daily revenue (30 days)
+/Dashboard/Trainers	GET	Top trainers
+/Dashboard/PackageDistribution	GET	Membership package distribution
+📝 User Manual
+For Members
+Register an account
+
+Login to access the system
+
+Browse membership packages
+
+Register for a membership
+
+Book training sessions with trainers
+
+Track workout progress
+
+View booking history
+
+Renew membership when expired
+
+For Trainers
+View assigned bookings
+
+Manage schedule
+
+Confirm or cancel bookings
+
+Track member progress
+
+For Admins
+Manage membership packages (CRUD)
+
+Manage trainers (CRUD)
+
+View all bookings
+
+View payment history
+
+Access dashboard analytics
+
+Manage user roles
+
 📈 Future Enhancements
 Personalized Workout Recommendation Engine
 

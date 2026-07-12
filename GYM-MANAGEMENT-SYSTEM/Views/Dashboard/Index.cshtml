@@ -1,4 +1,370 @@
-﻿@page
-@model GYM-MANAGEMENT-SYSTEM.Views.Dashboard.IndexModel
+﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.DashboardStatisticsViewModel
 @{
+    ViewData["Title"] = "Dashboard";
+    var chartData = ViewBag.ChartData as GYM_MANAGEMENT_SYSTEM.ViewModels.DashboardChartViewModel;
+    var topTrainers = ViewBag.TopTrainers as List<GYM_MANAGEMENT_SYSTEM.ViewModels.ChartDataPoint>;
+    var packageDistribution = ViewBag.PackageDistribution as List<GYM_MANAGEMENT_SYSTEM.ViewModels.ChartDataPoint>;
+}
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fitness-title">📊 Dashboard</h1>
+            <p class="text-muted">Tổng quan hoạt động của phòng gym</p>
+        </div>
+        <div>
+            <span class="text-muted">
+                <i class="fas fa-clock me-1"></i>
+                Cập nhật: @DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm")
+            </span>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-number">@Model.TotalUsersDisplay</div>
+                <div class="stat-label">Tổng thành viên</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up me-1"></i>
+                    +@Model.NewUsersThisMonth tháng này
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <div class="stat-number">@Model.TotalMembershipsDisplay</div>
+                <div class="stat-label">Tổng gói tập</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-check-circle me-1"></i>
+                    @Model.MembershipActiveRate% đang hoạt động
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="stat-number">@Model.TotalRevenueDisplay</div>
+                <div class="stat-label">Tổng doanh thu</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up me-1"></i>
+                    @Model.RevenueThisMonthDisplay tháng này
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon yellow">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-number">@Model.TotalBookings</div>
+                <div class="stat-label">Tổng đặt lịch</div>
+                <div class="stat-change @(Model.BookingCompletionRate >= 70 ? "positive" : "negative")">
+                    <i class="fas @(Model.BookingCompletionRate >= 70 ? "fa-arrow-up" : "fa-arrow-down") me-1"></i>
+                    @Model.BookingCompletionRate% hoàn thành
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Second Row - More Stats -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="stat-number">@Model.TotalTrainers</div>
+                <div class="stat-label">Huấn luyện viên</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-check-circle me-1"></i>
+                    @Model.AvailableTrainers đang hoạt động
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-number">@Model.ExpiringSoonMemberships</div>
+                <div class="stat-label">Sắp hết hạn</div>
+                <div class="stat-change negative">
+                    <i class="fas fa-clock me-1"></i>
+                    Cần gia hạn trong 7 ngày
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="stat-number">@Model.PendingBookings</div>
+                <div class="stat-label">Đặt lịch chờ</div>
+                <div class="stat-change warning">
+                    <i class="fas fa-clock me-1"></i>
+                    Cần xác nhận
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="fas fa-dumbbell"></i>
+                </div>
+                <div class="stat-number">@Model.TotalWorkoutRecords</div>
+                <div class="stat-label">Ghi nhận tập luyện</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up me-1"></i>
+                    +@Model.WorkoutRecordsThisMonth tháng này
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-3">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-2"></i>Doanh thu theo tháng
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-2"></i>Phân bố gói tập
+                </div>
+                <div class="card-body">
+                    <canvas id="packageChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Third Row -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-users me-2"></i>Top huấn luyện viên
+                </div>
+                <div class="card-body">
+                    <canvas id="trainerChart" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-3">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-2"></i>Đặt lịch theo tháng
+                </div>
+                <div class="card-body">
+                    <canvas id="bookingChart" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity - Quick Stats -->
+    <div class="row">
+        <div class="col-lg-4 mb-3">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-check-circle me-2" style="color: var(--success-green);"></i>Thành viên mới
+                </div>
+                <div class="card-body text-center py-4">
+                    <h2 class="text-white">@Model.NewUsersThisMonth</h2>
+                    <p class="text-muted">Thành viên mới trong tháng này</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-credit-card me-2" style="color: var(--orange-primary);"></i>Thanh toán thành công
+                </div>
+                <div class="card-body text-center py-4">
+                    <h2 class="text-white">@Model.SuccessPayments</h2>
+                    <p class="text-muted">@Model.PaymentSuccessRate% tỷ lệ thành công</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-calendar-check me-2" style="color: var(--info-blue);"></i>Lịch sắp tới
+                </div>
+                <div class="card-body text-center py-4">
+                    <h2 class="text-white">@Model.BookingsThisMonth</h2>
+                    <p class="text-muted">Đặt lịch trong tháng này</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function() {
+        // 1. Revenue Chart (6 months)
+        var revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        var revenueData = @Html.Raw(Json.Serialize(ViewBag.ChartData?.RevenueData ?? new List<ChartDataPoint>()));
+
+        new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+        labels: revenueData.map(d => d.label),
+        datasets: [{
+        label: 'Doanh thu (VNĐ)',
+        data: revenueData.map(d => d.value),
+        borderColor: '#FF6B00',
+        backgroundColor: 'rgba(255, 107, 0, 0.1)',
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: '#FF6B00'
+        }]
+        },
+        options: {
+        responsive: true,
+        plugins: {
+        legend: {
+        labels: { color: '#AAAAAA' }
+        }
+        },
+        scales: {
+        y: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: {
+        color: '#AAAAAA',
+        callback: function(value) {
+        return value.toLocaleString() + ' VNĐ';
+        }
+        }
+        },
+        x: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { color: '#AAAAAA' }
+        }
+        }
+        }
+        });
+
+        // 2. Package Distribution Chart
+        var packageCtx = document.getElementById('packageChart').getContext('2d');
+        var packageData = @Html.Raw(Json.Serialize(packageDistribution ?? new List<ChartDataPoint>()));
+
+        new Chart(packageCtx, {
+        type: 'doughnut',
+        data: {
+        labels: packageData.map(d => d.label),
+        datasets: [{
+        data: packageData.map(d => d.count),
+        backgroundColor: [
+        '#FF6B00', '#FF8C38', '#FFA55A', '#FF4500', '#E55A00'
+        ],
+        borderColor: '#1A1A1A',
+        borderWidth: 2
+        }]
+        },
+        options: {
+        responsive: true,
+        plugins: {
+        legend: {
+        labels: { color: '#AAAAAA' }
+        }
+        }
+        }
+        });
+
+        // 3. Trainer Chart
+        var trainerCtx = document.getElementById('trainerChart').getContext('2d');
+        var trainerData = @Html.Raw(Json.Serialize(topTrainers ?? new List<ChartDataPoint>()));
+
+        new Chart(trainerCtx, {
+        type: 'bar',
+        data: {
+        labels: trainerData.map(d => d.label),
+        datasets: [{
+        label: 'Số buổi đã dạy',
+        data: trainerData.map(d => d.count),
+        backgroundColor: '#FF6B00',
+        borderColor: '#E55A00',
+        borderWidth: 1
+        }]
+        },
+        options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {
+        legend: {
+        labels: { color: '#AAAAAA' }
+        }
+        },
+        scales: {
+        y: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { color: '#AAAAAA' }
+        },
+        x: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { color: '#AAAAAA' }
+        }
+        }
+        }
+        });
+
+        // 4. Booking Chart
+        var bookingCtx = document.getElementById('bookingChart').getContext('2d');
+        var bookingData = @Html.Raw(Json.Serialize(ViewBag.ChartData?.BookingData ?? new List<ChartDataPoint>()));
+
+        new Chart(bookingCtx, {
+        type: 'bar',
+        data: {
+        labels: bookingData.map(d => d.label),
+        datasets: [{
+        label: 'Số đặt lịch',
+        data: bookingData.map(d => d.count),
+        backgroundColor: '#2979FF',
+        borderColor: '#0D47A1',
+        borderWidth: 1
+        }]
+        },
+        options: {
+        responsive: true,
+        plugins: {
+        legend: {
+        labels: { color: '#AAAAAA' }
+        }
+        },
+        scales: {
+        y: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { color: '#AAAAAA' }
+        },
+        x: {
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        ticks: { color: '#AAAAAA' }
+        }
+        }
+        }
+        });
+        });
+    </script>
 }

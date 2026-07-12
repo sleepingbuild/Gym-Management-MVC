@@ -212,5 +212,140 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 .OrderByDescending(d => d.Count)
                 .ToListAsync();
         }
+
+        public async Task<DashboardStatisticsViewModel> GetDetailedStatisticsAsync()
+        {
+            var now = DateTime.UtcNow;
+            var startOfMonth = new DateTime(now.Year, now.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1);
+            var startOfWeek = now.AddDays(-(int)now.DayOfWeek + 1);
+            var expiringThreshold = now.AddDays(7);
+
+            var stats = new DashboardStatisticsViewModel
+            {
+                // User Statistics
+                TotalUsers = await _context.Users.CountAsync(),
+                NewUsersThisMonth = await _context.Users
+                    .Where(u => u.CreatedAt >= startOfMonth && u.CreatedAt < endOfMonth)
+                    .CountAsync(),
+                ActiveUsersThisMonth = await _context.Users
+                    .Where(u => u.LastLogin >= startOfMonth && u.LastLogin < endOfMonth)
+                    .CountAsync(),
+
+                // Membership Statistics
+                TotalMemberships = await _context.Memberships.CountAsync(),
+                ActiveMemberships = await _context.Memberships
+                    .Where(m => m.Status == "Active")
+                    .CountAsync(),
+                ExpiredMemberships = await _context.Memberships
+                    .Where(m => m.Status == "Expired")
+                    .CountAsync(),
+                ExpiringSoonMemberships = await _context.Memberships
+                    .Where(m => m.Status == "Active" && m.EndDate <= expiringThreshold && m.EndDate >= now)
+                    .CountAsync(),
+
+                // Trainer Statistics
+                TotalTrainers = await _context.Trainers.CountAsync(),
+                AvailableTrainers = await _context.Trainers
+                    .Where(t => t.IsAvailable)
+                    .CountAsync(),
+
+                // Booking Statistics
+                TotalBookings = await _context.Bookings.CountAsync(),
+                BookingsThisMonth = await _context.Bookings
+                    .Where(b => b.CreatedAt >= startOfMonth && b.CreatedAt < endOfMonth)
+                    .CountAsync(),
+                PendingBookings = await _context.Bookings
+                    .Where(b => b.Status == "Pending")
+                    .CountAsync(),
+                CompletedBookings = await _context.Bookings
+                    .Where(b => b.Status == "Completed")
+                    .CountAsync(),
+
+                // Payment Statistics
+                TotalPayments = await _context.Payments.CountAsync(),
+                SuccessPayments = await _context.Payments
+                    .Where(p => p.Status == "Success")
+                    .CountAsync(),
+                TotalRevenue = await _context.Payments
+                    .Where(p => p.Status == "Success")
+                    .SumAsync(p => p.Amount),
+                RevenueThisMonth = await _context.Payments
+                    .Where(p => p.Status == "Success" && p.CreatedAt >= startOfMonth && p.CreatedAt < endOfMonth)
+                    .SumAsync(p => p.Amount),
+
+                // Workout Statistics
+                TotalWorkoutRecords = await _context.WorkoutProgresses.CountAsync(),
+                WorkoutRecordsThisMonth = await _context.WorkoutProgresses
+                    .Where(w => w.RecordedAt >= startOfMonth && w.RecordedAt < endOfMonth)
+                    .CountAsync()
+            };
+
+            return stats;
+        }
+
+        public async Task<List<ChartDataPoint>> GetBookingStatusDistributionAsync()
+        {
+            return await _context.Bookings
+                .GroupBy(b => b.Status)
+                .Select(g => new ChartDataPoint
+                {
+                    Label = g.Key,
+                    Count = g.Count()
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<ChartDataPoint>> GetPaymentStatusDistributionAsync()
+        {
+            return await _context.Payments
+                .GroupBy(p => p.Status)
+                .Select(g => new ChartDataPoint
+                {
+                    Label = g.Key,
+                    Count = g.Count()
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<ChartDataPoint>> GetRevenueByMethodAsync()
+        {
+            return await _context.Payments
+                .Where(p => p.Status == "Success")
+                .GroupBy(p => p.Method)
+                .Select(g => new ChartDataPoint
+                {
+                    Label = g.Key,
+                    Value = g.Sum(p => p.Amount)
+                })
+                .ToListAsync();
+        }
+
+        public async Task<Dictionary<string, decimal>> GetDailyRevenueAsync(int days = 30)
+        {
+            var result = new Dictionary<string, decimal>();
+            var now = DateTime.UtcNow.Date;
+
+            for (int i = days - 1; i >= 0; i--)
+            {
+                var date = now.AddDays(-i);
+                var startDate = date;
+                var endDate = date.AddDays(1);
+
+                var revenue = await _context.Payments
+                    .Where(p => p.Status == "Success" && p.CreatedAt >= startDate && p.CreatedAt < endDate)
+                    .SumAsync(p => p.Amount);
+
+                result[date.ToString("dd/MM")] = revenue;
+            }
+
+            return result;
+        }
+
+        
+        public async Task<DashboardStatisticsViewModel> GetStatisticsAsync()
+        {
+            return await GetDetailedStatisticsAsync();
+        }
     }
 }

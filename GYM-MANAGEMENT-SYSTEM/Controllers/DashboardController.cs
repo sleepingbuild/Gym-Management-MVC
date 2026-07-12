@@ -56,5 +56,39 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             var distribution = await _dashboardService.GetMembershipPackageDistributionAsync();
             return Json(distribution);
         }
+
+        public async Task<IActionResult> BookingStatus()
+        {
+            var data = await _dashboardService.GetBookingStatusDistributionAsync();
+            return Json(data);
+        }
+
+        // GET: /Dashboard/PaymentStatus
+        public async Task<IActionResult> PaymentStatus()
+        {
+            var data = await _dashboardService.GetPaymentStatusDistributionAsync();
+            return Json(data);
+        }
+
+        // GET: /Dashboard/RevenueByMethod
+        public async Task<IActionResult> RevenueByMethod()
+        {
+            var data = await _dashboardService.GetRevenueByMethodAsync();
+            return Json(data);
+        }
+
+        // GET: /Dashboard/DailyRevenue
+        public async Task<IActionResult> DailyRevenue(int days = 30)
+        {
+            var data = await _dashboardService.GetDailyRevenueAsync(days);
+            return Json(data);
+        }
+
+        // GET: /Dashboard/DetailedStats
+        public async Task<IActionResult> DetailedStats()
+        {
+            var stats = await _dashboardService.GetDetailedStatisticsAsync();
+            return Json(stats);
+        }
     }
 }

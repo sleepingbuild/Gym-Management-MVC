@@ -59,6 +59,7 @@ builder.Services.AddScoped<IWorkoutProgressRepository, WorkoutProgressRepository
 builder.Services.AddScoped<IWorkoutProgressService, WorkoutProgressService>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 var app = builder.Build();
 

@@ -181,6 +181,7 @@ The system allows:
 ---
 
 ## 📂 Project Structure
+```
 GYM-MANAGEMENT-SYSTEM/
 │
 ├── Controllers/
@@ -218,7 +219,7 @@ GYM-MANAGEMENT-SYSTEM/
 │ ├── Models/
 │ └── Datasets/
 └── Tests/
-
+```
 text
 
 ---

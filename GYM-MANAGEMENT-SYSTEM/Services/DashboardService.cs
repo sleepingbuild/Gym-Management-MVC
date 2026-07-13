@@ -1,5 +1,5 @@
 ﻿using GYM_MANAGEMENT_SYSTEM.Data;
-using GYM_MANAGEMENT_SYSTEM.Repositories;
+using GYM_MANAGEMENT_SYSTEM.Models;
 using GYM_MANAGEMENT_SYSTEM.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +16,11 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
 
         public async Task<DashboardStatisticsViewModel> GetStatisticsAsync()
         {
+            return await GetDetailedStatisticsAsync();
+        }
+
+        public async Task<DashboardStatisticsViewModel> GetDetailedStatisticsAsync()
+        {
             var now = DateTime.UtcNow;
             var startOfMonth = new DateTime(now.Year, now.Month, 1);
             var endOfMonth = startOfMonth.AddMonths(1);
@@ -28,9 +33,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
             stats.NewUsersThisMonth = await _context.Users
                 .Where(u => u.CreatedAt >= startOfMonth && u.CreatedAt < endOfMonth)
                 .CountAsync();
-            stats.ActiveUsersThisMonth = await _context.Users
-                .Where(u => u.LastLogin >= startOfMonth && u.LastLogin < endOfMonth)
-                .CountAsync();
+            // ApplicationUser không có LastLogin, tạm thời set 0
+            stats.ActiveUsersThisMonth = 0;
 
             // Membership Statistics
             stats.TotalMemberships = await _context.Memberships.CountAsync();
@@ -86,7 +90,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
         {
             var chartData = new DashboardChartViewModel();
 
-            // Revenue Data (Last 6 months)
             var revenueData = await GetMonthlyRevenueAsync(6);
             chartData.RevenueData = revenueData.Select(r => new ChartDataPoint
             {
@@ -94,7 +97,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 Value = r.Revenue
             }).ToList();
 
-            // Membership Data (Last 6 months)
             var membershipData = await GetMonthlyMembershipAsync(6);
             chartData.MembershipData = membershipData.Select(m => new ChartDataPoint
             {
@@ -102,7 +104,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 Count = m.NewMemberships
             }).ToList();
 
-            // Booking Data (Last 6 months)
             var bookingData = await _context.Bookings
                 .Where(b => b.CreatedAt >= DateTime.UtcNow.AddMonths(-6))
                 .GroupBy(b => new { b.CreatedAt.Year, b.CreatedAt.Month })
@@ -115,7 +116,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 .ToListAsync();
 
             chartData.BookingData = bookingData;
-
             return chartData;
         }
 
@@ -133,7 +133,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 var revenue = await _context.Payments
                     .Where(p => p.Status == "Success" && p.CreatedAt >= startDate && p.CreatedAt < endDate)
                     .SumAsync(p => p.Amount);
-
                 var count = await _context.Payments
                     .Where(p => p.Status == "Success" && p.CreatedAt >= startDate && p.CreatedAt < endDate)
                     .CountAsync();
@@ -145,7 +144,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                     Count = count
                 });
             }
-
             return result;
         }
 
@@ -163,11 +161,9 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 var newMemberships = await _context.Memberships
                     .Where(m => m.CreatedAt >= startDate && m.CreatedAt < endDate)
                     .CountAsync();
-
                 var renewals = await _context.Memberships
                     .Where(m => m.CreatedAt >= startDate && m.CreatedAt < endDate && m.Status == "Active")
                     .CountAsync();
-
                 var cancellations = await _context.Memberships
                     .Where(m => m.CreatedAt >= startDate && m.CreatedAt < endDate && m.Status == "Cancelled")
                     .CountAsync();
@@ -180,7 +176,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                     Cancellations = cancellations
                 });
             }
-
             return result;
         }
 
@@ -211,77 +206,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 })
                 .OrderByDescending(d => d.Count)
                 .ToListAsync();
-        }
-
-        public async Task<DashboardStatisticsViewModel> GetDetailedStatisticsAsync()
-        {
-            var now = DateTime.UtcNow;
-            var startOfMonth = new DateTime(now.Year, now.Month, 1);
-            var endOfMonth = startOfMonth.AddMonths(1);
-            var startOfWeek = now.AddDays(-(int)now.DayOfWeek + 1);
-            var expiringThreshold = now.AddDays(7);
-
-            var stats = new DashboardStatisticsViewModel
-            {
-                // User Statistics
-                TotalUsers = await _context.Users.CountAsync(),
-                NewUsersThisMonth = await _context.Users
-                    .Where(u => u.CreatedAt >= startOfMonth && u.CreatedAt < endOfMonth)
-                    .CountAsync(),
-                ActiveUsersThisMonth = await _context.Users
-                    .Where(u => u.LastLogin >= startOfMonth && u.LastLogin < endOfMonth)
-                    .CountAsync(),
-
-                // Membership Statistics
-                TotalMemberships = await _context.Memberships.CountAsync(),
-                ActiveMemberships = await _context.Memberships
-                    .Where(m => m.Status == "Active")
-                    .CountAsync(),
-                ExpiredMemberships = await _context.Memberships
-                    .Where(m => m.Status == "Expired")
-                    .CountAsync(),
-                ExpiringSoonMemberships = await _context.Memberships
-                    .Where(m => m.Status == "Active" && m.EndDate <= expiringThreshold && m.EndDate >= now)
-                    .CountAsync(),
-
-                // Trainer Statistics
-                TotalTrainers = await _context.Trainers.CountAsync(),
-                AvailableTrainers = await _context.Trainers
-                    .Where(t => t.IsAvailable)
-                    .CountAsync(),
-
-                // Booking Statistics
-                TotalBookings = await _context.Bookings.CountAsync(),
-                BookingsThisMonth = await _context.Bookings
-                    .Where(b => b.CreatedAt >= startOfMonth && b.CreatedAt < endOfMonth)
-                    .CountAsync(),
-                PendingBookings = await _context.Bookings
-                    .Where(b => b.Status == "Pending")
-                    .CountAsync(),
-                CompletedBookings = await _context.Bookings
-                    .Where(b => b.Status == "Completed")
-                    .CountAsync(),
-
-                // Payment Statistics
-                TotalPayments = await _context.Payments.CountAsync(),
-                SuccessPayments = await _context.Payments
-                    .Where(p => p.Status == "Success")
-                    .CountAsync(),
-                TotalRevenue = await _context.Payments
-                    .Where(p => p.Status == "Success")
-                    .SumAsync(p => p.Amount),
-                RevenueThisMonth = await _context.Payments
-                    .Where(p => p.Status == "Success" && p.CreatedAt >= startOfMonth && p.CreatedAt < endOfMonth)
-                    .SumAsync(p => p.Amount),
-
-                // Workout Statistics
-                TotalWorkoutRecords = await _context.WorkoutProgresses.CountAsync(),
-                WorkoutRecordsThisMonth = await _context.WorkoutProgresses
-                    .Where(w => w.RecordedAt >= startOfMonth && w.RecordedAt < endOfMonth)
-                    .CountAsync()
-            };
-
-            return stats;
         }
 
         public async Task<List<ChartDataPoint>> GetBookingStatusDistributionAsync()
@@ -338,14 +262,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
 
                 result[date.ToString("dd/MM")] = revenue;
             }
-
             return result;
-        }
-
-        
-        public async Task<DashboardStatisticsViewModel> GetStatisticsAsync()
-        {
-            return await GetDetailedStatisticsAsync();
         }
     }
 }

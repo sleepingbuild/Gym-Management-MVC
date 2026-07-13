@@ -40,16 +40,15 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
     options.ExpireTimeSpan = TimeSpan.FromDays(1);
 });
-// Cấu hình VNPay
-builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("VNPay"));
 
+// Đăng ký các Service
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMembershipPackageRepository, MembershipPackageRepository>();
 builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>();
 builder.Services.AddScoped<IMembershipRepository, MembershipRepository>();
 builder.Services.AddScoped<IMembershipService, MembershipService>();
 builder.Services.AddScoped<IMembershipRenewalService, MembershipRenewalService>();
-builder.Services.AddScoped<ITrainerRepository, TrainerRepository>();     
+builder.Services.AddScoped<ITrainerRepository, TrainerRepository>();
 builder.Services.AddScoped<ITrainerService, TrainerService>();
 builder.Services.AddScoped<ITrainerScheduleRepository, TrainerScheduleRepository>();
 builder.Services.AddScoped<ITrainerScheduleService, TrainerScheduleService>();
@@ -60,6 +59,10 @@ builder.Services.AddScoped<IWorkoutProgressService, WorkoutProgressService>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<GYM_MANAGEMENT_SYSTEM.AI.Services.KnowledgeBaseService>();
+
+// Cấu hình VNPay
+builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("VNPay"));
 
 var app = builder.Build();
 

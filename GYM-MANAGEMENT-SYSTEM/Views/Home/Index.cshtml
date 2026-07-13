@@ -1,8 +1,176 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Trang chủ";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    .hero {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        color: white;
+        padding: 80px 0;
+        margin: -20px -15px 40px;
+    }
+    .hero h1 { font-size: 2.8rem; font-weight: 700; }
+    .hero p  { font-size: 1.15rem; opacity: .85; }
+
+    .feature-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.08);
+        transition: transform .2s, box-shadow .2s;
+        height: 100%;
+    }
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0,0,0,.15);
+    }
+    .feature-icon {
+        width: 56px; height: 56px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px;
+        margin-bottom: 16px;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,.06);
+    }
+    .stat-card .number {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #0f3460;
+    }
+    .stat-card .label {
+        color: #6c757d;
+        font-size: .9rem;
+        margin-top: 4px;
+    }
+</style>
+
+<!-- Hero -->
+<div class="hero text-center">
+    <div class="container">
+        <h1>🏋️ GYM Management System</h1>
+        <p class="mt-3 mb-4">Hệ thống quản lý phòng gym toàn diện — đặt lịch, theo dõi tiến trình,<br />thanh toán và tư vấn AI tất cả trong một nền tảng.</p>
+        @if (!User.Identity!.IsAuthenticated)
+        {
+            <a class="btn btn-warning btn-lg me-2 px-4" asp-controller="Account" asp-action="Register">
+                Đăng ký ngay
+            </a>
+            <a class="btn btn-outline-light btn-lg px-4" asp-controller="Account" asp-action="Login">
+                Đăng nhập
+            </a>
+        }
+        else
+        {
+            <a class="btn btn-warning btn-lg me-2 px-4" asp-controller="Membership" asp-action="Index">
+                Gói tập của tôi
+            </a>
+            <a class="btn btn-outline-light btn-lg px-4" asp-controller="Booking" asp-action="Create">
+                Đặt lịch tập
+            </a>
+        }
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Stats -->
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="row g-3 mb-5">
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="number">448</div>
+                    <div class="label">Câu hỏi AI</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="number">4</div>
+                    <div class="label">Gói tập</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="number">24/7</div>
+                    <div class="label">Hỗ trợ AI</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="number">100%</div>
+                    <div class="label">Online</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Features -->
+    <h2 class="text-center fw-bold mb-4">Tính năng nổi bật</h2>
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card feature-card p-4">
+                <div class="feature-icon bg-primary bg-opacity-10">💳</div>
+                <h5 class="fw-bold">Quản lý gói tập</h5>
+                <p class="text-muted mb-3">Đăng ký, gia hạn và theo dõi trạng thái gói tập. Thanh toán trực tuyến qua VNPay.</p>
+                <a asp-controller="Package" asp-action="Index" class="btn btn-outline-primary btn-sm">Xem gói tập →</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card p-4">
+                <div class="feature-icon bg-success bg-opacity-10">📅</div>
+                <h5 class="fw-bold">Đặt lịch huấn luyện</h5>
+                <p class="text-muted mb-3">Đặt lịch với huấn luyện viên chuyên nghiệp, xem lịch trống và quản lý buổi tập.</p>
+                <a asp-controller="Booking" asp-action="Index" class="btn btn-outline-success btn-sm">Đặt lịch →</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card p-4">
+                <div class="feature-icon bg-warning bg-opacity-10">📊</div>
+                <h5 class="fw-bold">Theo dõi tiến trình</h5>
+                <p class="text-muted mb-3">Ghi nhận cân nặng, chiều cao, BMI và các chỉ số sức khỏe theo thời gian.</p>
+                <a asp-controller="Workout" asp-action="Index" class="btn btn-outline-warning btn-sm">Xem tiến trình →</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card p-4">
+                <div class="feature-icon bg-danger bg-opacity-10">🤖</div>
+                <h5 class="fw-bold">AI Fitness Trainer</h5>
+                <p class="text-muted mb-3">Tư vấn dinh dưỡng, lịch tập và giải đáp mọi câu hỏi về sức khỏe với AI chuyên gym.</p>
+                <a asp-controller="AI" asp-action="Chat" class="btn btn-outline-danger btn-sm">Chat với AI →</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card p-4">
+                <div class="feature-icon bg-info bg-opacity-10">💪</div>
+                <h5 class="fw-bold">Huấn luyện viên</h5>
+                <p class="text-muted mb-3">Đội ngũ huấn luyện viên chuyên nghiệp với lịch làm việc linh hoạt.</p>
+                <a asp-controller="Trainer" asp-action="Index" class="btn btn-outline-info btn-sm">Xem HLV →</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card p-4">
+                <div class="feature-icon bg-secondary bg-opacity-10">💰</div>
+                <h5 class="fw-bold">Thanh toán VNPay</h5>
+                <p class="text-muted mb-3">Thanh toán trực tuyến an toàn qua VNPay, xem lịch sử giao dịch.</p>
+                <a asp-controller="Payment" asp-action="Index" class="btn btn-outline-secondary btn-sm">Lịch sử thanh toán →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <div class="text-center bg-light rounded-4 p-5 mb-5">
+            <h3 class="fw-bold">Sẵn sàng bắt đầu?</h3>
+            <p class="text-muted mb-4">Đăng ký miễn phí và trải nghiệm hệ thống quản lý gym hiện đại nhất.</p>
+            <a class="btn btn-primary btn-lg px-5" asp-controller="Account" asp-action="Register">
+                Tạo tài khoản miễn phí
+            </a>
+        </div>
+    }
+
 </div>

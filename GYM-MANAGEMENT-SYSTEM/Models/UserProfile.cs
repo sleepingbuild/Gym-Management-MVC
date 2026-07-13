@@ -1,14 +1,20 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace GYM_MANAGEMENT_SYSTEM.Models
 {
     public class UserProfile
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        [Key]
+        public int Id { get; set; }  // int IDENTITY, tự tăng
+
         public string UserId { get; set; } = string.Empty;
+
         public double Weight { get; set; }
+
         public double Height { get; set; }
+
         public int Age { get; set; }
+
         public string Goal { get; set; } = string.Empty;
 
         // Navigation property

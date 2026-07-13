@@ -39,7 +39,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 CreatedAt = DateTime.UtcNow,
                 UserProfile = new UserProfile
                 {
-                    Id = Guid.NewGuid().ToString(),
                     UserId = email,
                     Weight = 0,
                     Height = 0,

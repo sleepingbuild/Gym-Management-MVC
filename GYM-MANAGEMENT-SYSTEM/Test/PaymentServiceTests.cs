@@ -1,4 +1,3 @@
-using GYM_MANAGEMENT_SYSTEM.Models;
 using GYM_MANAGEMENT_SYSTEM.Repositories;
 using GYM_MANAGEMENT_SYSTEM.Services;
 using GYM_MANAGEMENT_SYSTEM.Models;

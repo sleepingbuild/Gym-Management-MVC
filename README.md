@@ -244,28 +244,31 @@ text
 ### Installation
 
 1. Clone the repository:
-```bash
+```
 git clone https://github.com/sleepingbuild/Gym-Management-MVC.git
+```
 Navigate to project directory:
-
-bash
 cd GYM-MANAGEMENT-SYSTEM
 Restore packages:
-
-bash
+```
 dotnet restore
-Update database:
+```
 
-bash
+Update database:
+```
 dotnet ef database update
+```
+
 Run the application:
 
-bash
+```
 dotnet run
+```
 Access the application:
-
-text
+```
 http://localhost:5225
+```
+
 📊 API Endpoints (Dashboard)
 Endpoint	Method	Description
 /Dashboard/Revenue	GET	Monthly revenue data
@@ -276,6 +279,7 @@ Endpoint	Method	Description
 /Dashboard/DailyRevenue	GET	Daily revenue (30 days)
 /Dashboard/Trainers	GET	Top trainers
 /Dashboard/PackageDistribution	GET	Membership package distribution
+
 📝 User Manual
 For Members
 Register an account

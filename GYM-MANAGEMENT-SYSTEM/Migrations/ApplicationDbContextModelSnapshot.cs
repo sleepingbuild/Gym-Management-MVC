@@ -159,7 +159,40 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Question")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SessionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ChatHistories");
+                });
+
+            modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.ChatSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LastActivityAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -169,7 +202,34 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ChatHistories");
+                    b.ToTable("ChatSessions");
+                });
+
+            modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.ChatSummary", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("SessionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SummaryText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ChatSummaries");
                 });
 
             modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.FAQ", b =>
@@ -195,6 +255,39 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("FAQs");
+                });
+
+            modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.Feedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ChatHistoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.Membership", b =>
@@ -361,6 +454,43 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Trainers");
+                });
+
+            modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.TrainerAttendance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CheckInTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TrainerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrainerId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("TrainerAttendances");
                 });
 
             modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.TrainerSchedule", b =>
@@ -646,6 +776,17 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Membership");
+                });
+
+            modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.TrainerAttendance", b =>
+                {
+                    b.HasOne("GYM_MANAGEMENT_SYSTEM.Models.Trainer", "Trainer")
+                        .WithMany()
+                        .HasForeignKey("TrainerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Trainer");
                 });
 
             modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.TrainerSchedule", b =>

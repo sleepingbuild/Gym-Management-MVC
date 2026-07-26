@@ -1,30 +1,137 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - GYM_MANAGEMENT_SYSTEM</title>
+    <title>@ViewData["Title"] - IronFit</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/GYM_MANAGEMENT_SYSTEM.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">GYM_MANAGEMENT_SYSTEM</a>
+        <nav class="navbar navbar-expand-lg site-navbar sticky-top">
+            <div class="container-fluid container">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <span class="brand-mark">🏋️</span>
+                    <span>IronFit</span>
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                        @if (User.Identity!.IsAuthenticated && !User.IsInRole("Trainer"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Membership" asp-action="Index">Gói tập</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Trainer" asp-action="Index">Huấn luyện viên</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Booking" asp-action="Index">Đặt lịch</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Workout" asp-action="Index">Tiến trình</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="AI" asp-action="Chat">Trợ lý AI</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Payment" asp-action="Index">Thanh toán</a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Trainer"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="AI" asp-action="Chat">Trợ lý AI</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user-tie me-1"></i>Khu vực HLV
+                                </a>
+                                <ul class="dropdown-menu admin-dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="TrainerPortal" asp-action="Index">
+                                            <i class="fas fa-chart-line me-2"></i>Bảng điều khiển
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="TrainerPortal" asp-action="Students">
+                                            <i class="fas fa-users me-2"></i>Khách hàng của tôi
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="TrainerPortal" asp-action="Timetable">
+                                            <i class="fas fa-calendar-alt me-2"></i>Thời khoá biểu
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="TrainerPortal" asp-action="Progress">
+                                            <i class="fas fa-chart-bar me-2"></i>Tiến trình hội viên
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="TrainerPortal" asp-action="Attendance">
+                                            <i class="fas fa-clipboard-check me-2"></i>Chấm công
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-shield-alt me-1"></i>Quản trị
+                                </a>
+                                <ul class="dropdown-menu admin-dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Dashboard" asp-action="Index">
+                                            <i class="fas fa-chart-line me-2"></i>Dashboard
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Package" asp-action="Index">
+                                            <i class="fas fa-box me-2"></i>Quản lý gói tập
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Trainer" asp-action="Index">
+                                            <i class="fas fa-user-tie me-2"></i>Quản lý huấn luyện viên
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Schedule" asp-action="Index">
+                                            <i class="fas fa-calendar-alt me-2"></i>Lịch làm việc HLV
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Booking" asp-action="Index">
+                                            <i class="fas fa-calendar-check me-2"></i>Quản lý đặt lịch
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Payment" asp-action="History">
+                                            <i class="fas fa-file-invoice-dollar me-2"></i>Lịch sử thanh toán
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Attendance" asp-action="Index">
+                                            <i class="fas fa-clipboard-check me-2"></i>Chấm công HLV
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
@@ -37,9 +144,10 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - GYM_MANAGEMENT_SYSTEM - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="site-footer">
+        <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span>&copy; 2026 IronFit</span>
+            <a asp-area="" asp-controller="Home" asp-action="Privacy">Chính sách bảo mật</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

@@ -1,0 +1,66 @@
+﻿@model List<GYM_MANAGEMENT_SYSTEM.ViewModels.TrainerBookingViewModel>
+@{
+    ViewData["Title"] = "Thời khoá biểu";
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h1 class="fitness-title">🗓️ Thời khoá biểu</h1>
+        <p class="text-muted mb-0">Toàn bộ buổi tập đã được đặt với bạn — bấm vào 1 buổi để xem chi tiết</p>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger mb-4">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success mb-4">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div class="card-fitness">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-fitness">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Giờ</th>
+                            <th>Học viên</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var b in Model)
+                        {
+                            <tr class="booking-row" onclick="window.location='@Url.Action("BookingDetail", new { id = b.Id })'" style="cursor:pointer;">
+                                <td>@b.SessionDate.ToString("dd/MM/yyyy")</td>
+                                <td>@b.TimeSlot</td>
+                                <td>@b.StudentName</td>
+                                <td><span class="@b.StatusBadgeClass">@b.Status</span></td>
+                                <td class="text-end">
+                                    <a asp-action="BookingDetail" asp-route-id="@b.Id" class="btn btn-sm btn-fitness-secondary">
+                                        <i class="fas fa-eye me-1"></i>Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="card-body text-center py-5">
+                <i class="fas fa-calendar-times mb-3" style="font-size:2.5rem;color:var(--gym-border)"></i>
+                <p class="text-muted mb-0">Chưa có buổi tập nào được đặt.</p>
+            </div>
+        }
+    </div>
+</div>

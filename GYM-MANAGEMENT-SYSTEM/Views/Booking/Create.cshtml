@@ -12,6 +12,18 @@
                     <i class="fas fa-calendar-plus me-2"></i>Đặt lịch tập
                 </div>
                 <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success mb-3">
+                            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger mb-3">
+                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                        </div>
+                    }
                     <form asp-action="Create" method="post" id="bookingForm">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
@@ -33,11 +45,27 @@
                         </div>
 
                         <div class="mb-3">
+                            <label asp-for="Age" class="form-label">
+                                <i class="fas fa-birthday-cake me-2"></i>Tuổi của bạn
+                            </label>
+                            <input asp-for="Age" class="form-control" type="number" id="ageInput" min="10" max="90" placeholder="VD: 25" />
+                            <span asp-validation-for="Age" class="text-danger small"></span>
+                            <span id="ageWarning" class="text-danger small" style="display: none;"></span>
+                            <div class="small mt-1" style="color: var(--gym-muted);">
+                                Vui lòng nhập đúng tuổi thật (từ 10 đến 90) để huấn luyện viên tư vấn giáo án phù hợp.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
                             <label asp-for="SessionDate" class="form-label">
                                 <i class="fas fa-calendar-day me-2"></i>Ngày tập
                             </label>
                             <input asp-for="SessionDate" class="form-control" type="date" id="sessionDate" />
                             <span asp-validation-for="SessionDate" class="text-danger small"></span>
+                            <span id="sessionDateWarning" class="text-danger small" style="display: none;"></span>
+                            <div class="small mt-1" style="color: var(--gym-muted);">
+                                Chỉ có thể đặt lịch từ hôm nay đến tối đa 4 tháng tới.
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -83,14 +111,93 @@
         $(document).ready(function() {
             var trainerSelect = $('#trainerSelect');
             var sessionDate = $('#sessionDate');
+            var sessionDateWarning = $('#sessionDateWarning');
+            var ageInput = $('#ageInput');
+            var ageWarning = $('#ageWarning');
             var timeSlotList = $('#timeSlotList');
             var selectedTimeSlot = $('#selectedTimeSlot');
             var submitBtn = $('#submitBtn');
             var timeSlotError = $('#timeSlotError');
 
+            // Giới hạn tuổi hợp lệ (khớp với BookingCreateViewModel.MinAge/MaxAge ở server)
+            var MIN_AGE = 10;
+            var MAX_AGE = 90;
+
+            function isAgeValid() {
+                var val = ageInput.val();
+                if (val === '') {
+                    ageWarning.hide();
+                    return false;
+                }
+                var age = parseInt(val, 10);
+
+                if (isNaN(age)) {
+                    ageWarning.text('Tuổi không hợp lệ.').show();
+                    return false;
+                }
+                if (age < MIN_AGE) {
+                    ageWarning.text('Tuổi quá nhỏ. Tuổi tối thiểu để đăng ký tập là ' + MIN_AGE + '.').show();
+                    return false;
+                }
+                if (age > MAX_AGE) {
+                    ageWarning.text('Tuổi quá lớn. Tuổi tối đa để đăng ký tập là ' + MAX_AGE + '.').show();
+                    return false;
+                }
+                var impliedBirthYear = new Date().getFullYear() - age;
+                if (impliedBirthYear > new Date().getFullYear()) {
+                    ageWarning.text('Tuổi không hợp lệ: năm sinh suy ra chưa đến.').show();
+                    return false;
+                }
+                ageWarning.hide();
+                return true;
+            }
+
+            ageInput.on('input change', isAgeValid);
+
+            // Giới hạn ngày: từ hôm nay đến tối đa 4 tháng tới (khớp với
+            // BookingCreateViewModel.MaxMonthsAhead ở server)
+            function toDateInputValue(d) {
+                var mm = (d.getMonth() + 1).toString().padStart(2, '0');
+                var dd = d.getDate().toString().padStart(2, '0');
+                return d.getFullYear() + '-' + mm + '-' + dd;
+            }
+
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            var maxDate = new Date(today);
+            maxDate.setMonth(maxDate.getMonth() + 4);
+
+            sessionDate.attr('min', toDateInputValue(today));
+            sessionDate.attr('max', toDateInputValue(maxDate));
+
+            function isSessionDateValid() {
+                var val = sessionDate.val();
+                if (!val) {
+                    return false;
+                }
+                var picked = new Date(val + 'T00:00:00');
+
+                if (picked < today) {
+                    sessionDateWarning.text('Ngày tập không được là ngày trong quá khứ. Vui lòng chọn từ hôm nay trở đi.').show();
+                    return false;
+                }
+                if (picked > maxDate) {
+                    sessionDateWarning.text('Ngày tập không được cách quá 4 tháng so với hiện tại (tối đa đến ' + toDateInputValue(maxDate).split('-').reverse().join('/') + ').').show();
+                    return false;
+                }
+                sessionDateWarning.hide();
+                return true;
+            }
+
             function loadTimeSlots() {
                 var trainerId = trainerSelect.val();
                 var date = sessionDate.val();
+
+                if (!isSessionDateValid()) {
+                    timeSlotList.empty();
+                    submitBtn.prop('disabled', true);
+                    return;
+                }
 
                 if (trainerId && date) {
                     $.ajax({
@@ -99,43 +206,40 @@
                         data: { trainerId: trainerId, date: date },
                         success: function(data) {
                             timeSlotList.empty();
-                            if (data.bookedSlots && data.bookedSlots.length > 0) {
-                                // Tạo các khung giờ (giả định: 8:00 - 20:00)
-                                var slots = [];
-                                for (var hour = 8; hour <= 20; hour++) {
-                                    var time = hour.toString().padStart(2, '0') + ':00';
-                                    var isBooked = data.bookedSlots.includes(time);
-                                    slots.push({
-                                        time: time,
-                                        isBooked: isBooked
+                            var bookedSlots = data.bookedSlots || [];
+
+                            // Tạo các khung giờ (giả định: 8:00 - 20:00)
+                            var slots = [];
+                            for (var hour = 8; hour <= 20; hour++) {
+                                var time = hour.toString().padStart(2, '0') + ':00';
+                                var isBooked = bookedSlots.includes(time);
+                                slots.push({
+                                    time: time,
+                                    isBooked: isBooked
+                                });
+                            }
+
+                            $.each(slots, function(index, slot) {
+                                var btn = $('<button>')
+                                    .addClass('btn btn-timeslot')
+                                    .addClass(slot.isBooked ? 'btn-timeslot-booked' : 'btn-timeslot-available')
+                                    .attr('type', 'button')
+                                    .attr('data-time', slot.time)
+                                    .text(slot.isBooked ? slot.time + ' (đã đặt)' : slot.time)
+                                    .prop('disabled', slot.isBooked);
+
+                                if (!slot.isBooked) {
+                                    btn.click(function() {
+                                        $('.btn-timeslot').removeClass('btn-timeslot-selected').filter(':not(:disabled)').addClass('btn-timeslot-available');
+                                        $(this).removeClass('btn-timeslot-available').addClass('btn-timeslot-selected');
+                                        selectedTimeSlot.val($(this).data('time'));
+                                        submitBtn.prop('disabled', false);
+                                        timeSlotError.hide();
                                     });
                                 }
 
-                                $.each(slots, function(index, slot) {
-                                    var btn = $('<button>')
-                                        .addClass('btn')
-                                        .addClass(slot.isBooked ? 'btn-fitness-secondary' : 'btn-fitness-outline-light')
-                                        .attr('type', 'button')
-                                        .attr('data-time', slot.time)
-                                        .text(slot.time)
-                                        .prop('disabled', slot.isBooked);
-
-                                    if (!slot.isBooked) {
-                                        btn.click(function() {
-                                            $('.btn-time-slot').removeClass('btn-fitness-primary').addClass('btn-fitness-outline-light');
-                                            $(this).removeClass('btn-fitness-outline-light').addClass('btn-fitness-primary');
-                                            selectedTimeSlot.val($(this).data('time'));
-                                            submitBtn.prop('disabled', false);
-                                            timeSlotError.hide();
-                                        });
-                                    }
-
-                                    btn.addClass('btn-time-slot');
-                                    timeSlotList.append(btn);
-                                });
-                            } else {
-                                timeSlotList.html('<p class="text-muted">Không có khung giờ khả dụng</p>');
-                            }
+                                timeSlotList.append(btn);
+                            });
                         },
                         error: function() {
                             timeSlotList.html('<p class="text-danger">Lỗi tải khung giờ</p>');
@@ -152,6 +256,14 @@
 
             // Form submit validation
             $('#bookingForm').submit(function(e) {
+                if (!isSessionDateValid()) {
+                    e.preventDefault();
+                    return false;
+                }
+                if (!isAgeValid()) {
+                    e.preventDefault();
+                    return false;
+                }
                 if (!selectedTimeSlot.val()) {
                     e.preventDefault();
                     timeSlotError.show();
@@ -162,14 +274,42 @@
         });
     </script>
     <style>
-        .btn-time-slot {
-            min-width: 80px;
+        .btn-timeslot {
+            min-width: 90px;
             margin: 4px;
+            font-weight: 600;
+            font-size: .85rem;
+            padding: .55rem 1rem;
+            border-radius: var(--radius-sm);
+            transition: all .15s;
         }
 
-            .btn-time-slot:disabled {
-                opacity: 0.4;
-                cursor: not-allowed;
+        .btn-timeslot-available {
+            background: var(--gym-card);
+            border: 1px solid var(--gym-border);
+            color: var(--gym-text);
+        }
+
+            .btn-timeslot-available:hover {
+                border-color: var(--gym-accent);
+                color: var(--gym-accent);
+                background: rgba(255, 107, 0, .08);
             }
+
+        .btn-timeslot-selected {
+            background: linear-gradient(135deg, var(--gym-accent), var(--gym-accent2));
+            border: 1px solid var(--gym-accent);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(255, 107, 0, .35);
+        }
+
+        .btn-timeslot-booked, .btn-timeslot-booked:disabled {
+            background: var(--gym-input);
+            border: 1px solid var(--gym-border);
+            color: var(--gym-muted);
+            opacity: 1;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
     </style>
 }

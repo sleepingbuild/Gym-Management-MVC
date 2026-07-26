@@ -1,0 +1,137 @@
+﻿@model IEnumerable<GYM_MANAGEMENT_SYSTEM.ViewModels.ScheduleIndexViewModel>
+@{
+    ViewData["Title"] = "Lịch làm việc huấn luyện viên";
+    // NOTE: StartTime/EndTime formatting below assumes TimeSpan (format "hh\:mm").
+    // If ScheduleIndexViewModel.StartTime/EndTime are TimeOnly instead, change the
+    // format calls to s.StartTime.ToString("HH:mm") / s.EndTime.ToString("HH:mm").
+    var dayNames = new Dictionary<DayOfWeek, string>
+    {
+        { DayOfWeek.Monday, "Thứ 2" }, { DayOfWeek.Tuesday, "Thứ 3" }, { DayOfWeek.Wednesday, "Thứ 4" },
+        { DayOfWeek.Thursday, "Thứ 5" }, { DayOfWeek.Friday, "Thứ 6" }, { DayOfWeek.Saturday, "Thứ 7" },
+        { DayOfWeek.Sunday, "Chủ nhật" }
+    };
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h1 class="fitness-title">🗓️ Lịch làm việc huấn luyện viên</h1>
+            <p class="text-muted mb-0">Quản lý ca làm việc theo từng huấn luyện viên</p>
+        </div>
+        <a asp-action="Create" class="btn btn-fitness-primary">
+            <i class="fas fa-plus me-2"></i>Thêm lịch làm việc
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert" style="background:rgba(34,197,94,.12); color:var(--success-green); border:1px solid rgba(34,197,94,.3); border-radius:var(--radius-sm);">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert" style="background:rgba(239,68,68,.12); color:var(--gym-danger); border:1px solid rgba(239,68,68,.3); border-radius:var(--radius-sm);">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+        </div>
+    }
+
+    <!-- Filter by trainer -->
+    <div class="card-fitness mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Lọc theo huấn luyện viên</label>
+                    <select name="trainerId" class="form-select" onchange="this.form.submit()">
+                        <option value="">Tất cả huấn luyện viên</option>
+                        @foreach (var trainer in (IEnumerable<dynamic>)ViewBag.Trainers)
+                        {
+                            <option value="@trainer.Id" selected="@(ViewBag.SelectedTrainerId == (int)trainer.Id)">@trainer.FullName</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-fitness-secondary w-100">
+                        <i class="fas fa-filter me-2"></i>Lọc
+                    </button>
+                </div>
+                @if (ViewBag.SelectedTrainerId != null)
+                {
+                    <div class="col-md-3">
+                        <a asp-action="Index" class="btn btn-fitness-secondary w-100">
+                            <i class="fas fa-times me-2"></i>Xóa lọc
+                        </a>
+                    </div>
+                }
+            </form>
+        </div>
+    </div>
+
+    <!-- Schedule list -->
+    <div class="card-fitness">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-fitness">
+                    <thead>
+                        <tr>
+                            <th>Huấn luyện viên</th>
+                            <th>Ngày trong tuần</th>
+                            <th>Khung giờ</th>
+                            <th>Ghi chú</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model.OrderBy(x => x.DayOfWeek).ThenBy(x => x.StartTime))
+                        {
+                            <tr>
+                                <td class="fw-semibold" style="color:var(--gym-text)">@s.TrainerName</td>
+                                <td>@dayNames[s.DayOfWeek]</td>
+                                <td>
+                                    <i class="fas fa-clock me-1" style="color:var(--gym-muted)"></i>
+                                    @s.StartTime.ToString(@"hh\:mm") - @s.EndTime.ToString(@"hh\:mm")
+                                </td>
+                                <td class="small text-muted">@(string.IsNullOrWhiteSpace(s.Notes) ? "—" : s.Notes)</td>
+                                <td>
+                                    <span class="badge-fitness @(s.IsActive ? "active" : "inactive")">
+                                        @(s.IsActive ? "Hoạt động" : "Tạm nghỉ")
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <form asp-action="ToggleStatus" asp-route-id="@s.Id" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-fitness-secondary" title="@(s.IsActive ? "Tạm ngưng" : "Kích hoạt")">
+                                                <i class="fas @(s.IsActive ? "fa-toggle-on" : "fa-toggle-off")"></i>
+                                            </button>
+                                        </form>
+                                        <a asp-action="Edit" asp-route-id="@s.Id" class="btn btn-sm btn-fitness-secondary" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@s.Id" method="post"
+                                              onsubmit="return confirm('Xóa lịch làm việc này?');" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-fitness-secondary" title="Xóa" style="color:var(--gym-danger)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="card-body text-center py-5">
+                <i class="fas fa-calendar-times mb-3" style="font-size:2.5rem;color:var(--gym-border)"></i>
+                <p class="text-muted mb-3">Chưa có lịch làm việc nào.</p>
+                <a asp-action="Create" class="btn btn-fitness-primary">
+                    <i class="fas fa-plus me-2"></i>Thêm lịch làm việc đầu tiên
+                </a>
+            </div>
+        }
+    </div>
+</div>

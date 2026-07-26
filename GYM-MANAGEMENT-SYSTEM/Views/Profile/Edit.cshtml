@@ -1,0 +1,66 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.UserProfileEditViewModel
+@{
+    ViewData["Title"] = "Cập nhật hồ sơ";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-user-edit me-2"></i>Cập nhật hồ sơ cá nhân
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Age" class="form-label">
+                                    <i class="fas fa-birthday-cake me-2"></i>Tuổi
+                                </label>
+                                <input asp-for="Age" class="form-control" type="number" min="10" max="90" />
+                                <span asp-validation-for="Age" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Weight" class="form-label">
+                                    <i class="fas fa-weight me-2"></i>Cân nặng (kg)
+                                </label>
+                                <input asp-for="Weight" class="form-control" type="number" step="0.1" min="20" max="300" />
+                                <span asp-validation-for="Weight" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Height" class="form-label">
+                                    <i class="fas fa-ruler-vertical me-2"></i>Chiều cao (cm)
+                                </label>
+                                <input asp-for="Height" class="form-control" type="number" step="0.1" min="50" max="250" />
+                                <span asp-validation-for="Height" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Goal" class="form-label">
+                                <i class="fas fa-bullseye me-2"></i>Mục tiêu tập luyện
+                            </label>
+                            <input asp-for="Goal" class="form-control" placeholder="VD: Giảm cân, tăng cơ, cải thiện sức bền..." />
+                            <span asp-validation-for="Goal" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-fitness-primary flex-grow-1">
+                                <i class="fas fa-save me-2"></i>Lưu thông tin
+                            </button>
+                            <a asp-action="Index" class="btn btn-fitness-secondary">
+                                <i class="fas fa-times me-2"></i>Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

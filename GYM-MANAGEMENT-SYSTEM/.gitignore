@@ -1,5 +1,8 @@
-gymbot-output/ 
-gymbot-env/ 
-__pycache__/ 
-bin/ 
-obj/ 
+bin/
+obj/
+.vs/
+*.csv
+benchmark*.py
+test_questions_100.json
+faq_embeddings.json
+build_faq_embeddings.py

@@ -7,6 +7,11 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-5 col-md-7 col-11">
+                <div class="text-center mb-3">
+                    <a asp-controller="Home" asp-action="Index" class="text-decoration-none" style="color:var(--gym-muted); font-size:.85rem;">
+                        <i class="fas fa-arrow-left me-1"></i>Về trang chủ
+                    </a>
+                </div>
                 <div class="auth-card">
                     <div class="auth-header">
                         <div class="auth-icon">
@@ -23,14 +28,14 @@
                                 <label asp-for="Email" class="form-label">
                                     <i class="fas fa-envelope me-2"></i>Email
                                 </label>
-                                <input asp-for="Email" class="form-control" placeholder="example@email.com" autofocus />
+                                <input asp-for="Email" class="form-control" placeholder="example@email.com" autocomplete="email" autofocus />
                                 <span asp-validation-for="Email" class="text-danger small"></span>
                             </div>
                             <div class="mb-3">
                                 <label asp-for="Password" class="form-label">
                                     <i class="fas fa-lock me-2"></i>Mật khẩu
                                 </label>
-                                <input asp-for="Password" class="form-control" placeholder="••••••••" />
+                                <input asp-for="Password" class="form-control" placeholder="••••••••" autocomplete="current-password" />
                                 <span asp-validation-for="Password" class="text-danger small"></span>
                             </div>
                             <div class="mb-4 form-check">

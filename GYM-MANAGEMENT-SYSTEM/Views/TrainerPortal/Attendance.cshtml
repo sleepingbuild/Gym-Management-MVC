@@ -1,0 +1,94 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.TrainerAttendanceStatusViewModel
+@{
+    ViewData["Title"] = "Chấm công";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="mb-4">
+                <h1 class="fitness-title">🕐 Chấm công</h1>
+                <p class="text-muted mb-0">Xác nhận bạn đã đến dạy hôm nay để Admin theo dõi</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success mb-4">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger mb-4">
+                    <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                </div>
+            }
+
+            <div class="card-fitness mb-4">
+                <div class="card-body text-center py-5">
+                    @if (Model.HasCheckedInToday)
+                    {
+                        <div class="auth-icon" style="width: 80px; height: 80px; margin: 0 auto; background: linear-gradient(135deg, var(--success-green), #16a34a);">
+                            <i class="fas fa-check" style="font-size: 2rem;"></i>
+                        </div>
+                        <h3 class="text-white mt-3">Đã chấm công hôm nay</h3>
+                        <p class="text-muted">
+                            Lúc @Model.TodayCheckInTime?.ToString("HH:mm")
+                            ngày @Model.TodayCheckInTime?.ToString("dd/MM/yyyy")
+                        </p>
+                    }
+                    else
+                    {
+                        <div class="auth-icon" style="width: 80px; height: 80px; margin: 0 auto;">
+                            <i class="fas fa-clock" style="font-size: 2rem;"></i>
+                        </div>
+                        <h3 class="text-white mt-3">Bạn chưa chấm công hôm nay</h3>
+                        <p class="text-muted mb-4">Bấm nút bên dưới để xác nhận bạn đã đến dạy hôm nay.</p>
+                        <form asp-action="CheckIn" method="post" class="mx-auto" style="max-width: 420px;">
+                            <textarea name="notes" class="form-control mb-3" rows="2" placeholder="Ghi chú (không bắt buộc)..."></textarea>
+                            <button type="submit" class="btn btn-fitness-primary w-100">
+                                <i class="fas fa-check-circle me-2"></i>Xác nhận đã đến dạy
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-history me-2"></i>Lịch sử chấm công gần đây
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentHistory.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-fitness">
+                                <thead>
+                                    <tr>
+                                        <th>Ngày</th>
+                                        <th>Giờ chấm công</th>
+                                        <th>Ghi chú</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var h in Model.RecentHistory)
+                                    {
+                                        <tr>
+                                            <td>@h.Date.ToString("dd/MM/yyyy")</td>
+                                            <td>@h.CheckInTime.ToString("HH:mm")</td>
+                                            <td class="small text-muted">@(string.IsNullOrWhiteSpace(h.Notes) ? "—" : h.Notes)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center mb-0 py-3">Chưa có lịch sử chấm công.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

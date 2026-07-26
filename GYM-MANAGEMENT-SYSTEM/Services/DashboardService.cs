@@ -104,16 +104,28 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 Count = m.NewMemberships
             }).ToList();
 
-            var bookingData = await _context.Bookings
+            // FIX: EF Core không dịch được string interpolation ($"{...}") bên trong .Select().
+            // Group/Count vẫn chạy trên SQL, nhưng chỉ lấy Year/Month (kiểu int) về trước,
+            // rồi mới format thành chuỗi "Label" ở phía client (C#) sau khi đã ToListAsync().
+            var bookingRaw = await _context.Bookings
                 .Where(b => b.CreatedAt >= DateTime.UtcNow.AddMonths(-6))
                 .GroupBy(b => new { b.CreatedAt.Year, b.CreatedAt.Month })
-                .Select(g => new ChartDataPoint
+                .Select(g => new
                 {
-                    Label = $"{g.Key.Month}/{g.Key.Year}",
+                    g.Key.Year,
+                    g.Key.Month,
                     Count = g.Count()
                 })
-                .OrderBy(d => d.Label)
                 .ToListAsync();
+
+            var bookingData = bookingRaw
+                .Select(g => new ChartDataPoint
+                {
+                    Label = $"{g.Month}/{g.Year}",
+                    Count = g.Count
+                })
+                .OrderBy(d => d.Label)
+                .ToList();
 
             chartData.BookingData = bookingData;
             return chartData;

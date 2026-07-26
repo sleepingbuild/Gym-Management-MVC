@@ -74,7 +74,7 @@
                                 <!-- Nút Thanh toán - hiển thị khi Pending hoặc Active -->
                                 @if (membership.Status == "Pending" || membership.Status == "Active")
                                 {
-                                    <a asp-controller="Payment" asp-action="Create" asp-route-membershipId="@membership.Id" 
+                                    <a asp-controller="Payment" asp-action="Create" asp-route-membershipId="@membership.Id"
                                        class="btn btn-fitness-primary w-100">
                                         <i class="fas fa-credit-card me-2"></i>Thanh toán ngay
                                     </a>
@@ -141,4 +141,4 @@
             </a>
         </div>
     }
-</div>cd cd
+</div>

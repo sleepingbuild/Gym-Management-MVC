@@ -1,0 +1,70 @@
+﻿@model List<GYM_MANAGEMENT_SYSTEM.ViewModels.TrainerStudentViewModel>
+@{
+    ViewData["Title"] = "Khách hàng của tôi";
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h1 class="fitness-title">👥 Khách hàng của tôi</h1>
+        <p class="text-muted mb-0">Danh sách hội viên đã đặt lịch tập với bạn</p>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger mb-4">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="card-fitness">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-fitness">
+                    <thead>
+                        <tr>
+                            <th>Học viên</th>
+                            <th>Tuổi</th>
+                            <th>Thể trạng</th>
+                            <th>Mục tiêu</th>
+                            <th>Số buổi</th>
+                            <th>Buổi gần nhất</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold" style="color:var(--gym-text)">@s.FullName</div>
+                                    <div class="small text-muted">@s.Email</div>
+                                </td>
+                                <td>@(s.Age.HasValue ? s.Age.ToString() : "—")</td>
+                                <td class="small">
+                                    @if (s.Weight.HasValue || s.Height.HasValue)
+                                    {
+                                        @($"{(s.Weight.HasValue ? s.Weight + " kg" : "—")} / {(s.Height.HasValue ? s.Height + " cm" : "—")}")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa cập nhật</span>
+                                    }
+                                </td>
+                                <td class="small">@(string.IsNullOrWhiteSpace(s.Goal) ? "—" : s.Goal)</td>
+                                <td>@s.TotalSessions</td>
+                                <td class="small text-muted">@s.LastSessionDate.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="card-body text-center py-5">
+                <i class="fas fa-users mb-3" style="font-size:2.5rem;color:var(--gym-border)"></i>
+                <p class="text-muted mb-0">Bạn chưa có khách hàng nào đặt lịch.</p>
+            </div>
+        }
+    </div>
+</div>

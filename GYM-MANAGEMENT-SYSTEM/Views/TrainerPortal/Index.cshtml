@@ -1,0 +1,94 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.TrainerDashboardViewModel
+@{
+    ViewData["Title"] = "Bảng điều khiển HLV";
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h1 class="fitness-title">👋 Chào, @Model.TrainerName</h1>
+        <p class="text-muted mb-0">Tổng quan hoạt động huấn luyện của bạn</p>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger mb-4">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fas fa-users"></i></div>
+                <div class="stat-number">@Model.TotalStudents</div>
+                <div class="stat-label">Khách hàng đang dạy</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fas fa-calendar-day"></i></div>
+                <div class="stat-number">@Model.TodaySessionsCount</div>
+                <div class="stat-label">Buổi tập hôm nay</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-calendar-check"></i></div>
+                <div class="stat-number">@Model.UpcomingSessionsCount</div>
+                <div class="stat-label">Buổi sắp tới</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon yellow"><i class="fas fa-hourglass-half"></i></div>
+                <div class="stat-number">@Model.PendingConfirmCount</div>
+                <div class="stat-label">Chờ xác nhận</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-fitness">
+        <div class="card-header">
+            <i class="fas fa-calendar-day me-2"></i>Buổi tập hôm nay
+        </div>
+        <div class="card-body">
+            @if (Model.TodaySessions.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-fitness">
+                        <thead>
+                            <tr>
+                                <th>Giờ</th>
+                                <th>Học viên</th>
+                                <th>Trạng thái</th>
+                                <th class="text-end">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in Model.TodaySessions)
+                            {
+                                <tr>
+                                    <td>@s.TimeSlot</td>
+                                    <td>@s.StudentName</td>
+                                    <td><span class="@s.StatusBadgeClass">@s.Status</span></td>
+                                    <td class="text-end">
+                                        <a asp-action="BookingDetail" asp-route-id="@s.Id" class="btn btn-sm btn-fitness-secondary">
+                                            <i class="fas fa-eye me-1"></i>Chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-coffee mb-2" style="font-size:2rem;color:var(--gym-border)"></i>
+                    <p class="text-muted mb-0">Hôm nay bạn không có buổi tập nào.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

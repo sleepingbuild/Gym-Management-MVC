@@ -1,0 +1,78 @@
+﻿@model List<GYM_MANAGEMENT_SYSTEM.ViewModels.TrainerStudentProgressViewModel>
+@{
+    ViewData["Title"] = "Tiến trình hội viên";
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h1 class="fitness-title">📈 Tiến trình hội viên</h1>
+        <p class="text-muted mb-0">Số liệu ghi nhận gần nhất của tất cả hội viên bạn đang dạy</p>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger mb-4">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="card-fitness">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-fitness">
+                    <thead>
+                        <tr>
+                            <th>Học viên</th>
+                            <th>Cân nặng</th>
+                            <th>BMI</th>
+                            <th>% Mỡ</th>
+                            <th>Cơ bắp</th>
+                            <th>Ghi nhận gần nhất</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold" style="color:var(--gym-text)">@s.FullName</div>
+                                    <div class="small text-muted">@s.Email</div>
+                                </td>
+                                @if (s.HasRecords)
+                                {
+                                    <td>@s.LatestWeight kg</td>
+                                    <td>
+                                        @s.LatestBMI
+                                        <span class="badge-fitness @s.LatestBMIStatus ms-1">@s.LatestBMICategory</span>
+                                    </td>
+                                    <td>@s.LatestBodyFatPercentage%</td>
+                                    <td>@s.LatestMuscleMass</td>
+                                    <td class="small text-muted">@s.RecordedAt?.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-end">
+                                        <a asp-action="ProgressHistory" asp-route-userId="@s.UserId" class="btn btn-sm btn-fitness-secondary">
+                                            <i class="fas fa-chart-line me-1"></i>Xem lịch sử
+                                        </a>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td colspan="4" class="text-muted small">Hội viên chưa ghi nhận tiến trình nào</td>
+                                    <td class="text-end" colspan="2">—</td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="card-body text-center py-5">
+                <i class="fas fa-chart-bar mb-3" style="font-size:2.5rem;color:var(--gym-border)"></i>
+                <p class="text-muted mb-0">Bạn chưa có hội viên nào.</p>
+            </div>
+        }
+    </div>
+</div>

@@ -1,29 +1,41 @@
 ﻿@model IEnumerable<GYM_MANAGEMENT_SYSTEM.ViewModels.PackageIndexViewModel>
 @{
-    ViewData["Title"] = "Quản lý gói tập";
+    var isAdmin = User.IsInRole("Admin");
+    ViewData["Title"] = isAdmin ? "Quản lý gói tập" : "Gói tập";
 }
 
 <div class="container py-4">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
-            <h1 class="fitness-title">📦 Quản lý gói tập</h1>
-            <p class="text-muted">Quản lý các gói tập luyện của phòng gym</p>
+            <h1 class="fitness-title">📦 @(isAdmin ? "Quản lý gói tập" : "Bảng giá gói tập")</h1>
+            <p class="text-muted mb-0">
+                @(isAdmin ? "Quản lý các gói tập luyện của phòng gym" : "Chọn gói tập phù hợp với mục tiêu của bạn")
+            </p>
         </div>
-        <a asp-action="Create" class="btn btn-fitness-primary">
-            <i class="fas fa-plus-circle me-2"></i>Thêm gói tập
-        </a>
+        @if (isAdmin)
+        {
+            <a asp-action="Create" class="btn btn-fitness-primary">
+                <i class="fas fa-plus-circle me-2"></i>Thêm gói tập
+            </a>
+        }
+        else
+        {
+            <a asp-controller="Membership" asp-action="Register" class="btn btn-fitness-primary">
+                <i class="fas fa-check-circle me-2"></i>Đăng ký gói tập
+            </a>
+        }
     </div>
 
-    <!-- Success/Error Messages -->
-    @if (TempData["SuccessMessage"] != null)
+    <!-- Success/Error Messages (Admin actions) -->
+    @if (isAdmin && TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
-    @if (TempData["ErrorMessage"] != null)
+    @if (isAdmin && TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
@@ -33,9 +45,13 @@
 
     <!-- Package Cards -->
     <div class="row">
-        @if (Model.Any())
+        @{
+            // Member chỉ xem các gói đang mở bán; Admin xem tất cả (kể cả đã khóa) để quản lý
+            var visiblePackages = isAdmin ? Model : Model.Where(p => p.IsActive);
+        }
+        @if (visiblePackages.Any())
         {
-            @foreach (var package in Model)
+            @foreach (var package in visiblePackages)
             {
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="pricing-card @(package.IsActive ? "" : "opacity-50")">
@@ -61,42 +77,57 @@
                                 <i class="fas fa-calendar-day"></i>
                                 <span>Thời hạn: <strong>@package.DurationDisplay</strong></span>
                             </li>
-                            <li>
-                                <i class="fas fa-clock"></i>
-                                <span>
-                                    Trạng thái:
-                                    <span class="badge-fitness @(package.IsActive ? "green" : "red")">
-                                        @package.StatusText
+                            @if (isAdmin)
+                            {
+                                <li>
+                                    <i class="fas fa-clock"></i>
+                                    <span>
+                                        Trạng thái:
+                                        <span class="badge-fitness @(package.IsActive ? "green" : "red")">
+                                            @package.StatusText
+                                        </span>
                                     </span>
-                                </span>
-                            </li>
-                            <li>
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>Ngày tạo: @package.CreatedAt.ToString("dd/MM/yyyy")</span>
-                            </li>
+                                </li>
+                                <li>
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>Ngày tạo: @package.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                </li>
+                            }
                         </ul>
 
                         <div class="d-flex gap-2 mt-3">
-                            <a asp-action="Edit" asp-route-id="@package.Id"
-                               class="btn btn-fitness-secondary flex-grow-1" style="padding: 8px 16px; font-size: 0.9rem;">
-                                <i class="fas fa-edit"></i> Sửa
-                            </a>
-                            <form asp-action="ToggleStatus" asp-route-id="@package.Id" method="post" style="flex:1;">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn @(package.IsActive ? "btn-fitness-danger" : "btn-fitness-success") w-100"
-                                        style="padding: 8px 16px; font-size: 0.9rem;">
-                                    <i class="fas @(package.IsActive ? "fa-lock" : "fa-unlock")"></i>
-                                    @(package.IsActive ? "Khóa" : "Mở khóa")
-                                </button>
-                            </form>
-                            <form asp-action="Delete" asp-route-id="@package.Id" method="post" style="flex:0.5;">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-fitness-danger"
-                                        style="padding: 8px 16px; font-size: 0.9rem;"
-                                        onclick="return confirm('Bạn có chắc muốn xóa gói tập này?')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            @if (isAdmin)
+                            {
+                                <a asp-action="Edit" asp-route-id="@package.Id"
+                                   class="btn btn-fitness-secondary flex-grow-1" style="padding: 8px 16px; font-size: 0.9rem;">
+                                    <i class="fas fa-edit"></i> Sửa
+                                </a>
+                                <form asp-action="ToggleStatus" asp-route-id="@package.Id" method="post" style="flex:1;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn @(package.IsActive ? "btn-fitness-danger" : "btn-fitness-success") w-100"
+                                            style="padding: 8px 16px; font-size: 0.9rem;">
+                                        <i class="fas @(package.IsActive ? "fa-lock" : "fa-unlock")"></i>
+                                        @(package.IsActive ? "Khóa" : "Mở khóa")
+                                    </button>
+                                </form>
+                                <form asp-action="Delete" asp-route-id="@package.Id" method="post" style="flex:0.5;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-fitness-danger"
+                                            style="padding: 8px 16px; font-size: 0.9rem;"
+                                            onclick="return confirm('Bạn có chắc muốn xóa gói tập này?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a asp-action="Details" asp-route-id="@package.Id" class="btn btn-fitness-secondary flex-grow-1">
+                                    <i class="fas fa-info-circle me-1"></i>Chi tiết
+                                </a>
+                                <a asp-controller="Membership" asp-action="Register" class="btn btn-fitness-primary flex-grow-1">
+                                    <i class="fas fa-check me-1"></i>Đăng ký
+                                </a>
+                            }
                         </div>
                     </div>
                 </div>
@@ -106,17 +137,22 @@
         {
             <div class="col-12 text-center py-5">
                 <i class="fas fa-box-open" style="font-size: 4rem; color: var(--text-muted);"></i>
-                <h4 class="text-muted mt-3">Chưa có gói tập nào</h4>
-                <p class="text-muted">Hãy tạo gói tập đầu tiên để bắt đầu</p>
-                <a asp-action="Create" class="btn btn-fitness-primary mt-3">
-                    <i class="fas fa-plus-circle me-2"></i>Tạo gói tập
-                </a>
+                <h4 class="text-muted mt-3">
+                    @(isAdmin ? "Chưa có gói tập nào" : "Hiện chưa có gói tập nào đang mở bán")
+                </h4>
+                @if (isAdmin)
+                {
+                    <p class="text-muted">Hãy tạo gói tập đầu tiên để bắt đầu</p>
+                    <a asp-action="Create" class="btn btn-fitness-primary mt-3">
+                        <i class="fas fa-plus-circle me-2"></i>Tạo gói tập
+                    </a>
+                }
             </div>
         }
     </div>
 
-    <!-- Statistics -->
-    @if (Model.Any())
+    <!-- Statistics (chỉ Admin) -->
+    @if (isAdmin && Model.Any())
     {
         <div class="row mt-4">
             <div class="col-md-4">

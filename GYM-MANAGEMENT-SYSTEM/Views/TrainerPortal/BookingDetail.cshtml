@@ -1,0 +1,85 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.TrainerBookingDetailViewModel
+@{
+    ViewData["Title"] = "Chi tiết buổi tập";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <a asp-action="Timetable" class="text-decoration-none d-inline-block mb-3" style="color:var(--gym-muted); font-size:.85rem;">
+                <i class="fas fa-arrow-left me-1"></i>Quay lại thời khoá biểu
+            </a>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success mb-3">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                </div>
+            }
+
+            <div class="card-fitness mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-calendar-day me-2"></i>Chi tiết buổi tập</span>
+                    <span class="@Model.StatusBadgeClass">@Model.Status</span>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3 text-muted">Học viên</dt>
+                        <dd class="col-sm-9 fw-semibold">@Model.StudentName</dd>
+
+                        <dt class="col-sm-3 text-muted">Email</dt>
+                        <dd class="col-sm-9">@Model.StudentEmail</dd>
+
+                        <dt class="col-sm-3 text-muted">Tuổi</dt>
+                        <dd class="col-sm-9">@(Model.StudentAge.HasValue ? Model.StudentAge.ToString() : "—")</dd>
+
+                        <dt class="col-sm-3 text-muted">Thể trạng</dt>
+                        <dd class="col-sm-9">
+                            @if (Model.StudentWeight.HasValue || Model.StudentHeight.HasValue)
+                            {
+                                @($"{(Model.StudentWeight.HasValue ? Model.StudentWeight + " kg" : "—")} / {(Model.StudentHeight.HasValue ? Model.StudentHeight + " cm" : "—")}")
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa cập nhật</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3 text-muted">Mục tiêu</dt>
+                        <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.StudentGoal) ? "—" : Model.StudentGoal)</dd>
+
+                        <dt class="col-sm-3 text-muted">Ngày / Giờ</dt>
+                        <dd class="col-sm-9">@Model.SessionDate.ToString("dd/MM/yyyy") — @Model.TimeSlot</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card-fitness mb-4">
+                <div class="card-header">
+                    <i class="fas fa-align-left me-2"></i>Ghi chú buổi tập
+                </div>
+                <div class="card-body">
+                    <form asp-action="SaveNote" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <textarea name="notes" class="form-control mb-3" rows="4"
+                                  placeholder="Ghi chú nội dung buổi tập, tiến độ, lưu ý cho lần sau...">@Model.Notes</textarea>
+                        <button type="submit" class="btn btn-fitness-primary">
+                            <i class="fas fa-save me-2"></i>Lưu ghi chú
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            @if (Model.Status != "Completed" && Model.Status != "Cancelled")
+            {
+                <form asp-action="MarkCompleted" method="post"
+                      onsubmit="return confirm('Xác nhận học viên đã hoàn thành buổi tập này?');">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-fitness-success w-100">
+                        <i class="fas fa-check-circle me-2"></i>Xác nhận học viên đã tập
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+</div>

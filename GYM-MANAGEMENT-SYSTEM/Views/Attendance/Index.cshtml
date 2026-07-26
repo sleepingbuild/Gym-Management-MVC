@@ -1,0 +1,88 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.AdminAttendanceReportViewModel
+@{
+    ViewData["Title"] = "Chấm công huấn luyện viên";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h1 class="fitness-title">🕐 Chấm công huấn luyện viên</h1>
+            <p class="text-muted mb-0">Theo dõi trainer nào đã đến dạy trong ngày</p>
+        </div>
+        <form method="get" class="d-flex gap-2">
+            <input type="date" name="date" class="form-control" value="@Model.Date.ToString("yyyy-MM-dd")" onchange="this.form.submit()" />
+        </form>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fas fa-user-tie"></i></div>
+                <div class="stat-number">@Model.TotalTrainers</div>
+                <div class="stat-label">Tổng huấn luyện viên</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-number">@Model.PresentCount</div>
+                <div class="stat-label">Đã chấm công</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon red"><i class="fas fa-times-circle"></i></div>
+                <div class="stat-number">@Model.AbsentCount</div>
+                <div class="stat-label">Chưa chấm công</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-fitness">
+        <div class="card-header">
+            <i class="fas fa-calendar-day me-2"></i>Ngày @Model.Date.ToString("dd/MM/yyyy")
+        </div>
+        @if (Model.Rows.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-fitness">
+                    <thead>
+                        <tr>
+                            <th>Huấn luyện viên</th>
+                            <th>Trạng thái</th>
+                            <th>Giờ chấm công</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model.Rows)
+                        {
+                            <tr>
+                                <td class="fw-semibold" style="color:var(--gym-text)">@row.TrainerName</td>
+                                <td>
+                                    @if (row.HasCheckedIn)
+                                    {
+                                        <span class="badge-fitness green">Đã chấm công</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-fitness red">Chưa chấm công</span>
+                                    }
+                                </td>
+                                <td>@(row.CheckInTime.HasValue ? row.CheckInTime.Value.ToString("HH:mm") : "—")</td>
+                                <td class="small text-muted">@(string.IsNullOrWhiteSpace(row.Notes) ? "—" : row.Notes)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="card-body text-center py-5">
+                <i class="fas fa-user-tie mb-3" style="font-size:2.5rem;color:var(--gym-border)"></i>
+                <p class="text-muted mb-0">Chưa có huấn luyện viên nào trong hệ thống.</p>
+            </div>
+        }
+    </div>
+</div>

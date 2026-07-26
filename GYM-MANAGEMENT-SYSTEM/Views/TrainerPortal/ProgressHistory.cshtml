@@ -1,0 +1,62 @@
+﻿@model List<GYM_MANAGEMENT_SYSTEM.Models.WorkoutProgress>
+@{
+    ViewData["Title"] = "Lịch sử tiến trình";
+}
+
+<div class="container py-4">
+    <a asp-action="Progress" class="text-decoration-none d-inline-block mb-3" style="color:var(--gym-muted); font-size:.85rem;">
+        <i class="fas fa-arrow-left me-1"></i>Quay lại danh sách hội viên
+    </a>
+
+    <div class="mb-4">
+        <h1 class="fitness-title">📈 @ViewBag.StudentName</h1>
+        <p class="text-muted mb-0">@ViewBag.StudentEmail — lịch sử ghi nhận tiến trình tập luyện</p>
+    </div>
+
+    <div class="card-fitness">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-fitness">
+                    <thead>
+                        <tr>
+                            <th>Ngày ghi nhận</th>
+                            <th>Cân nặng</th>
+                            <th>Chiều cao</th>
+                            <th>BMI</th>
+                            <th>% Mỡ</th>
+                            <th>Cơ bắp</th>
+                            <th>Vòng eo</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var w in Model)
+                        {
+                            <tr>
+                                <td>@w.RecordedAt.ToString("dd/MM/yyyy")</td>
+                                <td>@w.Weight kg</td>
+                                <td>@w.Height cm</td>
+                                <td>
+                                    @w.BMI
+                                    <span class="badge-fitness @w.BMIStatus ms-1">@w.BMICategory</span>
+                                </td>
+                                <td>@w.BodyFatPercentage%</td>
+                                <td>@w.MuscleMass</td>
+                                <td>@w.WaistCircumference cm</td>
+                                <td class="small text-muted">@(string.IsNullOrWhiteSpace(w.Notes) ? "—" : w.Notes)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="card-body text-center py-5">
+                <i class="fas fa-chart-line mb-3" style="font-size:2.5rem;color:var(--gym-border)"></i>
+                <p class="text-muted mb-0">Hội viên này chưa ghi nhận tiến trình nào.</p>
+            </div>
+        }
+    </div>
+</div>

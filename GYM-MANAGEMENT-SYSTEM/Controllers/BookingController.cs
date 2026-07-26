@@ -11,13 +11,16 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
     {
         private readonly IBookingService _bookingService;
         private readonly ITrainerService _trainerService;
+        private readonly IUserProfileService _profileService;
 
         public BookingController(
             IBookingService bookingService,
-            ITrainerService trainerService)
+            ITrainerService trainerService,
+            IUserProfileService profileService)
         {
             _bookingService = bookingService;
             _trainerService = trainerService;
+            _profileService = profileService;
         }
 
         // GET: /Booking
@@ -48,8 +51,9 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             return View(viewModels);
         }
 
-        // GET: /Booking/Create
-        public async Task<IActionResult> Create()
+        // GET: /Booking/Create?trainerId=5
+        // trainerId cho phép nút "Đăng ký tập" ở trang Trainer truyền sẵn HLV đã chọn
+        public async Task<IActionResult> Create(int? trainerId)
         {
             var trainers = await _trainerService.GetAvailableTrainersAsync();
             ViewBag.Trainers = trainers;
@@ -59,6 +63,11 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             {
                 SessionDate = DateTime.UtcNow.AddDays(1).Date
             };
+
+            if (trainerId.HasValue)
+            {
+                model.TrainerId = trainerId.Value;
+            }
 
             return View(model);
         }
@@ -89,8 +98,13 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             try
             {
                 var booking = await _bookingService.CreateBookingAsync(model);
+
+                // Lưu Tuổi vừa nhập vào UserProfile — không chặn luồng đặt lịch nếu
+                // việc lưu tuổi thất bại vì lý do gì đó, booking vẫn đã thành công.
+                await _profileService.UpdateAgeAsync(userId, model.Age);
+
                 TempData["SuccessMessage"] = "Đặt lịch thành công! Vui lòng chờ xác nhận từ huấn luyện viên.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Create));
             }
             catch (KeyNotFoundException ex)
             {

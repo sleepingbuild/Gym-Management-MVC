@@ -20,8 +20,12 @@ namespace GYM_MANAGEMENT_SYSTEM.Data
         public DbSet<Payment> Payments { get; set; }
         public DbSet<WorkoutProgress> WorkoutProgresses { get; set; }
         public DbSet<ChatHistory> ChatHistories { get; set; }
+        public DbSet<ChatSummary> ChatSummaries { get; set; }
         public DbSet<FAQ> FAQs { get; set; }
         public DbSet<TrainerSchedule> TrainerSchedules { get; set; }
+        public DbSet<TrainerAttendance> TrainerAttendances { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<ChatSession> ChatSessions { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -57,6 +61,17 @@ namespace GYM_MANAGEMENT_SYSTEM.Data
                 .WithMany(m => m.Payments)
                 .HasForeignKey(p => p.MembershipId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<TrainerAttendance>()
+                .HasOne(a => a.Trainer)
+                .WithMany()
+                .HasForeignKey(a => a.TrainerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Mỗi trainer chỉ có tối đa 1 bản ghi chấm công / ngày
+            builder.Entity<TrainerAttendance>()
+                .HasIndex(a => new { a.TrainerId, a.Date })
+                .IsUnique();
         }
     }
 }

@@ -1,145 +1,144 @@
-@model GYM_MANAGEMENT_SYSTEM.ViewModels.PaymentStatisticsViewModel
+@model List<GYM_MANAGEMENT_SYSTEM.ViewModels.PaymentIndexViewModel>
 @{
-    ViewData["Title"] = "Thống kê thanh toán";
+    ViewData["Title"] = "Lịch sử thanh toán";
+    var stats = ViewBag.Statistics as GYM_MANAGEMENT_SYSTEM.ViewModels.PaymentStatisticsViewModel;
+    var currentStatus = Context.Request.Query["Status"].ToString();
+    var currentSearch = Context.Request.Query["SearchTerm"].ToString();
+    var currentFrom = Context.Request.Query["FromDate"].ToString();
+    var currentTo = Context.Request.Query["ToDate"].ToString();
 }
 
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
-            <h1 class="fitness-title">📊 Thống kê thanh toán</h1>
-            <p class="text-muted">Tổng quan về các giao dịch của bạn</p>
+            <h1 class="fitness-title">💳 Lịch sử thanh toán</h1>
+            <p class="text-muted mb-0">Toàn bộ giao dịch của bạn</p>
         </div>
-        <a asp-action="History" class="btn btn-fitness-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Quay lại
-        </a>
+        <div class="d-flex gap-2">
+            <a asp-action="Statistics" class="btn btn-fitness-secondary">
+                <i class="fas fa-chart-pie me-2"></i>Thống kê
+            </a>
+            <a asp-action="ExportCSV" asp-route-fromDate="@currentFrom" asp-route-toDate="@currentTo" class="btn btn-fitness-secondary">
+                <i class="fas fa-file-csv me-2"></i>Xuất CSV
+            </a>
+        </div>
     </div>
 
-    @if (Model.TotalPayments > 0)
+    @if (stats != null && stats.TotalPayments > 0)
     {
-        <!-- Summary -->
         <div class="row mb-4">
-            <div class="col-md-3">
+            <div class="col-md-3 mb-3">
                 <div class="stat-card">
-                    <div class="stat-icon orange">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <div class="stat-number">@Model.TotalSuccessAmountDisplay</div>
+                    <div class="stat-icon orange"><i class="fas fa-coins"></i></div>
+                    <div class="stat-number">@stats.TotalSuccessAmountDisplay</div>
                     <div class="stat-label">Tổng tiền đã thanh toán</div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 mb-3">
                 <div class="stat-card">
-                    <div class="stat-icon blue">
-                        <i class="fas fa-list"></i>
-                    </div>
-                    <div class="stat-number">@Model.TotalPayments</div>
+                    <div class="stat-icon blue"><i class="fas fa-list"></i></div>
+                    <div class="stat-number">@stats.TotalPayments</div>
                     <div class="stat-label">Tổng giao dịch</div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 mb-3">
                 <div class="stat-card">
-                    <div class="stat-icon green">
-                        <i class="fas fa-percent"></i>
-                    </div>
-                    <div class="stat-number">@Model.SuccessRateDisplay</div>
-                    <div class="stat-label">Tỷ lệ thành công</div>
+                    <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-number">@stats.SuccessCount</div>
+                    <div class="stat-label">Thành công</div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 mb-3">
                 <div class="stat-card">
-                    <div class="stat-icon yellow">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-number">@Model.PendingCount</div>
+                    <div class="stat-icon yellow"><i class="fas fa-clock"></i></div>
+                    <div class="stat-number">@stats.PendingCount</div>
                     <div class="stat-label">Đang xử lý</div>
                 </div>
             </div>
         </div>
-
-        <!-- Status Breakdown -->
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card-fitness">
-                    <div class="card-header">
-                        <i class="fas fa-chart-pie me-2"></i>Phân bố trạng thái
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between py-2 border-bottom border-dark">
-                            <span class="text-muted">
-                                <i class="fas fa-check-circle me-2" style="color: var(--success-green);"></i>
-                                Thành công
-                            </span>
-                            <span class="fw-bold" style="color: var(--success-green);">
-                                @Model.SuccessCount
-                            </span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom border-dark">
-                            <span class="text-muted">
-                                <i class="fas fa-clock me-2" style="color: var(--warning-yellow);"></i>
-                                Đang xử lý
-                            </span>
-                            <span class="fw-bold" style="color: var(--warning-yellow);">
-                                @Model.PendingCount
-                            </span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2">
-                            <span class="text-muted">
-                                <i class="fas fa-times-circle me-2" style="color: var(--error-red);"></i>
-                                Thất bại
-                            </span>
-                            <span class="fw-bold" style="color: var(--error-red);">
-                                @Model.FailedCount
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-4">
-                <div class="card-fitness">
-                    <div class="card-header">
-                        <i class="fas fa-history me-2"></i>5 giao dịch gần đây
-                    </div>
-                    <div class="card-body">
-                        @if (Model.RecentPayments.Any())
-                        {
-                            <ul class="list-unstyled">
-                                @foreach (var item in Model.RecentPayments)
-                                {
-                                    <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-dark">
-                                        <div>
-                                            <strong>@item.AmountDisplay</strong>
-                                            <br />
-                                            <small class="text-muted">@item.DateDisplay</small>
-                                        </div>
-                                        <div>
-                                            <span class="badge-fitness @item.StatusBadgeClass me-2">
-                                                @item.Status
-                                            </span>
-                                            <span class="text-muted small">@item.MethodDisplay</span>
-                                        </div>
-                                    </li>
-                                }
-                            </ul>
-                        }
-                        else
-                        {
-                            <p class="text-muted text-center">Chưa có giao dịch nào</p>
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
     }
-    else
-    {
-        <div class="text-center py-5">
-            <i class="fas fa-chart-pie" style="font-size: 4rem; color: var(--text-muted);"></i>
-            <h4 class="text-muted mt-3">Chưa có dữ liệu thống kê</h4>
-            <p class="text-muted">Hãy thực hiện thanh toán để xem thống kê</p>
-            <a asp-controller="Membership" asp-action="Register" class="btn btn-fitness-primary mt-3">
-                <i class="fas fa-plus-circle me-2"></i>Đăng ký ngay
-            </a>
+
+    <!-- Filter -->
+    <div class="card-fitness mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Từ ngày</label>
+                    <input type="date" name="FromDate" class="form-control" value="@currentFrom" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Đến ngày</label>
+                    <input type="date" name="ToDate" class="form-control" value="@currentTo" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Trạng thái</label>
+                    <select name="Status" class="form-select">
+                        <option value="" selected="@(string.IsNullOrEmpty(currentStatus))">Tất cả</option>
+                        <option value="Pending" selected="@(currentStatus == "Pending")">Đang xử lý</option>
+                        <option value="Success" selected="@(currentStatus == "Success")">Thành công</option>
+                        <option value="Failed" selected="@(currentStatus == "Failed")">Thất bại</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Tìm kiếm</label>
+                    <input type="text" name="SearchTerm" class="form-control" value="@currentSearch" placeholder="Mã GD, nội dung..." />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-fitness-secondary w-100">
+                        <i class="fas fa-filter me-2"></i>Lọc
+                    </button>
+                </div>
+            </form>
         </div>
-    }
+    </div>
+
+    <!-- Payment list -->
+    <div class="card-fitness">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-fitness">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Số tiền</th>
+                            <th>Phương thức</th>
+                            <th>Trạng thái</th>
+                            <th>Mã giao dịch</th>
+                            <th>Nội dung</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model)
+                        {
+                            <tr>
+                                <td class="small text-muted">@p.DateDisplay</td>
+                                <td class="fw-semibold" style="color:var(--gym-text)">@p.AmountDisplay</td>
+                                <td>@p.MethodDisplay</td>
+                                <td><span class="@p.StatusBadgeClass">@p.StatusDisplay</span></td>
+                                <td class="small text-muted">@(string.IsNullOrWhiteSpace(p.TransactionId) ? "—" : p.TransactionId)</td>
+                                <td class="small text-muted">@(string.IsNullOrWhiteSpace(p.PaymentInfo) ? "—" : p.PaymentInfo)</td>
+                                <td class="text-end">
+                                    <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-fitness-secondary">
+                                        <i class="fas fa-eye me-1"></i>Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="card-body text-center py-5">
+                <i class="fas fa-receipt mb-3" style="font-size:2.5rem;color:var(--gym-border)"></i>
+                <p class="text-muted mb-3">Không có giao dịch nào khớp với bộ lọc.</p>
+                <a asp-action="History" class="btn btn-fitness-secondary">
+                    <i class="fas fa-times me-2"></i>Xóa bộ lọc
+                </a>
+            </div>
+        }
+    </div>
 </div>

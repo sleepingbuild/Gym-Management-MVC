@@ -1,108 +1,79 @@
 ﻿@model IEnumerable<GYM_MANAGEMENT_SYSTEM.ViewModels.TrainerIndexViewModel>
 @{
-    ViewData["Title"] = "Quản lý huấn luyện viên";
+    ViewData["Title"] = "Huấn luyện viên";
+    var isAdmin = User.IsInRole("Admin");
 }
 
-<div class="container py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
-            <h1 class="fitness-title">🏋️ Quản lý huấn luyện viên</h1>
-            <p class="text-muted">Quản lý đội ngũ huấn luyện viên của phòng gym</p>
+            <h1 class="fitness-title">👥 Huấn luyện viên</h1>
+            <p class="text-muted mb-0">
+                @(isAdmin ? "Quản lý hồ sơ và trạng thái huấn luyện viên" : "Chọn huấn luyện viên phù hợp và đặt lịch tập ngay")
+            </p>
         </div>
-        <a asp-action="Create" class="btn btn-fitness-primary">
-            <i class="fas fa-plus-circle me-2"></i>Thêm huấn luyện viên
-        </a>
+        @if (isAdmin)
+        {
+            <a asp-action="Create" class="btn btn-fitness-primary">
+                <i class="fas fa-user-plus me-2"></i>Thêm huấn luyện viên
+            </a>
+        }
     </div>
 
-    <!-- Messages -->
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show">
+        <div class="alert alert-success mb-4">
             <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show">
-            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
-    <!-- Trainer Cards -->
-    @if (Model.Any())
+    @if (Model != null && Model.Any())
     {
-        <div class="row">
+        <div class="row g-4">
             @foreach (var trainer in Model)
             {
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card-fitness">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h4 class="text-white">@trainer.FullName</h4>
-                                    <span class="badge-fitness @trainer.StatusBadgeClass">
-                                        @trainer.StatusText
-                                    </span>
-                                </div>
-                                <div class="text-end">
-                                    <small class="text-muted">#@trainer.Id</small>
-                                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card-fitness h-100">
+                        <div class="card-body text-center">
+                            <div class="auth-icon" style="width: 72px; height: 72px; margin: 0 auto;">
+                                <i class="fas fa-user-tie" style="font-size: 2rem;"></i>
                             </div>
+                            <h5 class="text-white mt-3 mb-1">@trainer.FullName</h5>
+                            <p class="text-muted small mb-2">@trainer.Specialization</p>
+                            <span class="badge-fitness @trainer.StatusBadgeClass mb-3">
+                                @trainer.StatusText
+                            </span>
 
-                            <div class="mt-3">
-                                <p class="text-muted" style="font-size: 0.9rem;">
-                                    <i class="fas fa-tag me-2" style="color: var(--orange-primary);"></i>
-                                    <strong>Chuyên môn:</strong> @trainer.Specialization
+                            @if (!string.IsNullOrWhiteSpace(trainer.Bio))
+                            {
+                                <p class="text-muted small" style="min-height:40px;">
+                                    @(trainer.Bio.Length > 90 ? trainer.Bio.Substring(0, 90) + "…" : trainer.Bio)
                                 </p>
-                                <p class="text-muted" style="font-size: 0.9rem;">
-                                    <i class="fas fa-envelope me-2" style="color: var(--orange-primary);"></i>
-                                    @trainer.Email
-                                </p>
-                                <p class="text-muted" style="font-size: 0.9rem;">
-                                    <i class="fas fa-phone me-2" style="color: var(--orange-primary);"></i>
-                                    @trainer.Phone
-                                </p>
-                                <p class="text-muted" style="font-size: 0.85rem; min-height: 40px;">
-                                    <i class="fas fa-align-left me-2" style="color: var(--orange-primary);"></i>
-                                    @trainer.ShortBio
-                                </p>
-                            </div>
+                            }
 
-                            <div class="mt-3 d-flex gap-2 flex-wrap">
-                                <a asp-action="Details" asp-route-id="@trainer.Id"
-                                   class="btn btn-fitness-outline-light" style="flex:1; padding: 6px 12px; font-size: 0.85rem;">
+                            <div class="d-flex gap-2 justify-content-center mt-3 flex-wrap">
+                                <a asp-action="Details" asp-route-id="@trainer.Id" class="btn btn-sm btn-fitness-secondary">
                                     <i class="fas fa-eye me-1"></i>Chi tiết
                                 </a>
-                                <a asp-action="Edit" asp-route-id="@trainer.Id"
-                                   class="btn btn-fitness-secondary" style="flex:1; padding: 6px 12px; font-size: 0.85rem;">
-                                    <i class="fas fa-edit me-1"></i>Sửa
-                                </a>
-                                <form asp-action="ToggleAvailability" asp-route-id="@trainer.Id" method="post" style="flex:1;">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn @(trainer.IsAvailable ? "btn-fitness-danger" : "btn-fitness-success") w-100"
-                                            style="padding: 6px 12px; font-size: 0.85rem;">
-                                        <i class="fas @(trainer.IsAvailable ? "fa-pause" : "fa-play") me-1"></i>
-                                        @(trainer.IsAvailable ? "Tạm nghỉ" : "Hoạt động")
-                                    </button>
-                                </form>
-                                <form asp-action="Delete" asp-route-id="@trainer.Id" method="post" style="flex:0.5;">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-fitness-danger"
-                                            style="padding: 6px 12px; font-size: 0.85rem;"
-                                            onclick="return confirm('Bạn có chắc muốn xóa huấn luyện viên này?')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
 
-                            <div class="mt-2">
-                                <small class="text-muted">
-                                    <i class="fas fa-calendar-alt me-1"></i>
-                                    Tham gia: @trainer.CreatedAt.ToString("dd/MM/yyyy")
-                                </small>
+                                @if (isAdmin)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@trainer.Id" class="btn btn-sm btn-fitness-secondary">
+                                        <i class="fas fa-edit me-1"></i>Sửa
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@trainer.Id" method="post"
+                                          onsubmit="return confirm('Xóa huấn luyện viên này?');" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-fitness-secondary" style="color:var(--gym-danger)">
+                                            <i class="fas fa-trash me-1"></i>Xóa
+                                        </button>
+                                    </form>
+                                }
+                                else if (trainer.IsAvailable)
+                                {
+                                    <a asp-controller="Booking" asp-action="Create" asp-route-trainerId="@trainer.Id" class="btn btn-sm btn-fitness-primary">
+                                        <i class="fas fa-calendar-plus me-1"></i>Đăng ký tập
+                                    </a>
+                                }
                             </div>
                         </div>
                     </div>
@@ -112,46 +83,16 @@
     }
     else
     {
-        <div class="text-center py-5">
-            <i class="fas fa-user-tie" style="font-size: 4rem; color: var(--text-muted);"></i>
-            <h4 class="text-muted mt-3">Chưa có huấn luyện viên nào</h4>
-            <p class="text-muted">Hãy thêm huấn luyện viên đầu tiên</p>
-            <a asp-action="Create" class="btn btn-fitness-primary mt-3">
-                <i class="fas fa-plus-circle me-2"></i>Thêm huấn luyện viên
-            </a>
-        </div>
-    }
-
-    <!-- Statistics -->
-    @if (Model.Any())
-    {
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div class="stat-icon orange">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-number">@Model.Count()</div>
-                    <div class="stat-label">Tổng huấn luyện viên</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div class="stat-icon green">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-number">@Model.Count(t => t.IsAvailable)</div>
-                    <div class="stat-label">Đang hoạt động</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div class="stat-icon red">
-                        <i class="fas fa-pause-circle"></i>
-                    </div>
-                    <div class="stat-number">@Model.Count(t => !t.IsAvailable)</div>
-                    <div class="stat-label">Tạm nghỉ</div>
-                </div>
+        <div class="card-fitness">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-user-tie mb-3" style="font-size:2.5rem;color:var(--gym-border)"></i>
+                <p class="text-muted mb-3">Chưa có huấn luyện viên nào.</p>
+                @if (isAdmin)
+                {
+                    <a asp-action="Create" class="btn btn-fitness-primary">
+                        <i class="fas fa-user-plus me-2"></i>Thêm huấn luyện viên đầu tiên
+                    </a>
+                }
             </div>
         </div>
     }

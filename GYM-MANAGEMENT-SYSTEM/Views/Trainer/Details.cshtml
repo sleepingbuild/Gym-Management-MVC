@@ -49,9 +49,18 @@
                     </dl>
 
                     <div class="d-flex gap-2 mt-3">
-                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-fitness-primary">
-                            <i class="fas fa-edit me-2"></i>Sửa
-                        </a>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-fitness-primary">
+                                <i class="fas fa-edit me-2"></i>Sửa
+                            </a>
+                        }
+                        else if (Model.IsAvailable)
+                        {
+                            <a asp-controller="Booking" asp-action="Create" asp-route-trainerId="@Model.Id" class="btn btn-fitness-primary">
+                                <i class="fas fa-calendar-plus me-2"></i>Đăng ký tập
+                            </a>
+                        }
                         <a asp-action="Index" class="btn btn-fitness-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Quay lại
                         </a>

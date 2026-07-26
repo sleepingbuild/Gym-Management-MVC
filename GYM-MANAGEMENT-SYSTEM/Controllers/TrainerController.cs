@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GYM_MANAGEMENT_SYSTEM.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class TrainerController : Controller
     {
         private readonly ITrainerService _trainerService;
@@ -15,7 +15,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             _trainerService = trainerService;
         }
 
-        // GET: /Trainer
+        // GET: /Trainer — mở cho mọi user đã đăng nhập (Member xem danh sách để đặt lịch)
         public async Task<IActionResult> Index()
         {
             var trainers = await _trainerService.GetAllTrainersAsync();
@@ -34,7 +34,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             return View(viewModels);
         }
 
-        // GET: /Trainer/Details/5
+        // GET: /Trainer/Details/5 — mở cho mọi user đã đăng nhập
         public async Task<IActionResult> Details(int id)
         {
             var trainer = await _trainerService.GetTrainerByIdAsync(id);
@@ -58,13 +58,15 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             return View(viewModel);
         }
 
-        // GET: /Trainer/Create
+        // GET: /Trainer/Create — chỉ Admin
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: /Trainer/Create
+        // POST: /Trainer/Create — chỉ Admin
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TrainerCreateViewModel model)
@@ -87,7 +89,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             }
         }
 
-        // GET: /Trainer/Edit/5
+        // GET: /Trainer/Edit/5 — chỉ Admin
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id)
         {
             var trainer = await _trainerService.GetTrainerByIdAsync(id);
@@ -110,7 +113,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             return View(viewModel);
         }
 
-        // POST: /Trainer/Edit/5
+        // POST: /Trainer/Edit/5 — chỉ Admin
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, TrainerEditViewModel model)
@@ -142,7 +146,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             }
         }
 
-        // POST: /Trainer/Delete/5
+        // POST: /Trainer/Delete/5 — chỉ Admin
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -159,7 +164,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Trainer/ToggleAvailability/5
+        // POST: /Trainer/ToggleAvailability/5 — chỉ Admin
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleAvailability(int id)

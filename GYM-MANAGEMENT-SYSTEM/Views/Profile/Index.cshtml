@@ -1,0 +1,60 @@
+﻿@model GYM_MANAGEMENT_SYSTEM.Models.UserProfile
+@{
+    ViewData["Title"] = "Thông tin tài khoản";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="fitness-title">👤 Thông tin tài khoản</h1>
+                <a asp-action="Edit" class="btn btn-fitness-primary">
+                    <i class="fas fa-edit me-2"></i>@(Model == null ? "Cập nhật hồ sơ" : "Sửa")
+                </a>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success mb-4">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                </div>
+            }
+
+            @if (Model == null)
+            {
+                <div class="card-fitness">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-user-circle mb-3" style="font-size:2.5rem;color:var(--gym-border)"></i>
+                        <p class="text-muted mb-3">Bạn chưa cập nhật thông tin cá nhân.</p>
+                        <a asp-action="Edit" class="btn btn-fitness-primary">
+                            <i class="fas fa-plus-circle me-2"></i>Cập nhật ngay
+                        </a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card-fitness">
+                    <div class="card-header">
+                        <i class="fas fa-heartbeat me-2"></i>Chỉ số cơ thể
+                    </div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4 text-muted">Tuổi</dt>
+                            <dd class="col-sm-8">@Model.Age</dd>
+
+                            <dt class="col-sm-4 text-muted">Cân nặng</dt>
+                            <dd class="col-sm-8">@Model.Weight kg</dd>
+
+                            <dt class="col-sm-4 text-muted">Chiều cao</dt>
+                            <dd class="col-sm-8">@Model.Height cm</dd>
+
+                            <dt class="col-sm-4 text-muted">Mục tiêu</dt>
+                            <dd class="col-sm-8 mb-0">@(string.IsNullOrWhiteSpace(Model.Goal) ? "—" : Model.Goal)</dd>
+                        </dl>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

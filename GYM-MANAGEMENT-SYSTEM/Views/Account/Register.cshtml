@@ -7,6 +7,11 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-6 col-md-8 col-11">
+                <div class="text-center mb-3">
+                    <a asp-controller="Home" asp-action="Index" class="text-decoration-none" style="color:var(--gym-muted); font-size:.85rem;">
+                        <i class="fas fa-arrow-left me-1"></i>Về trang chủ
+                    </a>
+                </div>
                 <div class="auth-card">
                     <div class="auth-header">
                         <div class="auth-icon">
@@ -23,35 +28,35 @@
                                     <label asp-for="FullName" class="form-label">
                                         <i class="fas fa-user me-2"></i>Họ và tên
                                     </label>
-                                    <input asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A" />
+                                    <input asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A" autocomplete="name" autofocus />
                                     <span asp-validation-for="FullName" class="text-danger small"></span>
                                 </div>
                                 <div class="col-12 mb-3">
                                     <label asp-for="Email" class="form-label">
                                         <i class="fas fa-envelope me-2"></i>Email
                                     </label>
-                                    <input asp-for="Email" class="form-control" placeholder="example@email.com" />
+                                    <input asp-for="Email" class="form-control" placeholder="example@email.com" autocomplete="email" />
                                     <span asp-validation-for="Email" class="text-danger small"></span>
                                 </div>
                                 <div class="col-12 mb-3">
                                     <label asp-for="PhoneNumber" class="form-label">
                                         <i class="fas fa-phone me-2"></i>Số điện thoại
                                     </label>
-                                    <input asp-for="PhoneNumber" class="form-control" placeholder="0987654321" />
+                                    <input asp-for="PhoneNumber" class="form-control" placeholder="0987654321" autocomplete="tel" />
                                     <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
                                 </div>
-                                <div class="col-12 mb-3">
+                                <div class="col-12 col-md-6 mb-3">
                                     <label asp-for="Password" class="form-label">
                                         <i class="fas fa-lock me-2"></i>Mật khẩu
                                     </label>
-                                    <input asp-for="Password" class="form-control" placeholder="••••••••" />
+                                    <input asp-for="Password" class="form-control" placeholder="••••••••" autocomplete="new-password" />
                                     <span asp-validation-for="Password" class="text-danger small"></span>
                                 </div>
-                                <div class="col-12 mb-4">
+                                <div class="col-12 col-md-6 mb-4">
                                     <label asp-for="ConfirmPassword" class="form-label">
                                         <i class="fas fa-check-circle me-2"></i>Xác nhận mật khẩu
                                     </label>
-                                    <input asp-for="ConfirmPassword" class="form-control" placeholder="••••••••" />
+                                    <input asp-for="ConfirmPassword" class="form-control" placeholder="••••••••" autocomplete="new-password" />
                                     <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                                 </div>
                             </div>

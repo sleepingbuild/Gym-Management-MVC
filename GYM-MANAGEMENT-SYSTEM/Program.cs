@@ -60,9 +60,21 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<GYM_MANAGEMENT_SYSTEM.AI.Services.KnowledgeBaseService>();
+builder.Services.AddScoped<ITrainerAttendanceRepository, TrainerAttendanceRepository>();
+builder.Services.AddScoped<ITrainerAttendanceService, TrainerAttendanceService>();
+builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+builder.Services.AddScoped<IUserProfileService, UserProfileService>();
+
 
 // Cấu hình VNPay
 builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("VNPay"));
+
+builder.Services.AddHttpClient<GYM_MANAGEMENT_SYSTEM.AI.Services.IGymAiClient,
+                                GYM_MANAGEMENT_SYSTEM.AI.Services.GymAiClient>(client =>
+                                {
+                                    client.BaseAddress = new Uri(builder.Configuration["AI:ServeUrl"]!);
+                                    client.Timeout = TimeSpan.FromSeconds(90);
+                                });
 
 var app = builder.Build();
 
@@ -84,5 +96,10 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+using (var scope = app.Services.CreateScope())
+{
+    await SeedData.InitializeAsync(scope.ServiceProvider);
+}
 
 app.Run();

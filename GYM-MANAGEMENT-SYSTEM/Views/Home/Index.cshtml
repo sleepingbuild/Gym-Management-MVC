@@ -2,73 +2,35 @@
     ViewData["Title"] = "Trang chủ";
 }
 
-<style>
-    .hero {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-        color: white;
-        padding: 80px 0;
-        margin: -20px -15px 40px;
-    }
-    .hero h1 { font-size: 2.8rem; font-weight: 700; }
-    .hero p  { font-size: 1.15rem; opacity: .85; }
-
-    .feature-card {
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,.08);
-        transition: transform .2s, box-shadow .2s;
-        height: 100%;
-    }
-    .feature-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 30px rgba(0,0,0,.15);
-    }
-    .feature-icon {
-        width: 56px; height: 56px;
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 24px;
-        margin-bottom: 16px;
-    }
-    .stat-card {
-        background: white;
-        border-radius: 12px;
-        padding: 24px;
-        text-align: center;
-        box-shadow: 0 4px 20px rgba(0,0,0,.06);
-    }
-    .stat-card .number {
-        font-size: 2.2rem;
-        font-weight: 700;
-        color: #0f3460;
-    }
-    .stat-card .label {
-        color: #6c757d;
-        font-size: .9rem;
-        margin-top: 4px;
-    }
-</style>
-
 <!-- Hero -->
 <div class="hero text-center">
     <div class="container">
-        <h1>🏋️ GYM Management System</h1>
-        <p class="mt-3 mb-4">Hệ thống quản lý phòng gym toàn diện — đặt lịch, theo dõi tiến trình,<br />thanh toán và tư vấn AI tất cả trong một nền tảng.</p>
+        <h1>🏋️ IronFit</h1>
+        <p class="mt-3 mb-4 mx-auto">Hệ thống quản lý phòng gym toàn diện — đặt lịch, theo dõi tiến trình, thanh toán và tư vấn AI tất cả trong một nền tảng.</p>
         @if (!User.Identity!.IsAuthenticated)
         {
-            <a class="btn btn-warning btn-lg me-2 px-4" asp-controller="Account" asp-action="Register">
-                Đăng ký ngay
+            <a class="btn btn-fitness-primary btn-lg me-2 px-4" asp-controller="Account" asp-action="Register">
+                <i class="fas fa-user-plus me-2"></i>Đăng ký ngay
             </a>
-            <a class="btn btn-outline-light btn-lg px-4" asp-controller="Account" asp-action="Login">
-                Đăng nhập
+            <a class="btn btn-fitness-outline btn-lg px-4" asp-controller="Account" asp-action="Login">
+                <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+            </a>
+        }
+        else if (User.IsInRole("Trainer"))
+        {
+            <a class="btn btn-fitness-primary btn-lg me-2 px-4" asp-controller="TrainerPortal" asp-action="Index">
+                Bảng điều khiển HLV
+            </a>
+            <a class="btn btn-fitness-outline btn-lg px-4" asp-controller="TrainerPortal" asp-action="Timetable">
+                Thời khoá biểu
             </a>
         }
         else
         {
-            <a class="btn btn-warning btn-lg me-2 px-4" asp-controller="Membership" asp-action="Index">
+            <a class="btn btn-fitness-primary btn-lg me-2 px-4" asp-controller="Membership" asp-action="Index">
                 Gói tập của tôi
             </a>
-            <a class="btn btn-outline-light btn-lg px-4" asp-controller="Booking" asp-action="Create">
+            <a class="btn btn-fitness-outline btn-lg px-4" asp-controller="Booking" asp-action="Create">
                 Đặt lịch tập
             </a>
         }
@@ -77,97 +39,204 @@
 
 <div class="container">
 
-    <!-- Stats -->
-    @if (User.Identity.IsAuthenticated)
+    @if (User.IsInRole("Trainer"))
     {
-        <div class="row g-3 mb-5">
-            <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="number">448</div>
-                    <div class="label">Câu hỏi AI</div>
+        <!-- ============================================================
+             TRAINER OVERVIEW
+             NOTE: placeholder layout — wire to real stats once
+             TrainerPortalController/TrainerDashboardViewModel is built
+             (số khách hàng đang dạy, buổi tập hôm nay, trạng thái chấm công...).
+        ============================================================ -->
+        <div class="d-flex justify-content-between align-items-end mt-5 mb-3">
+            <div>
+                <h2 class="fw-bold mb-1" style="color:var(--gym-text)">Khu vực huấn luyện viên</h2>
+                <p class="mb-0" style="color:var(--gym-muted)"><span class="status-dot"></span>Cập nhật gần nhất hôm nay</p>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="gym-card p-3 h-100">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="feature-icon" style="width:38px;height:38px;font-size:16px;background:rgba(249,115,22,.12);color:var(--gym-accent);margin:0;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <span style="color:var(--gym-muted); font-size:.85rem;">Khách hàng đang dạy</span>
+                    </div>
+                    <div class="fw-bold" style="color:var(--gym-text); font-size:1.1rem;">Xem danh sách</div>
+                    <a asp-controller="TrainerPortal" asp-action="Students" class="small">Xem chi tiết →</a>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="number">4</div>
-                    <div class="label">Gói tập</div>
+            <div class="col-md-6 col-lg-3">
+                <div class="gym-card p-3 h-100">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="feature-icon" style="width:38px;height:38px;font-size:16px;background:rgba(34,197,94,.12);color:var(--gym-success);margin:0;">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <span style="color:var(--gym-muted); font-size:.85rem;">Buổi tập hôm nay</span>
+                    </div>
+                    <div class="fw-bold" style="color:var(--gym-text); font-size:1.1rem;">Xem thời khoá biểu</div>
+                    <a asp-controller="TrainerPortal" asp-action="Timetable" class="small">Xem lịch →</a>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="number">24/7</div>
-                    <div class="label">Hỗ trợ AI</div>
+            <div class="col-md-6 col-lg-3">
+                <div class="gym-card p-3 h-100">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="feature-icon" style="width:38px;height:38px;font-size:16px;background:rgba(124,58,237,.15);color:var(--gym-info);margin:0;">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <span style="color:var(--gym-muted); font-size:.85rem;">Tiến trình hội viên</span>
+                    </div>
+                    <div class="fw-bold" style="color:var(--gym-text); font-size:1.1rem;">Theo dõi tất cả</div>
+                    <a asp-controller="TrainerPortal" asp-action="Progress" class="small">Xem tiến trình →</a>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="number">100%</div>
-                    <div class="label">Online</div>
+            <div class="col-md-6 col-lg-3">
+                <div class="gym-card p-3 h-100">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="feature-icon" style="width:38px;height:38px;font-size:16px;background:rgba(234,179,8,.12);color:var(--gym-warning);margin:0;">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <span style="color:var(--gym-muted); font-size:.85rem;">Chấm công</span>
+                    </div>
+                    <div class="fw-bold" style="color:var(--gym-text); font-size:1.1rem;">Chưa xác nhận hôm nay</div>
+                    <a asp-controller="TrainerPortal" asp-action="Attendance" class="small">Chấm công ngay →</a>
+                </div>
+            </div>
+        </div>
+    }
+    else if (User.Identity!.IsAuthenticated)
+    {
+        <!-- ============================================================
+             MEMBER DASHBOARD
+             NOTE: values below are placeholders for layout purposes.
+             Wire them to a real MemberDashboardViewModel from HomeController
+             (e.g. active package, next booking, latest progress) to replace
+             the static numbers/text.
+        ============================================================ -->
+        <div class="d-flex justify-content-between align-items-end mt-5 mb-3">
+            <div>
+                <h2 class="fw-bold mb-1" style="color:var(--gym-text)">Tổng quan của bạn</h2>
+                <p class="mb-0" style="color:var(--gym-muted)"><span class="status-dot"></span>Cập nhật gần nhất hôm nay</p>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <!-- Membership status -->
+            <div class="col-md-6 col-lg-3">
+                <div class="gym-card p-3 h-100">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="feature-icon" style="width:38px;height:38px;font-size:16px;background:rgba(34,197,94,.12);color:var(--gym-success);margin:0;">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                        <span style="color:var(--gym-muted); font-size:.85rem;">Gói tập</span>
+                    </div>
+                    <div class="fw-bold" style="color:var(--gym-text); font-size:1.1rem;">Premium — còn 23 ngày</div>
+                    <a asp-controller="Membership" asp-action="Index" class="small">Xem chi tiết →</a>
+                </div>
+            </div>
+            <!-- Next booking -->
+            <div class="col-md-6 col-lg-3">
+                <div class="gym-card p-3 h-100">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="feature-icon" style="width:38px;height:38px;font-size:16px;background:rgba(249,115,22,.12);color:var(--gym-accent);margin:0;">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <span style="color:var(--gym-muted); font-size:.85rem;">Lịch tập tiếp theo</span>
+                    </div>
+                    <div class="fw-bold" style="color:var(--gym-text); font-size:1.1rem;">Thứ 5, 18:00</div>
+                    <a asp-controller="Booking" asp-action="Index" class="small">Xem lịch →</a>
+                </div>
+            </div>
+            <!-- Workout progress -->
+            <div class="col-md-6 col-lg-3">
+                <div class="gym-card p-3 h-100">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="feature-icon" style="width:38px;height:38px;font-size:16px;background:rgba(124,58,237,.15);color:var(--gym-info);margin:0;">
+                            <i class="fas fa-weight"></i>
+                        </div>
+                        <span style="color:var(--gym-muted); font-size:.85rem;">Cân nặng gần nhất</span>
+                    </div>
+                    <div class="fw-bold" style="color:var(--gym-text); font-size:1.1rem;">— kg</div>
+                    <a asp-controller="Workout" asp-action="Index" class="small">Ghi nhận mới →</a>
+                </div>
+            </div>
+            <!-- AI -->
+            <div class="col-md-6 col-lg-3">
+                <div class="gym-card p-3 h-100">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="feature-icon" style="width:38px;height:38px;font-size:16px;background:rgba(249,115,22,.12);color:var(--gym-accent2);margin:0;">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <span style="color:var(--gym-muted); font-size:.85rem;">Trợ lý AI</span>
+                    </div>
+                    <div class="fw-bold" style="color:var(--gym-text); font-size:1.1rem;">Sẵn sàng tư vấn</div>
+                    <a asp-controller="AI" asp-action="Chat" class="small">Trò chuyện ngay →</a>
                 </div>
             </div>
         </div>
     }
 
     <!-- Features -->
-    <h2 class="text-center fw-bold mb-4">Tính năng nổi bật</h2>
+    <h2 class="text-center fw-bold mb-4 mt-4" style="color:var(--gym-text)">Tính năng nổi bật</h2>
     <div class="row g-4 mb-5">
         <div class="col-md-4">
             <div class="card feature-card p-4">
-                <div class="feature-icon bg-primary bg-opacity-10">💳</div>
-                <h5 class="fw-bold">Quản lý gói tập</h5>
-                <p class="text-muted mb-3">Đăng ký, gia hạn và theo dõi trạng thái gói tập. Thanh toán trực tuyến qua VNPay.</p>
-                <a asp-controller="Package" asp-action="Index" class="btn btn-outline-primary btn-sm">Xem gói tập →</a>
+                <div class="feature-icon" style="background:rgba(249,115,22,.12); color:var(--gym-accent);">💳</div>
+                <h5>Quản lý gói tập</h5>
+                <p class="mb-3">Đăng ký, gia hạn và theo dõi trạng thái gói tập. Thanh toán trực tuyến qua VNPay.</p>
+                <a asp-controller="Package" asp-action="Index" class="btn btn-fitness-outline btn-sm">Xem gói tập →</a>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card feature-card p-4">
-                <div class="feature-icon bg-success bg-opacity-10">📅</div>
-                <h5 class="fw-bold">Đặt lịch huấn luyện</h5>
-                <p class="text-muted mb-3">Đặt lịch với huấn luyện viên chuyên nghiệp, xem lịch trống và quản lý buổi tập.</p>
-                <a asp-controller="Booking" asp-action="Index" class="btn btn-outline-success btn-sm">Đặt lịch →</a>
+                <div class="feature-icon" style="background:rgba(34,197,94,.12); color:var(--gym-success);">📅</div>
+                <h5>Đặt lịch huấn luyện</h5>
+                <p class="mb-3">Đặt lịch với huấn luyện viên chuyên nghiệp, xem lịch trống và quản lý buổi tập.</p>
+                <a asp-controller="Booking" asp-action="Index" class="btn btn-fitness-outline btn-sm">Đặt lịch →</a>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card feature-card p-4">
-                <div class="feature-icon bg-warning bg-opacity-10">📊</div>
-                <h5 class="fw-bold">Theo dõi tiến trình</h5>
-                <p class="text-muted mb-3">Ghi nhận cân nặng, chiều cao, BMI và các chỉ số sức khỏe theo thời gian.</p>
-                <a asp-controller="Workout" asp-action="Index" class="btn btn-outline-warning btn-sm">Xem tiến trình →</a>
+                <div class="feature-icon" style="background:rgba(234,179,8,.12); color:var(--gym-warning);">📊</div>
+                <h5>Theo dõi tiến trình</h5>
+                <p class="mb-3">Ghi nhận cân nặng, chiều cao, BMI và các chỉ số sức khỏe theo thời gian.</p>
+                <a asp-controller="Workout" asp-action="Index" class="btn btn-fitness-outline btn-sm">Xem tiến trình →</a>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card feature-card p-4">
-                <div class="feature-icon bg-danger bg-opacity-10">🤖</div>
-                <h5 class="fw-bold">AI Fitness Trainer</h5>
-                <p class="text-muted mb-3">Tư vấn dinh dưỡng, lịch tập và giải đáp mọi câu hỏi về sức khỏe với AI chuyên gym.</p>
-                <a asp-controller="AI" asp-action="Chat" class="btn btn-outline-danger btn-sm">Chat với AI →</a>
+                <div class="feature-icon" style="background:rgba(239,68,68,.12); color:var(--gym-danger);">🤖</div>
+                <h5>AI Fitness Trainer</h5>
+                <p class="mb-3">Tư vấn dinh dưỡng, lịch tập và giải đáp mọi câu hỏi về sức khỏe với AI chuyên gym.</p>
+                <a asp-controller="AI" asp-action="Chat" class="btn btn-fitness-outline btn-sm">Chat với AI →</a>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card feature-card p-4">
-                <div class="feature-icon bg-info bg-opacity-10">💪</div>
-                <h5 class="fw-bold">Huấn luyện viên</h5>
-                <p class="text-muted mb-3">Đội ngũ huấn luyện viên chuyên nghiệp với lịch làm việc linh hoạt.</p>
-                <a asp-controller="Trainer" asp-action="Index" class="btn btn-outline-info btn-sm">Xem HLV →</a>
+                <div class="feature-icon" style="background:rgba(124,58,237,.15); color:var(--gym-info);">💪</div>
+                <h5>Huấn luyện viên</h5>
+                <p class="mb-3">Đội ngũ huấn luyện viên chuyên nghiệp với lịch làm việc linh hoạt.</p>
+                <a asp-controller="Trainer" asp-action="Index" class="btn btn-fitness-outline btn-sm">Xem HLV →</a>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card feature-card p-4">
-                <div class="feature-icon bg-secondary bg-opacity-10">💰</div>
-                <h5 class="fw-bold">Thanh toán VNPay</h5>
-                <p class="text-muted mb-3">Thanh toán trực tuyến an toàn qua VNPay, xem lịch sử giao dịch.</p>
-                <a asp-controller="Payment" asp-action="Index" class="btn btn-outline-secondary btn-sm">Lịch sử thanh toán →</a>
+                <div class="feature-icon" style="background:rgba(100,116,139,.15); color:var(--gym-muted);">💰</div>
+                <h5>Thanh toán VNPay</h5>
+                <p class="mb-3">Thanh toán trực tuyến an toàn qua VNPay, xem lịch sử giao dịch.</p>
+                <a asp-controller="Payment" asp-action="Index" class="btn btn-fitness-outline btn-sm">Lịch sử thanh toán →</a>
             </div>
         </div>
     </div>
 
     <!-- CTA -->
-    @if (!User.Identity.IsAuthenticated)
+    @if (!User.Identity!.IsAuthenticated)
     {
-        <div class="text-center bg-light rounded-4 p-5 mb-5">
-            <h3 class="fw-bold">Sẵn sàng bắt đầu?</h3>
-            <p class="text-muted mb-4">Đăng ký miễn phí và trải nghiệm hệ thống quản lý gym hiện đại nhất.</p>
-            <a class="btn btn-primary btn-lg px-5" asp-controller="Account" asp-action="Register">
+        <div class="text-center gym-card p-5 mb-5" style="border-color:var(--gym-accent);">
+            <h3 class="fw-bold" style="color:var(--gym-text)">Sẵn sàng bắt đầu?</h3>
+            <p class="mb-4" style="color:var(--gym-muted)">Đăng ký miễn phí và trải nghiệm hệ thống quản lý gym hiện đại nhất.</p>
+            <a class="btn btn-fitness-primary btn-lg px-5" asp-controller="Account" asp-action="Register">
                 Tạo tài khoản miễn phí
             </a>
         </div>

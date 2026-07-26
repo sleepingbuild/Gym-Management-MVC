@@ -12,7 +12,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="fitness-title">📊 Dashboard</h1>
-            <p class="text-muted">Tổng quan hoạt động của phòng gym</p>
+            <p class="text-muted">Tổng quan doanh thu và tăng trưởng thành viên</p>
         </div>
         <div>
             <span class="text-muted">
@@ -43,7 +43,7 @@
                     <i class="fas fa-ticket-alt"></i>
                 </div>
                 <div class="stat-number">@Model.TotalMembershipsDisplay</div>
-                <div class="stat-label">Tổng gói tập</div>
+                <div class="stat-label">Lượt đăng ký gói tập</div>
                 <div class="stat-change positive">
                     <i class="fas fa-check-circle me-1"></i>
                     @Model.MembershipActiveRate% đang hoạt động
@@ -59,20 +59,20 @@
                 <div class="stat-label">Tổng doanh thu</div>
                 <div class="stat-change positive">
                     <i class="fas fa-arrow-up me-1"></i>
-                    @Model.RevenueThisMonthDisplay tháng này
+                    Từ trước đến nay
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
             <div class="stat-card">
                 <div class="stat-icon yellow">
-                    <i class="fas fa-calendar-check"></i>
+                    <i class="fas fa-chart-line"></i>
                 </div>
-                <div class="stat-number">@Model.TotalBookings</div>
-                <div class="stat-label">Tổng đặt lịch</div>
-                <div class="stat-change @(Model.BookingCompletionRate >= 70 ? "positive" : "negative")">
-                    <i class="fas @(Model.BookingCompletionRate >= 70 ? "fa-arrow-up" : "fa-arrow-down") me-1"></i>
-                    @Model.BookingCompletionRate% hoàn thành
+                <div class="stat-number">@Model.RevenueThisMonthDisplay</div>
+                <div class="stat-label">Doanh thu tháng này</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-calendar me-1"></i>
+                    @DateTime.UtcNow.ToString("MM/yyyy")
                 </div>
             </div>
         </div>
@@ -106,32 +106,6 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="stat-card">
-                <div class="stat-icon orange">
-                    <i class="fas fa-hourglass-half"></i>
-                </div>
-                <div class="stat-number">@Model.PendingBookings</div>
-                <div class="stat-label">Đặt lịch chờ</div>
-                <div class="stat-change warning">
-                    <i class="fas fa-clock me-1"></i>
-                    Cần xác nhận
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="stat-card">
-                <div class="stat-icon blue">
-                    <i class="fas fa-dumbbell"></i>
-                </div>
-                <div class="stat-number">@Model.TotalWorkoutRecords</div>
-                <div class="stat-label">Ghi nhận tập luyện</div>
-                <div class="stat-change positive">
-                    <i class="fas fa-arrow-up me-1"></i>
-                    +@Model.WorkoutRecordsThisMonth tháng này
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Charts Row -->
@@ -160,23 +134,13 @@
 
     <!-- Third Row -->
     <div class="row mb-4">
-        <div class="col-lg-6 mb-3">
+        <div class="col-12 mb-3">
             <div class="card-fitness">
                 <div class="card-header">
                     <i class="fas fa-users me-2"></i>Top huấn luyện viên
                 </div>
                 <div class="card-body">
-                    <canvas id="trainerChart" height="180"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 mb-3">
-            <div class="card-fitness">
-                <div class="card-header">
-                    <i class="fas fa-chart-bar me-2"></i>Đặt lịch theo tháng
-                </div>
-                <div class="card-body">
-                    <canvas id="bookingChart" height="180"></canvas>
+                    <canvas id="trainerChart" height="120"></canvas>
                 </div>
             </div>
         </div>
@@ -184,7 +148,7 @@
 
     <!-- Recent Activity - Quick Stats -->
     <div class="row">
-        <div class="col-lg-4 mb-3">
+        <div class="col-lg-6 mb-3">
             <div class="card-fitness">
                 <div class="card-header">
                     <i class="fas fa-check-circle me-2" style="color: var(--success-green);"></i>Thành viên mới
@@ -195,25 +159,14 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-4 mb-3">
+        <div class="col-lg-6 mb-3">
             <div class="card-fitness">
                 <div class="card-header">
-                    <i class="fas fa-credit-card me-2" style="color: var(--orange-primary);"></i>Thanh toán thành công
+                    <i class="fas fa-ticket-alt me-2" style="color: var(--orange-primary);"></i>Tỷ lệ gói đang hoạt động
                 </div>
                 <div class="card-body text-center py-4">
-                    <h2 class="text-white">@Model.SuccessPayments</h2>
-                    <p class="text-muted">@Model.PaymentSuccessRate% tỷ lệ thành công</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4 mb-3">
-            <div class="card-fitness">
-                <div class="card-header">
-                    <i class="fas fa-calendar-check me-2" style="color: var(--info-blue);"></i>Lịch sắp tới
-                </div>
-                <div class="card-body text-center py-4">
-                    <h2 class="text-white">@Model.BookingsThisMonth</h2>
-                    <p class="text-muted">Đặt lịch trong tháng này</p>
+                    <h2 class="text-white">@Model.MembershipActiveRate%</h2>
+                    <p class="text-muted">Trên tổng số @Model.TotalMembershipsDisplay lượt đăng ký</p>
                 </div>
             </div>
         </div>
@@ -312,42 +265,6 @@
         },
         options: {
         indexAxis: 'y',
-        responsive: true,
-        plugins: {
-        legend: {
-        labels: { color: '#AAAAAA' }
-        }
-        },
-        scales: {
-        y: {
-        grid: { color: 'rgba(255,255,255,0.05)' },
-        ticks: { color: '#AAAAAA' }
-        },
-        x: {
-        grid: { color: 'rgba(255,255,255,0.05)' },
-        ticks: { color: '#AAAAAA' }
-        }
-        }
-        }
-        });
-
-        // 4. Booking Chart
-        var bookingCtx = document.getElementById('bookingChart').getContext('2d');
-        var bookingData = @Html.Raw(Json.Serialize(ViewBag.ChartData?.BookingData ?? new List<ChartDataPoint>()));
-
-        new Chart(bookingCtx, {
-        type: 'bar',
-        data: {
-        labels: bookingData.map(d => d.label),
-        datasets: [{
-        label: 'Số đặt lịch',
-        data: bookingData.map(d => d.count),
-        backgroundColor: '#2979FF',
-        borderColor: '#0D47A1',
-        borderWidth: 1
-        }]
-        },
-        options: {
         responsive: true,
         plugins: {
         legend: {

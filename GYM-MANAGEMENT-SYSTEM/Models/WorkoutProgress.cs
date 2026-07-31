@@ -12,23 +12,23 @@ namespace GYM_MANAGEMENT_SYSTEM.Models
         public string UserId { get; set; } = string.Empty;
 
         [Required]
-        [Range(0, 500, ErrorMessage = "Cân nặng từ 0-500 kg")]
+        [Range(0, double.MaxValue, ErrorMessage = "Cân nặng không được âm")]
         public double Weight { get; set; }
 
         [Required]
-        [Range(0, 300, ErrorMessage = "Chiều cao từ 0-300 cm")]
+        [Range(0, double.MaxValue, ErrorMessage = "Chiều cao không được âm")]
         public double Height { get; set; }
 
         [Required]
-        [Range(0, 100, ErrorMessage = "Tỷ lệ mỡ từ 0-100%")]
+        [Range(0, double.MaxValue, ErrorMessage = "Tỷ lệ mỡ không được âm")]
         public double BodyFatPercentage { get; set; }
 
         [Required]
-        [Range(0, 100, ErrorMessage = "Chỉ số cơ bắp từ 0-100")]
+        [Range(0, double.MaxValue, ErrorMessage = "Chỉ số cơ bắp không được âm")]
         public double MuscleMass { get; set; }
 
         [Required]
-        [Range(0, 60, ErrorMessage = "Vòng eo từ 0-60 cm")]
+        [Range(0, double.MaxValue, ErrorMessage = "Vòng eo không được âm")]
         public double WaistCircumference { get; set; }
 
         [StringLength(500, ErrorMessage = "Ghi chú không quá 500 ký tự")]

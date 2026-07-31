@@ -125,8 +125,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             return View(students.OrderByDescending(s => s.LastSessionDate).ToList());
         }
 
-        // GET: /TrainerPortal/Timetable — thời khoá biểu đầy đủ
-        public async Task<IActionResult> Timetable()
+        // GET: /TrainerPortal/Timetable?week=yyyy-MM-dd — thời khoá biểu theo tuần
+        public async Task<IActionResult> Timetable(DateOnly? week)
         {
             var trainer = await GetCurrentTrainerAsync();
             if (trainer == null)
@@ -135,10 +135,24 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                 return View(new List<TrainerBookingViewModel>());
             }
 
-            var bookings = await _bookingService.GetTrainerBookingsAsync(trainer.Id);
-            var list = new List<TrainerBookingViewModel>();
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var refDate = week ?? today;
+            int diffFromMonday = ((int)refDate.DayOfWeek + 6) % 7; // Monday = 0 ... Sunday = 6
+            var weekStart = refDate.AddDays(-diffFromMonday);
+            var weekEnd = weekStart.AddDays(6);
 
-            foreach (var b in bookings.OrderBy(b => b.SessionDate).ThenBy(b => b.TimeSlot))
+            var thisWeekDiff = ((int)today.DayOfWeek + 6) % 7;
+            var thisWeekStart = today.AddDays(-thisWeekDiff);
+
+            var bookings = await _bookingService.GetTrainerBookingsAsync(trainer.Id);
+            var weekBookings = bookings.Where(b =>
+            {
+                var d = DateOnly.FromDateTime(b.SessionDate);
+                return d >= weekStart && d <= weekEnd;
+            });
+
+            var list = new List<TrainerBookingViewModel>();
+            foreach (var b in weekBookings.OrderBy(b => b.SessionDate).ThenBy(b => b.TimeSlot))
             {
                 var user = await _userManager.FindByIdAsync(b.UserId);
                 list.Add(new TrainerBookingViewModel
@@ -152,6 +166,10 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                     Notes = b.Notes
                 });
             }
+
+            ViewBag.WeekStart = weekStart;
+            ViewBag.WeekEnd = weekEnd;
+            ViewBag.ThisWeekStart = thisWeekStart;
 
             return View(list);
         }

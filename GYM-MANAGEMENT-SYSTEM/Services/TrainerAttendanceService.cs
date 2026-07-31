@@ -40,7 +40,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
             };
         }
 
-        public async Task CheckInAsync(int trainerId, string? notes)
+        public async Task CheckInAsync(int trainerId, string? notes, string method = "Manual")
         {
             var today = DateTime.UtcNow.Date;
             var existing = await _repository.GetByTrainerAndDateAsync(trainerId, today);
@@ -56,6 +56,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 Date = today,
                 CheckInTime = DateTime.UtcNow,
                 Status = "Present",
+                Method = method,
                 Notes = notes ?? string.Empty
             };
 

@@ -1,0 +1,171 @@
+﻿@model IEnumerable<GYM_MANAGEMENT_SYSTEM.ViewModels.FaceEnrollableUserViewModel>
+@{
+    ViewData["Title"] = "Đăng ký khuôn mặt cho thành viên";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">🧑‍🤝‍🧑 Đăng ký khuôn mặt cho thành viên</h2>
+    <p class="text-muted">Chọn 1 người, tải lên 1–5 ảnh chân dung rõ mặt (không đeo khẩu trang/kính râm). Hệ thống sẽ tự tính trung bình đặc trưng khuôn mặt từ các ảnh hợp lệ.</p>
+
+    <div id="statusBanner" class="alert alert-secondary">Đang tải mô hình nhận diện...</div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <label class="form-label fw-bold">1. Chọn thành viên</label>
+            <select id="userSelect" class="form-select" size="15">
+                @foreach (var u in Model)
+                {
+                    <option value="@u.UserId">
+                        @(u.HasFaceProfile ? "✅ " : "")@u.FullName (@u.Role)@(u.HasFaceProfile ? " — đã đăng ký" : "")
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-8">
+            <label class="form-label fw-bold">2. Tải ảnh chân dung</label>
+            <input type="file" id="fileInput" class="form-control" accept="image/*" multiple />
+
+            <div id="preview" class="d-flex flex-wrap gap-2 mt-3"></div>
+
+            <button id="saveBtn" class="btn btn-primary mt-3" disabled>💾 Lưu khuôn mặt cho người đã chọn</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script>
+        // Nếu chạy offline, tải weights về wwwroot/lib/face-api/models rồi đổi URL này
+        const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights";
+
+        const banner = document.getElementById("statusBanner");
+        const fileInput = document.getElementById("fileInput");
+        const preview = document.getElementById("preview");
+        const saveBtn = document.getElementById("saveBtn");
+        const userSelect = document.getElementById("userSelect");
+
+        let currentDescriptors = []; // Float32Array[] — mỗi ảnh hợp lệ 1 descriptor
+
+        function setBanner(message, type) {
+            banner.className = "alert alert-" + type;
+            banner.textContent = message;
+        }
+
+        async function loadModels() {
+            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+        }
+
+        function averageDescriptors(list) {
+            const len = list[0].length;
+            const avg = new Float32Array(len);
+            for (const d of list) {
+                for (let i = 0; i < len; i++) avg[i] += d[i];
+            }
+            for (let i = 0; i < len; i++) avg[i] /= list.length;
+            return avg;
+        }
+
+        function addThumbnail(imgEl, ok) {
+            const wrapper = document.createElement("div");
+            wrapper.className = "position-relative";
+            imgEl.style.width = "120px";
+            imgEl.style.height = "120px";
+            imgEl.style.objectFit = "cover";
+            imgEl.className = "rounded border " + (ok ? "border-success border-3" : "border-danger border-3");
+            wrapper.appendChild(imgEl);
+
+            const badge = document.createElement("span");
+            badge.className = "badge position-absolute top-0 start-0 " + (ok ? "bg-success" : "bg-danger");
+            badge.textContent = ok ? "OK" : "Không thấy mặt";
+            wrapper.appendChild(badge);
+
+            preview.appendChild(wrapper);
+        }
+
+        fileInput.addEventListener("change", async () => {
+            currentDescriptors = [];
+            preview.innerHTML = "";
+            saveBtn.disabled = true;
+
+            const files = Array.from(fileInput.files);
+            if (files.length === 0) return;
+
+            setBanner(`Đang xử lý ${files.length} ảnh...`, "info");
+
+            for (const file of files) {
+                const img = await faceapi.bufferToImage(file);
+
+                const detection = await faceapi
+                    .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptor();
+
+                if (detection) {
+                    currentDescriptors.push(detection.descriptor);
+                    addThumbnail(img, true);
+                } else {
+                    addThumbnail(img, false);
+                }
+            }
+
+            if (currentDescriptors.length > 0) {
+                setBanner(`Nhận diện được mặt trong ${currentDescriptors.length}/${files.length} ảnh. Có thể lưu.`, "success");
+                saveBtn.disabled = false;
+            } else {
+                setBanner("Không phát hiện được khuôn mặt trong bất kỳ ảnh nào. Vui lòng thử ảnh khác (rõ mặt, đủ sáng).", "danger");
+            }
+        });
+
+        saveBtn.addEventListener("click", async () => {
+            const userId = userSelect.value;
+            if (!userId) {
+                alert("Vui lòng chọn thành viên.");
+                return;
+            }
+            if (currentDescriptors.length === 0) {
+                alert("Chưa có ảnh hợp lệ nào.");
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = "Đang lưu...";
+
+            const avg = averageDescriptors(currentDescriptors);
+
+            try {
+                const res = await fetch("/FaceProfile/AdminSave", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId, descriptor: Array.from(avg) })
+                });
+                const result = await res.json();
+                setBanner(result.message, result.success ? "success" : "danger");
+
+                if (result.success) {
+                    const opt = userSelect.querySelector(`option[value="${userId}"]`);
+                    if (opt && !opt.textContent.includes("✅")) {
+                        opt.textContent = "✅ " + opt.textContent + " — đã đăng ký";
+                    }
+                }
+            } catch (err) {
+                setBanner("Lỗi khi lưu: " + err.message, "danger");
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = "💾 Lưu khuôn mặt cho người đã chọn";
+            }
+        });
+
+        (async function init() {
+            try {
+                await loadModels();
+                setBanner("Sẵn sàng. Chọn thành viên và tải ảnh lên.", "primary");
+            } catch (err) {
+                setBanner("Lỗi tải mô hình: " + err.message, "danger");
+            }
+        })();
+    </script>
+}

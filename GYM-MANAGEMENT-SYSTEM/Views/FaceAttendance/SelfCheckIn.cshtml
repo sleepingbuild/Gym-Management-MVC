@@ -1,0 +1,130 @@
+﻿@{
+    ViewData["Title"] = "Điểm danh bằng khuôn mặt";
+    Layout = "_Layout";
+    var hasFaceProfile = (bool)(ViewBag.HasFaceProfile ?? false);
+}
+
+<div class="container mt-4 text-center">
+    <h2 class="mb-3">🙋 Điểm danh bằng khuôn mặt</h2>
+
+    @if (!hasFaceProfile)
+    {
+        <div class="alert alert-warning">
+            Bạn chưa được đăng ký khuôn mặt trong hệ thống. Vui lòng liên hệ Admin để đăng ký trước khi dùng tính năng này.
+        </div>
+    }
+    else
+    {
+        <div id="statusBanner" class="alert alert-secondary">Đang tải mô hình nhận diện...</div>
+
+        <div class="position-relative d-inline-block">
+            <video id="video" width="480" height="360" autoplay muted class="border rounded"></video>
+            <canvas id="overlay" width="480" height="360" class="position-absolute top-0 start-0"></canvas>
+        </div>
+
+        <p class="text-muted mt-2">Đưa khuôn mặt vào giữa khung hình và giữ yên vài giây.</p>
+    }
+</div>
+
+@if (hasFaceProfile)
+{
+    @section Scripts {
+        <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+        <script>
+            const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights";
+            const MATCH_THRESHOLD = 0.55;
+
+            const video = document.getElementById("video");
+            const overlay = document.getElementById("overlay");
+            const banner = document.getElementById("statusBanner");
+
+            let myDescriptor = null;
+            let alreadyCheckedIn = false;
+
+            function setBanner(message, type) {
+                banner.className = "alert alert-" + type;
+                banner.textContent = message;
+            }
+
+            function euclideanDistance(a, b) {
+                let sum = 0;
+                for (let i = 0; i < a.length; i++) sum += (a[i] - b[i]) ** 2;
+                return Math.sqrt(sum);
+            }
+
+            async function loadModels() {
+                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+            }
+
+            async function loadMyDescriptor() {
+                const res = await fetch("/FaceAttendance/GetMyDescriptor");
+                if (!res.ok) {
+                    throw new Error("Không tải được dữ liệu khuôn mặt của bạn.");
+                }
+                const data = await res.json();
+                myDescriptor = new Float32Array(data.descriptor);
+            }
+
+            async function startCamera() {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+                video.srcObject = stream;
+            }
+
+            async function submitCheckIn() {
+                const res = await fetch("/FaceAttendance/SelfCheckInSubmit", { method: "POST" });
+                const result = await res.json();
+
+                if (result.success) {
+                    setBanner(`✅ ${result.message}`, "success");
+                } else {
+                    setBanner(`⚠️ ${result.message}`, "warning");
+                }
+            }
+
+            function detectLoop() {
+                const ctx = overlay.getContext("2d");
+
+                setInterval(async () => {
+                    if (alreadyCheckedIn) return;
+
+                    const detection = await faceapi
+                        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
+
+                    ctx.clearRect(0, 0, overlay.width, overlay.height);
+                    if (!detection) return;
+
+                    const box = detection.detection.box;
+                    ctx.strokeStyle = "#00c853";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+                    const distance = euclideanDistance(detection.descriptor, myDescriptor);
+                    if (distance < MATCH_THRESHOLD) {
+                        alreadyCheckedIn = true;
+                        setBanner("Nhận diện đúng bạn — đang điểm danh...", "info");
+                        await submitCheckIn();
+                    } else {
+                        setBanner("Không khớp khuôn mặt đã đăng ký. Vui lòng thử lại.", "secondary");
+                    }
+                }, 1200);
+            }
+
+            (async function init() {
+                try {
+                    await loadModels();
+                    await loadMyDescriptor();
+                    await startCamera();
+                    setBanner("Sẵn sàng. Đưa mặt vào khung hình để điểm danh.", "primary");
+                    detectLoop();
+                } catch (err) {
+                    console.error(err);
+                    setBanner("Lỗi: " + err.message, "danger");
+                }
+            })();
+        </script>
+    }
+}

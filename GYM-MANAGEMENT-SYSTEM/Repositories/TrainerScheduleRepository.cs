@@ -18,7 +18,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Repositories
             return await _context.TrainerSchedules
                 .Include(s => s.Trainer)
                 .OrderBy(s => s.TrainerId)
-                .ThenBy(s => s.DayOfWeek)
+                .ThenBy(s => s.WorkDate)
                 .ThenBy(s => s.StartTime)
                 .ToListAsync();
         }
@@ -28,19 +28,38 @@ namespace GYM_MANAGEMENT_SYSTEM.Repositories
             return await _context.TrainerSchedules
                 .Include(s => s.Trainer)
                 .Where(s => s.TrainerId == trainerId && s.IsActive)
-                .OrderBy(s => s.DayOfWeek)
+                .OrderBy(s => s.WorkDate)
                 .ThenBy(s => s.StartTime)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<TrainerSchedule>> GetAvailableSlotsAsync(int trainerId, DateTime date)
         {
-            var dayOfWeek = date.DayOfWeek;
+            // NOTE: now matches the exact calendar date (WorkDate) instead of just
+            // the day-of-week, since schedules are date-specific going forward.
+            var workDate = DateOnly.FromDateTime(date);
             return await _context.TrainerSchedules
                 .Where(s => s.TrainerId == trainerId
-                           && s.DayOfWeek == dayOfWeek
+                           && s.WorkDate == workDate
                            && s.IsActive)
                 .OrderBy(s => s.StartTime)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<TrainerSchedule>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate, int? trainerId = null)
+        {
+            var query = _context.TrainerSchedules
+                .Include(s => s.Trainer)
+                .Where(s => s.WorkDate >= startDate && s.WorkDate <= endDate);
+
+            if (trainerId.HasValue)
+            {
+                query = query.Where(s => s.TrainerId == trainerId.Value);
+            }
+
+            return await query
+                .OrderBy(s => s.WorkDate)
+                .ThenBy(s => s.StartTime)
                 .ToListAsync();
         }
 
@@ -89,7 +108,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Repositories
                 query = query.Where(s => s.Id != excludeId.Value);
             }
 
-            // Kiểm tra trùng giờ
             var conflicts = await query.ToListAsync();
             return !conflicts.Any(s =>
                 (startTime >= s.StartTime && startTime < s.EndTime) ||
@@ -100,6 +118,30 @@ namespace GYM_MANAGEMENT_SYSTEM.Repositories
         public async Task<bool> HasScheduleConflictAsync(int trainerId, DayOfWeek dayOfWeek, TimeOnly startTime, TimeOnly endTime, int? excludeId = null)
         {
             return !await IsSlotAvailableAsync(trainerId, dayOfWeek, startTime, endTime, excludeId);
+        }
+
+        public async Task<bool> IsWorkDateSlotAvailableAsync(int trainerId, DateOnly workDate, TimeOnly startTime, TimeOnly endTime, int? excludeId = null)
+        {
+            var query = _context.TrainerSchedules
+                .Where(s => s.TrainerId == trainerId
+                           && s.WorkDate == workDate
+                           && s.IsActive);
+
+            if (excludeId.HasValue)
+            {
+                query = query.Where(s => s.Id != excludeId.Value);
+            }
+
+            var conflicts = await query.ToListAsync();
+            return !conflicts.Any(s =>
+                (startTime >= s.StartTime && startTime < s.EndTime) ||
+                (endTime > s.StartTime && endTime <= s.EndTime) ||
+                (startTime <= s.StartTime && endTime >= s.EndTime));
+        }
+
+        public async Task<bool> HasWorkDateScheduleConflictAsync(int trainerId, DateOnly workDate, TimeOnly startTime, TimeOnly endTime, int? excludeId = null)
+        {
+            return !await IsWorkDateSlotAvailableAsync(trainerId, workDate, startTime, endTime, excludeId);
         }
     }
 }

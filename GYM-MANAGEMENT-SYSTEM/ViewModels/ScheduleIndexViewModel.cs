@@ -5,6 +5,7 @@
         public int Id { get; set; }
         public int TrainerId { get; set; }
         public string TrainerName { get; set; } = string.Empty;
+        public DateOnly WorkDate { get; set; }
         public DayOfWeek DayOfWeek { get; set; }
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
@@ -12,6 +13,7 @@
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
 
+        public string WorkDateDisplay => WorkDate.ToString("dd/MM/yyyy");
         public string DayDisplay => DayOfWeek switch
         {
             DayOfWeek.Monday => "Thứ 2",

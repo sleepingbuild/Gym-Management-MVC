@@ -16,19 +16,11 @@
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                         <div class="mb-3">
-                            <label asp-for="DayOfWeek" class="form-label">
-                                <i class="fas fa-calendar-day me-2"></i>Ngày trong tuần
+                            <label asp-for="WorkDate" class="form-label">
+                                <i class="fas fa-calendar-day me-2"></i>Ngày làm việc
                             </label>
-                            <select asp-for="DayOfWeek" class="form-select">
-                                <option value="1">Thứ 2</option>
-                                <option value="2">Thứ 3</option>
-                                <option value="3">Thứ 4</option>
-                                <option value="4">Thứ 5</option>
-                                <option value="5">Thứ 6</option>
-                                <option value="6">Thứ 7</option>
-                                <option value="0">Chủ nhật</option>
-                            </select>
-                            <span asp-validation-for="DayOfWeek" class="text-danger small"></span>
+                            <input asp-for="WorkDate" type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="WorkDate" class="text-danger small"></span>
                         </div>
 
                         <div class="row">
@@ -81,4 +73,26 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var dateInput = document.getElementById('WorkDate');
+            var startInput = document.getElementById('StartTime');
+            if (!dateInput || !startInput) return;
+
+            function pad(n) { return String(n).padStart(2, '0'); }
+
+            function updateStartTimeMin() {
+                var now = new Date();
+                var todayStr = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+                if (dateInput.value === todayStr) {
+                    startInput.min = pad(now.getHours()) + ':' + pad(now.getMinutes());
+                } else {
+                    startInput.removeAttribute('min');
+                }
+            }
+
+            dateInput.addEventListener('change', updateStartTimeMin);
+            updateStartTimeMin();
+        })();
+    </script>
 }

@@ -12,6 +12,9 @@ namespace GYM_MANAGEMENT_SYSTEM.Models
         public int TrainerId { get; set; }
 
         [Required]
+        public DateOnly WorkDate { get; set; }
+
+        [Required]
         public DayOfWeek DayOfWeek { get; set; }
 
         [Required]
@@ -33,8 +36,9 @@ namespace GYM_MANAGEMENT_SYSTEM.Models
         [ForeignKey("TrainerId")]
         public Trainer? Trainer { get; set; }
 
-        // Helper property
+        // Helper properties
         public string TimeDisplay => $"{StartTime:HH:mm} - {EndTime:HH:mm}";
+        public string WorkDateDisplay => WorkDate.ToString("dd/MM/yyyy");
         public string DayDisplay => DayOfWeek switch
         {
             DayOfWeek.Monday => "Thứ 2",

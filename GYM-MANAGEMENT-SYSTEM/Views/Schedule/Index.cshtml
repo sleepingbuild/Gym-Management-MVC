@@ -1,137 +1,587 @@
 ﻿@model IEnumerable<GYM_MANAGEMENT_SYSTEM.ViewModels.ScheduleIndexViewModel>
 @{
     ViewData["Title"] = "Lịch làm việc huấn luyện viên";
-    // NOTE: StartTime/EndTime formatting below assumes TimeSpan (format "hh\:mm").
-    // If ScheduleIndexViewModel.StartTime/EndTime are TimeOnly instead, change the
-    // format calls to s.StartTime.ToString("HH:mm") / s.EndTime.ToString("HH:mm").
-    var dayNames = new Dictionary<DayOfWeek, string>
+    // NOTE: same assumption as the original view — StartTime/EndTime are read via
+    // .Hour / .Minute below, which works for both TimeOnly and TimeSpan (TimeSpan
+    // exposes Hours/Minutes plural — if your ViewModel actually uses TimeSpan,
+    // change the four ".Hour"/".Minute" occurrences below to ".Hours"/".Minutes").
+
+    var dayLabels = new Dictionary<DayOfWeek, string>
     {
         { DayOfWeek.Monday, "Thứ 2" }, { DayOfWeek.Tuesday, "Thứ 3" }, { DayOfWeek.Wednesday, "Thứ 4" },
         { DayOfWeek.Thursday, "Thứ 5" }, { DayOfWeek.Friday, "Thứ 6" }, { DayOfWeek.Saturday, "Thứ 7" },
         { DayOfWeek.Sunday, "Chủ nhật" }
     };
+
+    DateOnly weekStart = ViewBag.WeekStart;
+    DateOnly weekEnd = ViewBag.WeekEnd;
+    var weekDates = Enumerable.Range(0, 7).Select(i => weekStart.AddDays(i)).ToList();
+    bool isCurrentWeek = weekStart == ViewBag.ThisWeekStart;
+
+    var scheduleList = (Model ?? Enumerable.Empty<GYM_MANAGEMENT_SYSTEM.ViewModels.ScheduleIndexViewModel>()).ToList();
+
+    // Grid hour range: default gym hours 06:00–22:00, widened automatically if
+    // any schedule falls outside that window so nothing gets clipped.
+    int minHour = 6, maxHour = 22;
+    if (scheduleList.Any())
+    {
+        minHour = Math.Min(minHour, scheduleList.Min(s => s.StartTime.Hour));
+        maxHour = Math.Max(maxHour, scheduleList.Max(s => s.EndTime.Minute > 0 ? s.EndTime.Hour + 1 : s.EndTime.Hour));
+    }
+    const int pxPerHour = 64;
+    int totalHeight = (maxHour - minHour) * pxPerHour;
+
+    var eventsByDate = weekDates.ToDictionary(
+        date => date,
+        date => AssignLanes(scheduleList
+            .Where(s => s.WorkDate == date)
+            .Select(s => new CalEvent
+            {
+                Schedule = s,
+                StartMinutes = s.StartTime.Hour * 60 + s.StartTime.Minute,
+                EndMinutes = Math.Max(s.EndTime.Hour * 60 + s.EndTime.Minute, s.StartTime.Hour * 60 + s.StartTime.Minute + 20)
+            }).ToList())
+    );
 }
 
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+@functions {
+    public class CalEvent
+    {
+        public GYM_MANAGEMENT_SYSTEM.ViewModels.ScheduleIndexViewModel Schedule { get; set; } = default!;
+        public int StartMinutes { get; set; }
+        public int EndMinutes { get; set; }
+        public int Lane { get; set; }
+        public int LaneCount { get; set; } = 1;
+    }
+
+    // Greedy lane assignment so overlapping schedules on the same day sit side by
+    // side instead of stacking on top of one another.
+    public List<CalEvent> AssignLanes(List<CalEvent> events)
+    {
+        var sorted = events.OrderBy(e => e.StartMinutes).ThenBy(e => e.EndMinutes).ToList();
+        var active = new List<(int end, int lane)>();
+        var cluster = new List<CalEvent>();
+
+        void FlushCluster()
+        {
+            if (cluster.Count == 0) return;
+            int laneCount = cluster.Max(e => e.Lane) + 1;
+            foreach (var e in cluster) e.LaneCount = laneCount;
+            cluster.Clear();
+        }
+
+        foreach (var e in sorted)
+        {
+            active.RemoveAll(a => a.end <= e.StartMinutes);
+            if (active.Count == 0) FlushCluster();
+
+            var usedLanes = active.Select(a => a.lane).ToHashSet();
+            int lane = 0;
+            while (usedLanes.Contains(lane)) lane++;
+
+            e.Lane = lane;
+            active.Add((e.EndMinutes, lane));
+            cluster.Add(e);
+        }
+        FlushCluster();
+        return sorted;
+    }
+}
+
+<style>
+    /* Dark calendar, matching the rest of IronFit's theme. */
+    .schedule-calendar-page {
+        background: var(--gym-card);
+        color: var(--gym-text);
+        border-radius: 20px;
+        border: 1px solid var(--gym-border);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, .4);
+        padding: 1.75rem;
+        margin: 1.5rem 0;
+    }
+
+        .schedule-calendar-page .sc-title {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: var(--gym-text);
+            letter-spacing: -.01em;
+            margin-bottom: .15rem;
+        }
+
+        .schedule-calendar-page .sc-subtitle {
+            color: var(--gym-muted);
+            margin-bottom: 0;
+        }
+
+        .schedule-calendar-page .btn-sc-primary {
+            background: linear-gradient(135deg, #FF6B00, #FF8C38);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            padding: .65rem 1.3rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 14px rgba(249, 115, 22, .3);
+            transition: transform .15s, box-shadow .15s;
+        }
+
+            .schedule-calendar-page .btn-sc-primary:hover {
+                color: #fff;
+                transform: translateY(-1px);
+                box-shadow: 0 6px 18px rgba(249, 115, 22, .4);
+            }
+
+        .schedule-calendar-page .sc-alert {
+            border-radius: 10px;
+            padding: .8rem 1rem;
+            font-size: .9rem;
+            margin-bottom: 1rem;
+        }
+
+            .schedule-calendar-page .sc-alert.success {
+                background: rgba(34, 197, 94, .12);
+                border: 1px solid rgba(34, 197, 94, .3);
+                color: var(--success-green);
+            }
+
+            .schedule-calendar-page .sc-alert.error {
+                background: rgba(239, 68, 68, .12);
+                border: 1px solid rgba(239, 68, 68, .3);
+                color: var(--gym-danger);
+            }
+
+        .schedule-calendar-page .sc-filter {
+            background: var(--gym-input);
+            border: 1px solid var(--gym-border);
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+            .schedule-calendar-page .sc-filter label {
+                font-weight: 600;
+                font-size: .82rem;
+                color: var(--gym-text);
+                margin-bottom: .35rem;
+            }
+
+            .schedule-calendar-page .sc-filter .form-select {
+                border-radius: 8px;
+                border: 1px solid var(--gym-border);
+                background: var(--gym-card);
+                color: var(--gym-accent2);
+                font-weight: 600;
+            }
+
+                .schedule-calendar-page .sc-filter .form-select:focus {
+                    border-color: var(--gym-accent);
+                    color: var(--gym-accent2);
+                    background: var(--gym-card);
+                }
+
+                .schedule-calendar-page .sc-filter .form-select option {
+                    background: var(--gym-card);
+                    color: var(--gym-text);
+                }
+
+        .schedule-calendar-page .btn-sc-secondary {
+            background: var(--gym-card-hover);
+            border: 1px solid var(--gym-border);
+            color: var(--gym-text);
+            font-weight: 600;
+            border-radius: 8px;
+            transition: border-color .15s, color .15s;
+        }
+
+            .schedule-calendar-page .btn-sc-secondary:hover {
+                border-color: #FF6B00;
+                color: #FF6B00;
+            }
+
+        .schedule-calendar-page .sc-week-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .6rem;
+            margin-bottom: 1rem;
+        }
+
+        .schedule-calendar-page .sc-week-label {
+            font-weight: 700;
+            color: var(--gym-text);
+            font-size: .95rem;
+        }
+
+        .schedule-calendar-page .sc-week-buttons {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .schedule-calendar-page .btn-week {
+            background: var(--gym-card-hover);
+            border: 1px solid var(--gym-border);
+            color: var(--gym-text);
+            font-weight: 600;
+            font-size: .85rem;
+            padding: .5rem 1rem;
+            border-radius: 8px;
+            transition: border-color .15s, color .15s;
+            white-space: nowrap;
+        }
+
+    .btn-week:hover {
+        border-color: var(--gym-accent);
+        color: var(--gym-accent2);
+    }
+
+    .btn-week.today {
+        border-color: var(--gym-accent);
+        color: var(--gym-accent2);
+    }
+
+    /* ── Calendar grid ── */
+    .schedule-calendar-page .sc-calendar {
+        border: 1px solid var(--gym-border);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .schedule-calendar-page .sc-scroll {
+        overflow-x: auto;
+    }
+
+    .schedule-calendar-page .sc-grid {
+        display: grid;
+        grid-template-columns: 64px repeat(7, minmax(120px, 1fr));
+        min-width: 900px;
+    }
+
+    .schedule-calendar-page .sc-head {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: var(--gym-card);
+        border-bottom: 1px solid var(--gym-border);
+        padding: .5rem .4rem;
+        font-size: .8rem;
+        font-weight: 700;
+        color: var(--gym-text);
+        text-align: center;
+        line-height: 1.3;
+    }
+
+    .schedule-calendar-page .sc-head-date {
+        display: block;
+        font-size: .72rem;
+        font-weight: 600;
+        color: var(--gym-muted);
+    }
+
+    .schedule-calendar-page .sc-head.today {
+        color: var(--gym-accent2);
+    }
+
+        .schedule-calendar-page .sc-head.today .sc-head-date {
+            color: var(--gym-accent2);
+        }
+
+    .schedule-calendar-page .sc-head.sc-head-time {
+        background: var(--gym-darker);
+    }
+
+    .schedule-calendar-page .sc-time-col {
+        border-right: 1px solid var(--gym-border);
+        background: var(--gym-darker);
+        position: relative;
+    }
+
+    .schedule-calendar-page .sc-hour-label {
+        position: absolute;
+        right: 8px;
+        transform: translateY(-50%);
+        font-size: .72rem;
+        color: var(--gym-muted);
+        font-weight: 600;
+    }
+
+    .schedule-calendar-page .sc-day-col {
+        position: relative;
+        border-right: 1px solid var(--gym-border);
+        background-color: var(--gym-card);
+        background-image: repeating-linear-gradient(to bottom, var(--gym-border) 0, var(--gym-border) 1px, transparent 1px, transparent var(--sc-hour-h));
+    }
+
+        .schedule-calendar-page .sc-day-col:last-child {
+            border-right: none;
+        }
+
+    .schedule-calendar-page .sc-event {
+        position: absolute;
+        border-radius: 8px;
+        border: 1px solid;
+        padding: 4px 6px;
+        overflow: hidden;
+        font-size: .72rem;
+        line-height: 1.25;
+        cursor: default;
+        transition: box-shadow .15s;
+    }
+
+        .schedule-calendar-page .sc-event:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,.45);
+            z-index: 5;
+        }
+
+        .schedule-calendar-page .sc-event.inactive {
+            background: var(--gym-card-hover) !important;
+            border-color: var(--gym-border) !important;
+            color: var(--gym-muted) !important;
+        }
+
+    .schedule-calendar-page .sc-event-name {
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-right: 16px;
+    }
+
+    .schedule-calendar-page .sc-event-time {
+        opacity: .85;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .schedule-calendar-page .sc-event-note {
+        opacity: .75;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .schedule-calendar-page .sc-event-tag {
+        display: inline-block;
+        font-size: .62rem;
+        font-weight: 700;
+        background: rgba(255,255,255,.1);
+        color: var(--gym-muted);
+        border-radius: 999px;
+        padding: 0 6px;
+        margin-top: 2px;
+    }
+
+    .schedule-calendar-page .sc-kebab {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 18px;
+        height: 18px;
+        border: none;
+        background: rgba(0,0,0,.18);
+        border-radius: 5px;
+        font-size: .65rem;
+        color: inherit;
+        line-height: 18px;
+        padding: 0;
+    }
+
+        .schedule-calendar-page .sc-kebab:hover {
+            background: rgba(0,0,0,.35);
+        }
+
+    .schedule-calendar-page .sc-event.inactive .sc-kebab {
+        background: rgba(255,255,255,.1);
+    }
+
+        .schedule-calendar-page .sc-event.inactive .sc-kebab:hover {
+            background: rgba(255,255,255,.2);
+        }
+
+    .schedule-calendar-page .sc-dropdown .dropdown-item {
+        font-size: .85rem;
+        padding: .45rem .9rem;
+    }
+
+    .schedule-calendar-page .sc-dropdown form {
+        margin: 0;
+    }
+
+    .schedule-calendar-page .sc-empty {
+        text-align: center;
+        padding: 3.5rem 1rem;
+        color: var(--gym-muted);
+    }
+</style>
+
+<div class="schedule-calendar-page" style="--sc-hour-h:@(pxPerHour)px">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
-            <h1 class="fitness-title">🗓️ Lịch làm việc huấn luyện viên</h1>
-            <p class="text-muted mb-0">Quản lý ca làm việc theo từng huấn luyện viên</p>
+            <h1 class="sc-title">🗓️ Lịch làm việc huấn luyện viên</h1>
+            <p class="sc-subtitle">Quản lý ca làm việc theo từng huấn luyện viên</p>
         </div>
-        <a asp-action="Create" class="btn btn-fitness-primary">
+        <a asp-action="Create" class="btn btn-sc-primary">
             <i class="fas fa-plus me-2"></i>Thêm lịch làm việc
         </a>
     </div>
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert" style="background:rgba(34,197,94,.12); color:var(--success-green); border:1px solid rgba(34,197,94,.3); border-radius:var(--radius-sm);">
-            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
-        </div>
+        <div class="sc-alert success"><i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]</div>
     }
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert" style="background:rgba(239,68,68,.12); color:var(--gym-danger); border:1px solid rgba(239,68,68,.3); border-radius:var(--radius-sm);">
-            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
-        </div>
+        <div class="sc-alert error"><i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]</div>
     }
 
     <!-- Filter by trainer -->
-    <div class="card-fitness mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-2 align-items-end">
-                <div class="col-md-6">
-                    <label class="form-label">Lọc theo huấn luyện viên</label>
-                    <select name="trainerId" class="form-select" onchange="this.form.submit()">
-                        <option value="">Tất cả huấn luyện viên</option>
-                        @foreach (var trainer in (IEnumerable<dynamic>)ViewBag.Trainers)
-                        {
-                            <option value="@trainer.Id" selected="@(ViewBag.SelectedTrainerId == (int)trainer.Id)">@trainer.FullName</option>
-                        }
-                    </select>
-                </div>
+    <div class="sc-filter">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label mb-1">Lọc theo huấn luyện viên</label>
+                <select name="trainerId" class="form-select" onchange="this.form.submit()">
+                    <option value="">Tất cả huấn luyện viên</option>
+                    @foreach (var trainer in (IEnumerable<dynamic>)ViewBag.Trainers)
+                    {
+                        <option value="@trainer.Id" selected="@(ViewBag.SelectedTrainerId == (int)trainer.Id)">@trainer.FullName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-sc-secondary w-100">
+                    <i class="fas fa-filter me-2"></i>Lọc
+                </button>
+            </div>
+            @if (ViewBag.SelectedTrainerId != null)
+            {
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-fitness-secondary w-100">
-                        <i class="fas fa-filter me-2"></i>Lọc
-                    </button>
+                    <a asp-action="Index" class="btn btn-sc-secondary w-100">
+                        <i class="fas fa-times me-2"></i>Xóa lọc
+                    </a>
                 </div>
-                @if (ViewBag.SelectedTrainerId != null)
-                {
-                    <div class="col-md-3">
-                        <a asp-action="Index" class="btn btn-fitness-secondary w-100">
-                            <i class="fas fa-times me-2"></i>Xóa lọc
-                        </a>
-                    </div>
-                }
-            </form>
+            }
+        </form>
+    </div>
+
+    <div class="sc-week-nav">
+        <div class="sc-week-label">
+            📅 Tuần: @weekStart.ToString("dd/MM") – @weekEnd.ToString("dd/MM/yyyy")
+        </div>
+        <div class="sc-week-buttons">
+            <a class="btn-week" asp-action="Index"
+               asp-route-week="@weekStart.AddDays(-7).ToString("yyyy-MM-dd")"
+               asp-route-trainerId="@ViewBag.SelectedTrainerId">
+                <i class="fas fa-chevron-left me-1"></i>Tuần trước
+            </a>
+            <a class="btn-week @(isCurrentWeek ? "today" : "")" asp-action="Index"
+               asp-route-trainerId="@ViewBag.SelectedTrainerId">
+                Hôm nay
+            </a>
+            <a class="btn-week" asp-action="Index"
+               asp-route-week="@weekStart.AddDays(7).ToString("yyyy-MM-dd")"
+               asp-route-trainerId="@ViewBag.SelectedTrainerId">
+                Tuần sau<i class="fas fa-chevron-right ms-1"></i>
+            </a>
         </div>
     </div>
 
-    <!-- Schedule list -->
-    <div class="card-fitness">
-        @if (Model != null && Model.Any())
-        {
-            <div class="table-responsive">
-                <table class="table table-fitness">
-                    <thead>
-                        <tr>
-                            <th>Huấn luyện viên</th>
-                            <th>Ngày trong tuần</th>
-                            <th>Khung giờ</th>
-                            <th>Ghi chú</th>
-                            <th>Trạng thái</th>
-                            <th class="text-end">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var s in Model.OrderBy(x => x.DayOfWeek).ThenBy(x => x.StartTime))
+    @if (scheduleList.Any())
+    {
+        <div class="sc-calendar">
+            <div class="sc-scroll">
+                <div class="sc-grid">
+                    <!-- Header row -->
+                    <div class="sc-head sc-head-time"></div>
+                    @foreach (var date in weekDates)
+                    {
+                        bool isToday = date == DateOnly.FromDateTime(DateTime.Today);
+                        <div class="sc-head @(isToday ? "today" : "")">
+                            @dayLabels[date.DayOfWeek]
+                            <span class="sc-head-date">@date.ToString("dd/MM")</span>
+                        </div>
+                    }
+
+                    <!-- Time axis -->
+                    <div class="sc-time-col" style="height:@(totalHeight)px">
+                        @for (int h = minHour; h < maxHour; h++)
                         {
-                            <tr>
-                                <td class="fw-semibold" style="color:var(--gym-text)">@s.TrainerName</td>
-                                <td>@dayNames[s.DayOfWeek]</td>
-                                <td>
-                                    <i class="fas fa-clock me-1" style="color:var(--gym-muted)"></i>
-                                    @s.StartTime.ToString(@"hh\:mm") - @s.EndTime.ToString(@"hh\:mm")
-                                </td>
-                                <td class="small text-muted">@(string.IsNullOrWhiteSpace(s.Notes) ? "—" : s.Notes)</td>
-                                <td>
-                                    <span class="badge-fitness @(s.IsActive ? "active" : "inactive")">
-                                        @(s.IsActive ? "Hoạt động" : "Tạm nghỉ")
-                                    </span>
-                                </td>
-                                <td class="text-end">
-                                    <div class="d-flex justify-content-end gap-1">
-                                        <form asp-action="ToggleStatus" asp-route-id="@s.Id" method="post" class="d-inline">
-                                            <button type="submit" class="btn btn-sm btn-fitness-secondary" title="@(s.IsActive ? "Tạm ngưng" : "Kích hoạt")">
-                                                <i class="fas @(s.IsActive ? "fa-toggle-on" : "fa-toggle-off")"></i>
-                                            </button>
-                                        </form>
-                                        <a asp-action="Edit" asp-route-id="@s.Id" class="btn btn-sm btn-fitness-secondary" title="Sửa">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form asp-action="Delete" asp-route-id="@s.Id" method="post"
-                                              onsubmit="return confirm('Xóa lịch làm việc này?');" class="d-inline">
-                                            <button type="submit" class="btn btn-sm btn-fitness-secondary" title="Xóa" style="color:var(--gym-danger)">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
+                            <span class="sc-hour-label" style="top:@((h - minHour) * pxPerHour)px">@($"{h:00}:00")</span>
                         }
-                    </tbody>
-                </table>
+                    </div>
+
+                    <!-- Day columns -->
+                    @foreach (var date in weekDates)
+                    {
+                        <div class="sc-day-col" style="height:@(totalHeight)px">
+                            @foreach (var ev in eventsByDate[date])
+                            {
+                                string evBg = ev.Schedule.IsActive ? "linear-gradient(135deg, var(--gym-accent), var(--gym-accent2))" : "var(--gym-card-hover)";
+                                string evBorder = ev.Schedule.IsActive ? "var(--gym-accent)" : "var(--gym-border)";
+                                string evText = ev.Schedule.IsActive ? "#fff" : "var(--gym-muted)";
+                                int topPx = (ev.StartMinutes - minHour * 60);
+                                int heightPx = Math.Max(20, ev.EndMinutes - ev.StartMinutes);
+                                double widthPct = 100.0 / ev.LaneCount;
+                                double leftPct = ev.Lane * widthPct;
+
+                                <div class="sc-event @(ev.Schedule.IsActive ? "" : "inactive")"
+                                     style="top:@(topPx)px; height:@(heightPx)px; left:calc(@(leftPct.ToString("0.##"))% + 2px); width:calc(@(widthPct.ToString("0.##"))% - 4px); background:@evBg; border-color:@evBorder; color:@evText;"
+                                     title="@ev.Schedule.TrainerName · @($"{ev.Schedule.StartTime.Hour:00}:{ev.Schedule.StartTime.Minute:00}") - @($"{ev.Schedule.EndTime.Hour:00}:{ev.Schedule.EndTime.Minute:00}")@(string.IsNullOrWhiteSpace(ev.Schedule.Notes) ? "" : " · " + ev.Schedule.Notes)">
+
+                                    <div class="sc-event-name">@ev.Schedule.TrainerName</div>
+                                    <div class="sc-event-time">@($"{ev.Schedule.StartTime.Hour:00}:{ev.Schedule.StartTime.Minute:00}")–@($"{ev.Schedule.EndTime.Hour:00}:{ev.Schedule.EndTime.Minute:00}")</div>
+                                    @if (!string.IsNullOrWhiteSpace(ev.Schedule.Notes))
+                                    {
+                                        <div class="sc-event-note">@ev.Schedule.Notes</div>
+                                    }
+                                    @if (!ev.Schedule.IsActive)
+                                    {
+                                        <span class="sc-event-tag">Tạm nghỉ</span>
+                                    }
+
+                                    <div class="dropdown sc-dropdown">
+                                        <button type="button" class="sc-kebab" data-bs-toggle="dropdown" aria-expanded="false" title="Tùy chọn">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <form asp-action="ToggleStatus" asp-route-id="@ev.Schedule.Id" method="post">
+                                                    <button type="submit" class="dropdown-item">
+                                                        <i class="fas @(ev.Schedule.IsActive ? "fa-toggle-on" : "fa-toggle-off") me-2"></i>@(ev.Schedule.IsActive ? "Tạm ngưng" : "Kích hoạt")
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <a asp-action="Edit" asp-route-id="@ev.Schedule.Id" class="dropdown-item">
+                                                    <i class="fas fa-edit me-2"></i>Sửa
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider" /></li>
+                                            <li>
+                                                <form asp-action="Delete" asp-route-id="@ev.Schedule.Id" method="post" onsubmit="return confirm('Xóa lịch làm việc này?');">
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="fas fa-trash me-2"></i>Xóa
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
             </div>
-        }
-        else
-        {
-            <div class="card-body text-center py-5">
-                <i class="fas fa-calendar-times mb-3" style="font-size:2.5rem;color:var(--gym-border)"></i>
-                <p class="text-muted mb-3">Chưa có lịch làm việc nào.</p>
-                <a asp-action="Create" class="btn btn-fitness-primary">
-                    <i class="fas fa-plus me-2"></i>Thêm lịch làm việc đầu tiên
-                </a>
-            </div>
-        }
-    </div>
+        </div>
+    }
+    else
+    {
+        <div class="sc-empty">
+            <i class="fas fa-calendar-times mb-3" style="font-size:2.5rem;color:#d1d5db"></i>
+            <p class="mb-3">Chưa có lịch làm việc nào trong tuần này.</p>
+            <a asp-action="Create" class="btn btn-sc-primary">
+                <i class="fas fa-plus me-2"></i>Thêm lịch làm việc đầu tiên
+            </a>
+        </div>
+    }
 </div>

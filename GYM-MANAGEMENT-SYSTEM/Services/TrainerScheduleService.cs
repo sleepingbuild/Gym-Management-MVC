@@ -32,6 +32,11 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
             return await _repository.GetAvailableSlotsAsync(trainerId, date);
         }
 
+        public async Task<IEnumerable<TrainerSchedule>> GetSchedulesByWeekAsync(DateOnly weekStart, DateOnly weekEnd, int? trainerId = null)
+        {
+            return await _repository.GetByDateRangeAsync(weekStart, weekEnd, trainerId);
+        }
+
         public async Task<TrainerSchedule?> GetScheduleByIdAsync(int id)
         {
             return await _repository.GetByIdAsync(id);
@@ -46,10 +51,10 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 throw new KeyNotFoundException("Không tìm thấy huấn luyện viên.");
             }
 
-            // Kiểm tra trùng lịch
-            if (await _repository.HasScheduleConflictAsync(
+    
+            if (await _repository.HasWorkDateScheduleConflictAsync(
                 model.TrainerId,
-                model.DayOfWeek,
+                model.WorkDate,
                 model.StartTime,
                 model.EndTime))
             {
@@ -65,7 +70,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
             var schedule = new TrainerSchedule
             {
                 TrainerId = model.TrainerId,
-                DayOfWeek = model.DayOfWeek,
+                WorkDate = model.WorkDate,
+                DayOfWeek = model.WorkDate.DayOfWeek,
                 StartTime = model.StartTime,
                 EndTime = model.EndTime,
                 Notes = model.Notes,
@@ -84,10 +90,10 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 throw new KeyNotFoundException("Không tìm thấy lịch.");
             }
 
-            // Kiểm tra trùng lịch (trừ chính nó)
-            if (await _repository.HasScheduleConflictAsync(
+            // Kiểm tra trùng lịch theo ngày cụ thể (trừ chính nó)
+            if (await _repository.HasWorkDateScheduleConflictAsync(
                 schedule.TrainerId,
-                model.DayOfWeek,
+                model.WorkDate,
                 model.StartTime,
                 model.EndTime,
                 model.Id))
@@ -101,7 +107,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 throw new InvalidOperationException("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc.");
             }
 
-            schedule.DayOfWeek = model.DayOfWeek;
+            schedule.WorkDate = model.WorkDate;
+            schedule.DayOfWeek = model.WorkDate.DayOfWeek;
             schedule.StartTime = model.StartTime;
             schedule.EndTime = model.EndTime;
             schedule.Notes = model.Notes;

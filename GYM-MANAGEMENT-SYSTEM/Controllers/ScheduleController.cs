@@ -19,18 +19,28 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             _trainerService = trainerService;
         }
 
-        // GET: /Schedule
-        public async Task<IActionResult> Index(int? trainerId)
+        // GET: /Schedule?trainerId=&week=yyyy-MM-dd
+        public async Task<IActionResult> Index(int? trainerId, DateOnly? week)
         {
-            var schedules = trainerId.HasValue
-                ? await _scheduleService.GetSchedulesByTrainerIdAsync(trainerId.Value)
-                : await _scheduleService.GetAllSchedulesAsync();
+            // "week" can be any date inside the week the admin wants to see —
+            // we snap it back to that week's Monday. Omitted => current week.
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var refDate = week ?? today;
+            int diffFromMonday = ((int)refDate.DayOfWeek + 6) % 7; // Monday = 0 ... Sunday = 6
+            var weekStart = refDate.AddDays(-diffFromMonday);
+            var weekEnd = weekStart.AddDays(6);
+
+            var thisWeekDiff = ((int)today.DayOfWeek + 6) % 7;
+            var thisWeekStart = today.AddDays(-thisWeekDiff);
+
+            var schedules = await _scheduleService.GetSchedulesByWeekAsync(weekStart, weekEnd, trainerId);
 
             var viewModels = schedules.Select(s => new ScheduleIndexViewModel
             {
                 Id = s.Id,
                 TrainerId = s.TrainerId,
                 TrainerName = s.Trainer?.FullName ?? "N/A",
+                WorkDate = s.WorkDate,
                 DayOfWeek = s.DayOfWeek,
                 StartTime = s.StartTime,
                 EndTime = s.EndTime,
@@ -43,6 +53,9 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             var trainers = await _trainerService.GetAllTrainersAsync();
             ViewBag.Trainers = trainers;
             ViewBag.SelectedTrainerId = trainerId;
+            ViewBag.WeekStart = weekStart;
+            ViewBag.WeekEnd = weekEnd;
+            ViewBag.ThisWeekStart = thisWeekStart;
 
             return View(viewModels);
         }
@@ -101,7 +114,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             var viewModel = new ScheduleEditViewModel
             {
                 Id = schedule.Id,
-                DayOfWeek = schedule.DayOfWeek,
+                WorkDate = schedule.WorkDate,
                 StartTime = schedule.StartTime,
                 EndTime = schedule.EndTime,
                 Notes = schedule.Notes,
@@ -186,6 +199,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                 Id = s.Id,
                 TrainerId = s.TrainerId,
                 TrainerName = s.Trainer?.FullName ?? "N/A",
+                WorkDate = s.WorkDate,
                 DayOfWeek = s.DayOfWeek,
                 StartTime = s.StartTime,
                 EndTime = s.EndTime,

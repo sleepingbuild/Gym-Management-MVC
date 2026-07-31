@@ -2,12 +2,13 @@
 
 namespace GYM_MANAGEMENT_SYSTEM.ViewModels
 {
-    public class ScheduleEditViewModel
+    public class ScheduleEditViewModel : IValidatableObject
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng chọn ngày")]
-        public DayOfWeek DayOfWeek { get; set; }
+        [Required(ErrorMessage = "Vui lòng chọn ngày làm việc")]
+        [DataType(DataType.Date)]
+        public DateOnly WorkDate { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập giờ bắt đầu")]
         [DataType(DataType.Time)]
@@ -23,6 +24,7 @@ namespace GYM_MANAGEMENT_SYSTEM.ViewModels
         public bool IsActive { get; set; } = true;
 
         // Display properties
+        public DayOfWeek DayOfWeek => WorkDate.DayOfWeek;
         public string DayDisplay => DayOfWeek switch
         {
             DayOfWeek.Monday => "Thứ 2",
@@ -37,5 +39,22 @@ namespace GYM_MANAGEMENT_SYSTEM.ViewModels
         public string TimeDisplay => $"{StartTime:HH:mm} - {EndTime:HH:mm}";
         public string StatusDisplay => IsActive ? "Đang hoạt động" : "Đã tạm dừng";
         public string StatusBadgeClass => IsActive ? "badge-fitness green" : "badge-fitness red";
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            if (WorkDate < today)
+            {
+                yield return new ValidationResult(
+                    "Không thể chọn ngày làm việc trong quá khứ.",
+                    new[] { nameof(WorkDate) });
+            }
+            else if (WorkDate == today && StartTime < TimeOnly.FromDateTime(DateTime.Now))
+            {
+                yield return new ValidationResult(
+                    "Giờ bắt đầu không được ở trong quá khứ so với thời điểm hiện tại.",
+                    new[] { nameof(StartTime) });
+            }
+        }
     }
 }

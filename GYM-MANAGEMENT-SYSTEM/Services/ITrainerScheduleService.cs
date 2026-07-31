@@ -8,6 +8,10 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
         Task<IEnumerable<TrainerSchedule>> GetAllSchedulesAsync();
         Task<IEnumerable<TrainerSchedule>> GetSchedulesByTrainerIdAsync(int trainerId);
         Task<IEnumerable<TrainerSchedule>> GetAvailableSlotsAsync(int trainerId, DateTime date);
+
+       
+        Task<IEnumerable<TrainerSchedule>> GetSchedulesByWeekAsync(DateOnly weekStart, DateOnly weekEnd, int? trainerId = null);
+
         Task<TrainerSchedule?> GetScheduleByIdAsync(int id);
         Task<TrainerSchedule> CreateScheduleAsync(ScheduleCreateViewModel model);
         Task<TrainerSchedule> UpdateScheduleAsync(ScheduleEditViewModel model);

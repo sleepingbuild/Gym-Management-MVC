@@ -26,6 +26,10 @@ namespace GYM_MANAGEMENT_SYSTEM.Data
         public DbSet<TrainerAttendance> TrainerAttendances { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<ChatSession> ChatSessions { get; set; }
+
+        // Face Attendance
+        public DbSet<FaceProfile> FaceProfiles { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -71,6 +75,17 @@ namespace GYM_MANAGEMENT_SYSTEM.Data
             // Mỗi trainer chỉ có tối đa 1 bản ghi chấm công / ngày
             builder.Entity<TrainerAttendance>()
                 .HasIndex(a => new { a.TrainerId, a.Date })
+                .IsUnique();
+
+            // Mỗi user chỉ có 1 hồ sơ khuôn mặt (đăng ký lại sẽ update)
+            builder.Entity<FaceProfile>()
+                .HasOne(f => f.ApplicationUser)
+                .WithMany()
+                .HasForeignKey(f => f.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<FaceProfile>()
+                .HasIndex(f => f.UserId)
                 .IsUnique();
         }
     }

@@ -24,9 +24,16 @@
                 <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                                @{
+                                    var homeLabel = "Trang chủ";
+                                    if (User.IsInRole("Admin")) { homeLabel = "Dashboard"; }
+                                    else if (User.IsInRole("Trainer")) { homeLabel = "Bảng điều khiển"; }
+                                }
+                                @homeLabel
+                            </a>
                         </li>
-                        @if (User.Identity!.IsAuthenticated && !User.IsInRole("Trainer"))
+                        @if (User.Identity!.IsAuthenticated && !User.IsInRole("Trainer") && !User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Membership" asp-action="Index">Gói tập</a>
@@ -36,6 +43,9 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Booking" asp-action="Index">Đặt lịch</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="FaceAttendance" asp-action="SelfCheckIn">Điểm danh khuôn mặt</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Workout" asp-action="Index">Tiến trình</a>
@@ -83,11 +93,19 @@
                                             <i class="fas fa-clipboard-check me-2"></i>Chấm công
                                         </a>
                                     </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="FaceAttendance" asp-action="SelfCheckIn">
+                                            <i class="fas fa-camera me-2"></i>Điểm danh bằng khuôn mặt
+                                        </a>
+                                    </li>
                                 </ul>
                             </li>
                         }
                         @if (User.IsInRole("Admin"))
                         {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="AI" asp-action="Chat">Trợ lý AI</a>
+                            </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-shield-alt me-1"></i>Quản trị
@@ -127,6 +145,17 @@
                                     <li>
                                         <a class="dropdown-item" asp-controller="Attendance" asp-action="Index">
                                             <i class="fas fa-clipboard-check me-2"></i>Chấm công HLV
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="FaceProfile" asp-action="AdminRegister">
+                                            <i class="fas fa-id-badge me-2"></i>Đăng ký khuôn mặt
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="FaceAttendance" asp-action="Kiosk">
+                                            <i class="fas fa-camera me-2"></i>Kiosk điểm danh
                                         </a>
                                     </li>
                                 </ul>

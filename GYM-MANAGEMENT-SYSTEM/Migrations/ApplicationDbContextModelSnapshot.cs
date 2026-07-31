@@ -112,6 +112,12 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CheckInMethod")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CheckInTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -255,6 +261,36 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("FAQs");
+                });
+
+            modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.FaceProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DescriptorJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("FaceProfiles");
                 });
 
             modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.Feedback", b =>
@@ -473,6 +509,10 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Notes")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -523,6 +563,9 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
 
                     b.Property<int>("TrainerId")
                         .HasColumnType("int");
+
+                    b.Property<DateOnly>("WorkDate")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
@@ -755,6 +798,17 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
                         .IsRequired();
 
                     b.Navigation("Trainer");
+                });
+
+            modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.FaceProfile", b =>
+                {
+                    b.HasOne("GYM_MANAGEMENT_SYSTEM.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
                 });
 
             modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.Membership", b =>

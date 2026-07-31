@@ -15,6 +15,19 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
 
         public IActionResult Index()
         {
+            // Admin không dùng trang chủ chung của Member/Trainer nữa —
+            // vào thẳng Dashboard quản trị (đã có sẵn từ DashboardController).
+            if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Index", "Dashboard");
+            }
+
+            // Trainer vào thẳng Bảng điều khiển HLV, không dùng trang chủ chung Member nữa.
+            if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Trainer"))
+            {
+                return RedirectToAction("Index", "TrainerPortal");
+            }
+
             return View();
         }
 

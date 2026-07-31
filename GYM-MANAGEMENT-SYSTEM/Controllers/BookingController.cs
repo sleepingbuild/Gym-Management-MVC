@@ -77,14 +77,11 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BookingCreateViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                var trainers = await _trainerService.GetAvailableTrainersAsync();
-                ViewBag.Trainers = trainers;
-                return View(model);
-            }
-
-            // Get current user ID
+            // Lấy user hiện tại và gán vào model TRƯỚC khi kiểm tra ModelState.
+            // BookingCreateViewModel.UserId có [Required] nhưng form không có input
+            // nào cho UserId (được gán tự động ở server) — nếu kiểm tra
+            // ModelState.IsValid trước bước gán này, UserId luôn rỗng và validation
+            // luôn thất bại dù mọi field khác hợp lệ.
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
                          ?? User.Identity?.Name;
 
@@ -94,6 +91,14 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             }
 
             model.UserId = userId;
+            ModelState.Remove(nameof(model.UserId));
+
+            if (!ModelState.IsValid)
+            {
+                var trainers = await _trainerService.GetAvailableTrainersAsync();
+                ViewBag.Trainers = trainers;
+                return View(model);
+            }
 
             try
             {
@@ -104,7 +109,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                 await _profileService.UpdateAgeAsync(userId, model.Age);
 
                 TempData["SuccessMessage"] = "Đặt lịch thành công! Vui lòng chờ xác nhận từ huấn luyện viên.";
-                return RedirectToAction(nameof(Create));
+                return RedirectToAction(nameof(Index));
             }
             catch (KeyNotFoundException ex)
             {

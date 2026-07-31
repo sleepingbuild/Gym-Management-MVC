@@ -133,5 +133,18 @@ namespace GYM_MANAGEMENT_SYSTEM.Repositories
                 .OrderBy(b => b.SessionDate)
                 .ToListAsync();
         }
+
+        public async Task<Booking?> GetTodayBookingForUserAsync(string userId, DateTime date)
+        {
+            var dateOnly = date.Date;
+            return await _context.Bookings
+                .Include(b => b.Trainer)
+                .Where(b => b.UserId == userId
+                         && b.SessionDate.Date == dateOnly
+                         && (b.Status == "Pending" || b.Status == "Confirmed")
+                         && b.CheckInTime == null)
+                .OrderBy(b => b.TimeSlot)
+                .FirstOrDefaultAsync();
+        }
     }
 }

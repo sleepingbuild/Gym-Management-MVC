@@ -25,7 +25,7 @@
                         </div>
                     }
                     <form asp-action="Create" method="post" id="bookingForm">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
 
                         <div class="mb-3">
                             <label asp-for="TrainerId" class="form-label">
@@ -76,7 +76,7 @@
                                 <div class="d-flex flex-wrap gap-2" id="timeSlotList">
                                     <!-- Time slots sẽ được load bằng AJAX -->
                                 </div>
-                                <input type="hidden" name="TimeSlot" id="selectedTimeSlot" />
+                                <input type="hidden" name="TimeSlot" id="selectedTimeSlot" value="@Model.TimeSlot" />
                             </div>
                             <span id="timeSlotError" class="text-danger small" style="display: none;">Vui lòng chọn khung giờ</span>
                         </div>
@@ -220,9 +220,11 @@
                             }
 
                             $.each(slots, function(index, slot) {
+                                var isPreviouslySelected = slot.time === selectedTimeSlot.val() && !slot.isBooked;
+
                                 var btn = $('<button>')
                                     .addClass('btn btn-timeslot')
-                                    .addClass(slot.isBooked ? 'btn-timeslot-booked' : 'btn-timeslot-available')
+                                    .addClass(slot.isBooked ? 'btn-timeslot-booked' : (isPreviouslySelected ? 'btn-timeslot-selected' : 'btn-timeslot-available'))
                                     .attr('type', 'button')
                                     .attr('data-time', slot.time)
                                     .text(slot.isBooked ? slot.time + ' (đã đặt)' : slot.time)
@@ -240,6 +242,18 @@
 
                                 timeSlotList.append(btn);
                             });
+
+                            // Giữ lại lựa chọn cũ sau khi submit thất bại (VD: lỗi
+                            // "huấn luyện viên không làm việc ngày này") — nếu khung
+                            // giờ đã chọn trước đó vẫn còn trống, mở khóa nút xác nhận.
+                            var stillValid = slots.some(function(s) {
+                                return s.time === selectedTimeSlot.val() && !s.isBooked;
+                            });
+                            if (stillValid) {
+                                submitBtn.prop('disabled', false);
+                            } else {
+                                selectedTimeSlot.val('');
+                            }
                         },
                         error: function() {
                             timeSlotList.html('<p class="text-danger">Lỗi tải khung giờ</p>');
@@ -253,6 +267,11 @@
 
             trainerSelect.change(loadTimeSlots);
             sessionDate.change(loadTimeSlots);
+
+            // Gọi ngay khi trang tải xong — trainer/ngày có thể đã được điền sẵn
+            // (VD: đến từ nút "Đăng ký tập" ở trang Trainer, hoặc ngày mặc định
+            // là ngày mai) nên sự kiện 'change' sẽ không tự kích hoạt.
+            loadTimeSlots();
 
             // Form submit validation
             $('#bookingForm').submit(function(e) {

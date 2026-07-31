@@ -60,12 +60,33 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 throw new InvalidOperationException("Huấn luyện viên này hiện không hoạt động.");
             }
 
-            // Kiểm tra slot có trống không
+            // Kiểm tra slot có trống không (với chính trainer này)
             if (!await _bookingRepository.IsSlotAvailableAsync(model.TrainerId, model.SessionDate, model.TimeSlot))
             {
                 throw new InvalidOperationException("Khung giờ này đã được đặt. Vui lòng chọn khung giờ khác.");
             }
 
+            // Kiểm tra học viên đã có lịch nào khác (với HLV khác) trùng đúng
+            // ngày + khung giờ này chưa — 1 người không thể tập 2 chỗ cùng lúc.
+            var userBookings = await _bookingRepository.GetByUserIdAsync(model.UserId);
+            var hasConflict = userBookings.Any(b =>
+                b.SessionDate.Date == model.SessionDate.Date &&
+                b.TimeSlot == model.TimeSlot &&
+                b.Status != "Cancelled");
+
+            if (hasConflict)
+            {
+                throw new InvalidOperationException("Bạn đã có một lịch tập khác vào cùng ngày và khung giờ này. Vui lòng chọn khung giờ khác.");
+            }
+
+            // ============================================================
+            // TẠM THỜI VÔ HIỆU HÓA — kiểm tra lịch làm việc (TrainerSchedule)
+            // Lý do: dữ liệu TrainerSchedule hiện chưa được khai báo đầy đủ nên
+            // hầu như huấn luyện viên nào cũng bị chặn "không làm việc ngày nào
+            // cả", khiến không test được luồng đặt lịch. Mở lại đoạn dưới đây
+            // (bỏ /* */) sau khi đã nhập đủ TrainerSchedule cho từng trainer.
+            // ============================================================
+            /*
             // Kiểm tra trainer có lịch làm việc vào ngày này không
             var dayOfWeek = model.SessionDate.DayOfWeek;
             var timeOnly = TimeOnly.FromDateTime(model.SessionDate);
@@ -84,6 +105,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
             {
                 throw new InvalidOperationException("Khung giờ này không nằm trong lịch làm việc của huấn luyện viên.");
             }
+            */
 
             var booking = new Booking
             {

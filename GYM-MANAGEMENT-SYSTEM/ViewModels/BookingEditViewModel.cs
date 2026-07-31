@@ -27,7 +27,10 @@ namespace GYM_MANAGEMENT_SYSTEM.ViewModels
         // Display properties
         public string? TrainerName { get; set; }
         public string DateDisplay => SessionDate.ToString("dd/MM/yyyy");
-        public string TimeDisplay => SessionDate.ToString("HH:mm");
+
+        // FIX: SessionDate chỉ lưu NGÀY (giờ luôn là 00:00) — giờ tập thật sự
+        // nằm ở field TimeSlot, không phải phần giờ của SessionDate.
+        public string TimeDisplay => TimeSlot;
         public string StatusBadgeClass => Status switch
         {
             "Pending" => "badge-fitness orange",

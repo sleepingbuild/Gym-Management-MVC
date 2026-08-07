@@ -22,5 +22,14 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
         Task<IEnumerable<Booking>> GetBookingHistoryByStatusAsync(string userId, string status);
         Task<IEnumerable<Booking>> SearchBookingsAsync(string userId, string? searchTerm = null, DateTime? fromDate = null, DateTime? toDate = null);
         Task<BookingStatisticsViewModel> GetBookingStatisticsAsync(string userId);
+        Task<Booking> CreateBookingByAdminAsync(AdminBookingCreateViewModel model);
+
+        Task<IEnumerable<Booking>> GetBookingsByDateRangeAsync(DateOnly startDate, DateOnly endDate, int? trainerId = null);
+
+        Task<IEnumerable<BookableMemberViewModel>> GetBookableMembersAsync();
+
+        Task<Dictionary<string, (string FullName, string Email)>> GetMemberDisplayInfoAsync(IEnumerable<string> userIds);
+
+        IEnumerable<string> GetFixedTimeSlots();
     }
 }

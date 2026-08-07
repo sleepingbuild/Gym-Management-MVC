@@ -170,6 +170,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             ViewBag.WeekStart = weekStart;
             ViewBag.WeekEnd = weekEnd;
             ViewBag.ThisWeekStart = thisWeekStart;
+            ViewBag.TrainerName = trainer.FullName;
 
             return View(list);
         }
@@ -388,6 +389,73 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             }
 
             return RedirectToAction(nameof(Attendance));
+        }
+
+        // POST: /TrainerPortal/Confirm/5 — trainer xác nhận 1 lịch đang chờ (Pending)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Confirm(int id)
+        {
+            var booking = await _bookingService.GetBookingByIdAsync(id);
+            if (booking == null)
+            {
+                return NotFound();
+            }
+
+            var trainer = await GetCurrentTrainerAsync();
+            if (trainer == null || booking.TrainerId != trainer.Id)
+            {
+                return Forbid();
+            }
+
+            var result = await _bookingService.ConfirmBookingAsync(id);
+            if (result)
+            {
+                TempData["SuccessMessage"] = "Đã xác nhận lịch tập! Lịch trùng khung giờ khác (nếu có) đã được tự động huỷ.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Không thể xác nhận lịch này (có thể đã được xử lý trước đó).";
+            }
+
+            return RedirectToAction(nameof(BookingDetail), new { id });
+        }
+
+
+        // POST: /TrainerPortal/Cancel/5 — trainer huỷ 1 buổi tập (Pending hoặc Confirmed)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var booking = await _bookingService.GetBookingByIdAsync(id);
+            if (booking == null)
+            {
+                return NotFound();
+            }
+
+            var trainer = await GetCurrentTrainerAsync();
+            if (trainer == null || booking.TrainerId != trainer.Id)
+            {
+                return Forbid();
+            }
+
+            if (booking.Status == "Completed" || booking.Status == "Cancelled")
+            {
+                TempData["ErrorMessage"] = "Không thể huỷ buổi tập đã hoàn thành hoặc đã bị huỷ trước đó.";
+                return RedirectToAction(nameof(BookingDetail), new { id });
+            }
+
+            var result = await _bookingService.CancelBookingAsync(id);
+            if (result)
+            {
+                TempData["SuccessMessage"] = "Đã huỷ lịch tập này.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Không thể huỷ lịch này.";
+            }
+
+            return RedirectToAction(nameof(BookingDetail), new { id });
         }
     }
 }

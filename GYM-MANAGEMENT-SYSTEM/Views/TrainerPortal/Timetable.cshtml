@@ -16,8 +16,6 @@
 
     var bookingList = Model ?? new List<GYM_MANAGEMENT_SYSTEM.ViewModels.TrainerBookingViewModel>();
 
-    // Grid hour range: default gym hours 06:00–22:00, widened automatically if
-    // any booking falls outside that window so nothing gets clipped.
     int minHour = 6, maxHour = 22;
     var parsedTimes = bookingList.Select(b => ParseSlot(b.TimeSlot)).Where(t => t != null).Select(t => t!.Value).ToList();
     if (parsedTimes.Any())
@@ -54,9 +52,6 @@
         public int Lane { get; set; }
         public int LaneCount { get; set; } = 1;
     }
-
-    // TimeSlot is stored as free text like "07:00-08:00" — parse defensively,
-    // skip anything that doesn't match rather than throwing.
     public (TimeOnly start, TimeOnly end)? ParseSlot(string? timeSlot)
     {
         if (string.IsNullOrWhiteSpace(timeSlot)) return null;
@@ -117,228 +112,410 @@
         margin: 1.5rem 0;
     }
 
-    .trainer-schedule-page .ts-title {
-        font-size: 1.7rem;
-        font-weight: 800;
+        .trainer-schedule-page .ts-title {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: var(--gym-text);
+            letter-spacing: -.01em;
+            margin-bottom: .15rem;
+        }
+
+        .trainer-schedule-page .ts-subtitle {
+            color: var(--gym-muted);
+            margin-bottom: 0;
+        }
+
+        .trainer-schedule-page .ts-alert {
+            border-radius: 10px;
+            padding: .8rem 1rem;
+            font-size: .9rem;
+            margin-bottom: 1rem;
+        }
+
+            .trainer-schedule-page .ts-alert.success {
+                background: rgba(34, 197, 94, .12);
+                border: 1px solid rgba(34, 197, 94, .3);
+                color: var(--success-green);
+            }
+
+            .trainer-schedule-page .ts-alert.error {
+                background: rgba(239, 68, 68, .12);
+                border: 1px solid rgba(239, 68, 68, .3);
+                color: var(--gym-danger);
+            }
+
+        .trainer-schedule-page .ts-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem 1.1rem;
+            margin: 1rem 0;
+        }
+
+        .trainer-schedule-page .ts-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .8rem;
+            color: var(--gym-muted);
+        }
+
+        .trainer-schedule-page .ts-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .trainer-schedule-page .ts-week-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: .6rem;
+            margin-bottom: .25rem;
+        }
+
+        .trainer-schedule-page .ts-week-label {
+            font-weight: 700;
+            color: var(--gym-text);
+            font-size: .95rem;
+        }
+
+        .trainer-schedule-page .ts-week-buttons {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .trainer-schedule-page .btn-week {
+            background: var(--gym-card-hover);
+            border: 1px solid var(--gym-border);
+            color: var(--gym-text);
+            font-weight: 600;
+            font-size: .85rem;
+            padding: .5rem 1rem;
+            border-radius: 8px;
+            transition: border-color .15s, color .15s;
+            white-space: nowrap;
+        }
+
+            .trainer-schedule-page .btn-week:hover {
+                border-color: var(--gym-accent);
+                color: var(--gym-accent2);
+            }
+
+            .trainer-schedule-page .btn-week.today {
+                border-color: var(--gym-accent);
+                color: var(--gym-accent2);
+            }
+
+        /* ── Calendar grid ── */
+        .trainer-schedule-page .ts-calendar {
+            border: 1px solid var(--gym-border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .trainer-schedule-page .ts-scroll {
+            overflow-x: auto;
+        }
+
+        .trainer-schedule-page .ts-grid {
+            display: grid;
+            grid-template-columns: 64px repeat(7, minmax(120px, 1fr));
+            min-width: 900px;
+        }
+
+        .trainer-schedule-page .ts-head {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: var(--gym-card);
+            border-bottom: 1px solid var(--gym-border);
+            padding: .5rem .4rem;
+            font-size: .8rem;
+            font-weight: 700;
+            color: var(--gym-text);
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .trainer-schedule-page .ts-head-date {
+            display: block;
+            font-size: .72rem;
+            font-weight: 600;
+            color: var(--gym-muted);
+        }
+
+        .trainer-schedule-page .ts-head.today {
+            color: var(--gym-accent2);
+        }
+
+            .trainer-schedule-page .ts-head.today .ts-head-date {
+                color: var(--gym-accent2);
+            }
+
+        .trainer-schedule-page .ts-head.ts-head-time {
+            background: var(--gym-darker);
+        }
+
+        .trainer-schedule-page .ts-time-col {
+            border-right: 1px solid var(--gym-border);
+            background: var(--gym-darker);
+            position: relative;
+        }
+
+        .trainer-schedule-page .ts-hour-label {
+            position: absolute;
+            right: 8px;
+            transform: translateY(-50%);
+            font-size: .72rem;
+            color: var(--gym-muted);
+            font-weight: 600;
+        }
+
+        .trainer-schedule-page .ts-day-col {
+            position: relative;
+            border-right: 1px solid var(--gym-border);
+            background-color: var(--gym-card);
+            background-image: repeating-linear-gradient(to bottom, var(--gym-border) 0, var(--gym-border) 1px, transparent 1px, transparent var(--ts-hour-h));
+        }
+
+            .trainer-schedule-page .ts-day-col:last-child {
+                border-right: none;
+            }
+
+        .trainer-schedule-page .ts-event {
+            position: absolute;
+            border-radius: 8px;
+            border: 1px solid;
+            padding: 4px 6px;
+            overflow: hidden;
+            font-size: .72rem;
+            line-height: 1.25;
+            text-decoration: none;
+            display: block;
+            cursor: pointer;
+            transition: box-shadow .15s;
+        }
+
+            .trainer-schedule-page .ts-event:hover {
+                box-shadow: 0 4px 16px rgba(0,0,0,.45);
+                z-index: 5;
+                text-decoration: none;
+            }
+
+        .trainer-schedule-page .ts-event-name {
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .trainer-schedule-page .ts-event-time {
+            opacity: .85;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .trainer-schedule-page .ts-event-status {
+            display: inline-block;
+            font-size: .62rem;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 0 6px;
+            margin-top: 2px;
+            background: rgba(255,255,255,.18);
+        }
+
+        .trainer-schedule-page .ts-empty {
+            text-align: center;
+            padding: 3.5rem 1rem;
+            color: var(--gym-muted);
+        }
+
+    /* ── Booking info modal ── */
+    #bookingInfoModal .modal-content {
+        background: var(--gym-card);
         color: var(--gym-text);
-        letter-spacing: -.01em;
-        margin-bottom: .15rem;
+        border: 1px solid var(--gym-border);
+        border-radius: 16px;
     }
 
-    .trainer-schedule-page .ts-subtitle {
-        color: var(--gym-muted);
-        margin-bottom: 0;
+    #bookingInfoModal .modal-header {
+        border-bottom: 1px solid var(--gym-border);
     }
 
-    .trainer-schedule-page .ts-alert {
-        border-radius: 10px;
-        padding: .8rem 1rem;
-        font-size: .9rem;
-        margin-bottom: 1rem;
+    #bookingInfoModal .modal-title {
+        font-weight: 800;
     }
 
-        .trainer-schedule-page .ts-alert.success {
-            background: rgba(34, 197, 94, .12);
-            border: 1px solid rgba(34, 197, 94, .3);
-            color: var(--success-green);
-        }
+    #bookingInfoModal .btn-close {
+        filter: invert(1) grayscale(1);
+    }
 
-        .trainer-schedule-page .ts-alert.error {
-            background: rgba(239, 68, 68, .12);
-            border: 1px solid rgba(239, 68, 68, .3);
-            color: var(--gym-danger);
-        }
-
-    .trainer-schedule-page .ts-legend {
+    #bookingInfoModal .bi-row {
         display: flex;
-        flex-wrap: wrap;
-        gap: .5rem 1.1rem;
-        margin: 1rem 0;
+        align-items: flex-start;
+        gap: .75rem;
+        padding: .6rem 0;
+        border-bottom: 1px solid var(--gym-border);
     }
 
-    .trainer-schedule-page .ts-legend-item {
+        #bookingInfoModal .bi-row:last-child {
+            border-bottom: none;
+        }
+
+    #bookingInfoModal .bi-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: var(--gym-card-hover);
+        color: var(--gym-accent2);
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: .8rem;
-        color: var(--gym-muted);
-    }
-
-    .trainer-schedule-page .ts-legend-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 3px;
+        justify-content: center;
         flex-shrink: 0;
     }
 
-    .trainer-schedule-page .ts-week-nav {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: .6rem;
-        margin-bottom: .25rem;
+    #bookingInfoModal .bi-label {
+        font-size: .72rem;
+        color: var(--gym-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+        margin-bottom: 2px;
     }
 
-    .trainer-schedule-page .ts-week-label {
-        font-weight: 700;
-        color: var(--gym-text);
+    #bookingInfoModal .bi-value {
         font-size: .95rem;
-    }
-
-    .trainer-schedule-page .ts-week-buttons {
-        display: flex;
-        align-items: center;
-        gap: .5rem;
-    }
-
-    .trainer-schedule-page .btn-week {
-        background: var(--gym-card-hover);
-        border: 1px solid var(--gym-border);
+        font-weight: 600;
         color: var(--gym-text);
-        font-weight: 600;
-        font-size: .85rem;
-        padding: .5rem 1rem;
-        border-radius: 8px;
-        transition: border-color .15s, color .15s;
-        white-space: nowrap;
     }
 
-        .trainer-schedule-page .btn-week:hover {
-            border-color: var(--gym-accent);
-            color: var(--gym-accent2);
-        }
-
-        .trainer-schedule-page .btn-week.today {
-            border-color: var(--gym-accent);
-            color: var(--gym-accent2);
-        }
-
-    /* ── Calendar grid ── */
-    .trainer-schedule-page .ts-calendar {
-        border: 1px solid var(--gym-border);
-        border-radius: 14px;
-        overflow: hidden;
-    }
-
-    .trainer-schedule-page .ts-scroll {
-        overflow-x: auto;
-    }
-
-    .trainer-schedule-page .ts-grid {
-        display: grid;
-        grid-template-columns: 64px repeat(7, minmax(120px, 1fr));
-        min-width: 900px;
-    }
-
-    .trainer-schedule-page .ts-head {
-        position: sticky;
-        top: 0;
-        z-index: 2;
-        background: var(--gym-card);
-        border-bottom: 1px solid var(--gym-border);
-        padding: .5rem .4rem;
-        font-size: .8rem;
-        font-weight: 700;
-        color: var(--gym-text);
-        text-align: center;
-        line-height: 1.3;
-    }
-
-    .trainer-schedule-page .ts-head-date {
-        display: block;
-        font-size: .72rem;
-        font-weight: 600;
-        color: var(--gym-muted);
-    }
-
-    .trainer-schedule-page .ts-head.today {
-        color: var(--gym-accent2);
-    }
-
-        .trainer-schedule-page .ts-head.today .ts-head-date {
-            color: var(--gym-accent2);
-        }
-
-    .trainer-schedule-page .ts-head.ts-head-time {
-        background: var(--gym-darker);
-    }
-
-    .trainer-schedule-page .ts-time-col {
-        border-right: 1px solid var(--gym-border);
-        background: var(--gym-darker);
-        position: relative;
-    }
-
-    .trainer-schedule-page .ts-hour-label {
-        position: absolute;
-        right: 8px;
-        transform: translateY(-50%);
-        font-size: .72rem;
-        color: var(--gym-muted);
-        font-weight: 600;
-    }
-
-    .trainer-schedule-page .ts-day-col {
-        position: relative;
-        border-right: 1px solid var(--gym-border);
-        background-color: var(--gym-card);
-        background-image: repeating-linear-gradient(to bottom, var(--gym-border) 0, var(--gym-border) 1px, transparent 1px, transparent var(--ts-hour-h));
-    }
-
-        .trainer-schedule-page .ts-day-col:last-child {
-            border-right: none;
-        }
-
-    .trainer-schedule-page .ts-event {
-        position: absolute;
-        border-radius: 8px;
-        border: 1px solid;
-        padding: 4px 6px;
-        overflow: hidden;
-        font-size: .72rem;
-        line-height: 1.25;
-        text-decoration: none;
-        display: block;
-        transition: box-shadow .15s;
-    }
-
-        .trainer-schedule-page .ts-event:hover {
-            box-shadow: 0 4px 16px rgba(0,0,0,.45);
-            z-index: 5;
-            text-decoration: none;
-        }
-
-    .trainer-schedule-page .ts-event-name {
-        font-weight: 700;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .trainer-schedule-page .ts-event-time {
-        opacity: .85;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .trainer-schedule-page .ts-event-status {
+    #bookingInfoModal .bi-status {
         display: inline-block;
-        font-size: .62rem;
+        font-size: .72rem;
         font-weight: 700;
         border-radius: 999px;
-        padding: 0 6px;
-        margin-top: 2px;
-        background: rgba(255,255,255,.18);
-    }
-
-    .trainer-schedule-page .ts-empty {
-        text-align: center;
-        padding: 3.5rem 1rem;
-        color: var(--gym-muted);
+        padding: 2px 10px;
+        background: var(--gym-accent);
+        color: #fff;
     }
 </style>
+
+<!-- Modal: thông tin buổi tập -->
+<div class="modal fade" id="bookingInfoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-dumbbell me-2"></i>Chi tiết buổi tập</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <div class="bi-row">
+                    <div class="bi-icon"><i class="fas fa-user-tie"></i></div>
+                    <div>
+                        <div class="bi-label">Huấn luyện viên</div>
+                        <div class="bi-value" id="biTrainer">—</div>
+                    </div>
+                </div>
+                <div class="bi-row">
+                    <div class="bi-icon"><i class="fas fa-user"></i></div>
+                    <div>
+                        <div class="bi-label">Khách hàng</div>
+                        <div class="bi-value" id="biStudent">—</div>
+                    </div>
+                </div>
+                <div class="bi-row">
+                    <div class="bi-icon"><i class="fas fa-calendar-day"></i></div>
+                    <div>
+                        <div class="bi-label">Ngày tập</div>
+                        <div class="bi-value" id="biDate">—</div>
+                    </div>
+                </div>
+                <div class="bi-row">
+                    <div class="bi-icon"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <div class="bi-label">Giờ tập</div>
+                        <div class="bi-value" id="biTime">—</div>
+                    </div>
+                </div>
+                <div class="bi-row">
+                    <div class="bi-icon"><i class="fas fa-flag"></i></div>
+                    <div>
+                        <div class="bi-label">Trạng thái</div>
+                        <span class="bi-status" id="biStatus">—</span>
+                    </div>
+                </div>
+                <div class="bi-row">
+                    <div class="bi-icon"><i class="fas fa-align-left"></i></div>
+                    <div>
+                        <div class="bi-label">Ghi chú</div>
+                        <div class="bi-value" id="biNotes" style="font-weight:400">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid var(--gym-border)">
+                <form id="biConfirmForm" method="post" style="margin:0">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" id="biConfirmBtn" class="btn btn-success btn-sm" style="display:none">
+                        <i class="fas fa-check me-2"></i>Xác nhận buổi tập
+                    </button>
+                </form>
+                <form id="biCancelForm" method="post" style="margin:0"
+                      onsubmit="return confirm('Bạn chắc chắn muốn huỷ buổi tập này?');">
+                    @Html.AntiForgeryToken()
+                     <button type="submit" id="biCancelBtn" class="btn btn-fitness-danger btn-sm" style="display:none">
+                      <i class="fas fa-times me-2"></i>Huỷ buổi tập
+                    </button>
+                </form>
+                <a href="#" id="biDetailLink" class="btn btn-fitness-secondary btn-sm">
+                    <i class="fas fa-external-link-alt me-2"></i>Xem trang chi tiết đầy đủ
+                </a>
+                <button type="button" class="btn btn-fitness-primary btn-sm" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('bookingInfoModal').addEventListener('show.bs.modal', function(event) {
+    const trigger = event.relatedTarget;
+    if (!trigger) return;
+
+    document.getElementById('biTrainer').textContent = trigger.dataset.trainer || '—';
+    document.getElementById('biStudent').textContent = trigger.dataset.student || '—';
+    document.getElementById('biDate').textContent = trigger.dataset.date || '—';
+    document.getElementById('biTime').textContent = trigger.dataset.time || '—';
+    document.getElementById('biStatus').textContent = trigger.dataset.status || '—';
+    document.getElementById('biNotes').textContent = trigger.dataset.notes && trigger.dataset.notes.trim() !== ''
+        ? trigger.dataset.notes
+        : 'Không có ghi chú';
+
+    const detailLink = document.getElementById('biDetailLink');
+    detailLink.href = '@Url.Action("BookingDetail", "TrainerPortal")/' + trigger.dataset.id;
+
+    const confirmForm = document.getElementById('biConfirmForm');
+    const confirmBtn = document.getElementById('biConfirmBtn');
+    if (trigger.dataset.status === 'Pending') {
+        confirmForm.action = '@Url.Action("Confirm", "TrainerPortal")/' + trigger.dataset.id;
+        confirmBtn.style.display = 'inline-block';
+    } else {
+        confirmBtn.style.display = 'none';
+    }
+
+    const cancelForm = document.getElementById('biCancelForm');
+    const cancelBtn = document.getElementById('biCancelBtn');
+    if (trigger.dataset.status === 'Pending' || trigger.dataset.status === 'Confirmed') {
+        cancelForm.action = '@Url.Action("Cancel", "TrainerPortal")/' + trigger.dataset.id;
+        cancelBtn.style.display = 'inline-block';
+    } else {
+        cancelBtn.style.display = 'none';
+    }
+});
+</script>
 
 <div class="trainer-schedule-page" style="--ts-hour-h:@(pxPerHour)px">
     <div class="mb-2">
@@ -431,13 +608,20 @@
                                 double widthPct = 100.0 / ev.LaneCount;
                                 double leftPct = ev.Lane * widthPct;
 
-                                <a asp-action="BookingDetail" asp-route-id="@ev.Booking.Id" class="ts-event"
-                                   style="top:@(topPx)px; height:@(heightPx)px; left:calc(@(leftPct.ToString("0.##"))% + 2px); width:calc(@(widthPct.ToString("0.##"))% - 4px); background:@evBg; border-color:@evBorder; color:@evText;"
-                                   title="@ev.Booking.StudentName · @ev.Booking.TimeSlot · @ev.Booking.Status">
+                                <div class="ts-event" data-bs-toggle="modal" data-bs-target="#bookingInfoModal"
+                                     data-trainer="@ViewBag.TrainerName"
+                                     data-student="@ev.Booking.StudentName"
+                                     data-date="@ev.Booking.SessionDate.ToString("dd/MM/yyyy")"
+                                     data-time="@ev.Booking.TimeSlot"
+                                     data-status="@ev.Booking.Status"
+                                     data-notes="@ev.Booking.Notes"
+                                     data-id="@ev.Booking.Id"
+                                     style="top:@(topPx)px; height:@(heightPx)px; left:calc(@(leftPct.ToString("0.##"))% + 2px); width:calc(@(widthPct.ToString("0.##"))% - 4px); background:@evBg; border-color:@evBorder; color:@evText;"
+                                     title="@ev.Booking.StudentName · @ev.Booking.TimeSlot · @ev.Booking.Status">
                                     <div class="ts-event-name">@ev.Booking.StudentName</div>
                                     <div class="ts-event-time">@ev.Booking.TimeSlot</div>
                                     <span class="ts-event-status">@ev.Booking.Status</span>
-                                </a>
+                                </div>
                             }
                         </div>
                     }

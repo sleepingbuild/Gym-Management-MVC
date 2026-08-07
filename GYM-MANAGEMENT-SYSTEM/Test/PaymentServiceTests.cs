@@ -3,6 +3,7 @@ using GYM_MANAGEMENT_SYSTEM.Services;
 using GYM_MANAGEMENT_SYSTEM.Models;
 using GYM_MANAGEMENT_SYSTEM.ViewModels;
 using GYM_MANAGEMENT_SYSTEM.VNPay;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -15,6 +16,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Tests
         private Mock<IPaymentRepository> _mockPaymentRepo;
         private Mock<IMembershipRepository> _mockMembershipRepo;
         private Mock<IMembershipPackageRepository> _mockPackageRepo;
+        private Mock<UserManager<ApplicationUser>> _mockUserManager;
+        private Mock<IMembershipRenewalService> _mockRenewalService;
         private IOptions<VNPayConfig> _vnpayConfig;
         private PaymentService _service;
 
@@ -24,6 +27,16 @@ namespace GYM_MANAGEMENT_SYSTEM.Tests
             _mockPaymentRepo = new Mock<IPaymentRepository>();
             _mockMembershipRepo = new Mock<IMembershipRepository>();
             _mockPackageRepo = new Mock<IMembershipPackageRepository>();
+            _mockRenewalService = new Mock<IMembershipRenewalService>();
+
+            // UserManager<T> không phải interface nên phải mock qua IUserStore<T>
+            // rồi truyền vào constructor của Mock<UserManager<T>> (9 tham số theo
+            // đúng chữ ký gốc). Các test hiện tại không gọi tới _userManager.Users
+            // nên phần lớn tham số truyền null là an toàn.
+            var userStoreMock = new Mock<IUserStore<ApplicationUser>>();
+            _mockUserManager = new Mock<UserManager<ApplicationUser>>(
+                userStoreMock.Object, null, null, null, null, null, null, null, null);
+
             _vnpayConfig = Options.Create(new VNPayConfig
             {
                 TmnCode = "TEST",
@@ -39,6 +52,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Tests
                 _mockPaymentRepo.Object,
                 _mockMembershipRepo.Object,
                 _mockPackageRepo.Object,
+                _mockRenewalService.Object,
+                _mockUserManager.Object,
                 _vnpayConfig);
         }
 

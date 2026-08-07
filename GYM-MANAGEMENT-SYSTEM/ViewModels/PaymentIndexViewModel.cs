@@ -12,6 +12,11 @@
         public string PaymentInfo { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
 
+        // Chỉ dùng ở trang Admin (AdminHistory) — tên/email thành viên thực hiện giao dịch.
+        // Rỗng khi hiển thị ở trang Member (không cần vì đã biết là chính họ).
+        public string? MemberName { get; set; }
+        public string? MemberEmail { get; set; }
+
         public string AmountDisplay => $"{Amount:N0} VNĐ";
         public string DateDisplay => CreatedAt.ToString("dd/MM/yyyy HH:mm");
         public string StatusBadgeClass => Status switch

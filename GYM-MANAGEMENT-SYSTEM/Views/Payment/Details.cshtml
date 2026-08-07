@@ -34,7 +34,7 @@
 
                     <div class="row">
                         <div class="col-6">
-                            <small class="text-muted">Mã giao dịch VNPay</small>
+                            <small class="text-muted">Mã giao dịch</small>
                             <p class="fw-bold">@(string.IsNullOrEmpty(Model.TransactionId) ? "-" : Model.TransactionId)</p>
                         </div>
                         <div class="col-6">
@@ -57,7 +57,7 @@
                         </a>
                         @if (Model.Status == "Pending")
                         {
-                            <a asp-action="Create" asp-route-membershipId="@Model.MembershipId" 
+                            <a asp-action="Create" asp-route-membershipId="@Model.MembershipId"
                                class="btn btn-fitness-primary">
                                 <i class="fas fa-sync me-2"></i>Thử lại
                             </a>

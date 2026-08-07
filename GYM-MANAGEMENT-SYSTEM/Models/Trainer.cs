@@ -28,6 +28,14 @@ namespace GYM_MANAGEMENT_SYSTEM.Models
         [EmailAddress(ErrorMessage = "Email không hợp lệ")]
         public string Email { get; set; } = string.Empty;
 
+        // Ngày sinh — tuổi được tính so với CreatedAt (ngày đăng ký), không
+        // phải so với ngày hiện tại, nên không tự "già thêm" theo thời gian.
+        public DateTime? DateOfBirth { get; set; }
+
+        // Đường dẫn tương đối tới ảnh đại diện, VD: /uploads/avatars/xxx.jpg
+        [StringLength(300)]
+        public string? AvatarPath { get; set; }
+
         public bool IsAvailable { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

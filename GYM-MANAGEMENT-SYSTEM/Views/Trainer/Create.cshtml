@@ -11,8 +11,20 @@
                     <i class="fas fa-user-plus me-2"></i>Thêm huấn luyện viên mới
                 </div>
                 <div class="card-body">
-                    <form asp-action="Create" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+                        <div class="mb-4 text-center">
+                            <label class="form-label d-block">
+                                <i class="fas fa-camera me-2"></i>Ảnh đại diện
+                            </label>
+                            <div class="auth-icon mb-2" style="width: 90px; height: 90px; margin: 0 auto;">
+                                <i class="fas fa-user-tie" style="font-size: 2.2rem;"></i>
+                            </div>
+                            <input asp-for="AvatarFile" class="form-control" type="file" accept="image/png,image/jpeg,image/webp" style="max-width: 320px; margin: 0 auto;" />
+                            <span asp-validation-for="AvatarFile" class="text-danger small"></span>
+                            <div class="small mt-1" style="color: var(--gym-muted);">JPG, PNG hoặc WEBP, tối đa 5MB</div>
+                        </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -29,6 +41,15 @@
                                 <input asp-for="Specialization" class="form-control" placeholder="VD: Yoga, Gym, Pilates" />
                                 <span asp-validation-for="Specialization" class="text-danger small"></span>
                             </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DateOfBirth" class="form-label">
+                                <i class="fas fa-birthday-cake me-2"></i>Ngày sinh
+                            </label>
+                            <input asp-for="DateOfBirth" class="form-control" type="date" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                            <div class="small mt-1" style="color: var(--gym-muted);">Huấn luyện viên phải từ 18 tuổi trở lên.</div>
                         </div>
 
                         <div class="mb-3">

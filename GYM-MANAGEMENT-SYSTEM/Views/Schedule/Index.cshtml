@@ -1,10 +1,6 @@
-﻿@model IEnumerable<GYM_MANAGEMENT_SYSTEM.ViewModels.ScheduleIndexViewModel>
+﻿@model IEnumerable<GYM_MANAGEMENT_SYSTEM.ViewModels.ScheduleBookingViewModel>
 @{
     ViewData["Title"] = "Lịch làm việc huấn luyện viên";
-    // NOTE: same assumption as the original view — StartTime/EndTime are read via
-    // .Hour / .Minute below, which works for both TimeOnly and TimeSpan (TimeSpan
-    // exposes Hours/Minutes plural — if your ViewModel actually uses TimeSpan,
-    // change the four ".Hour"/".Minute" occurrences below to ".Hours"/".Minutes").
 
     var dayLabels = new Dictionary<DayOfWeek, string>
     {
@@ -13,33 +9,41 @@
         { DayOfWeek.Sunday, "Chủ nhật" }
     };
 
+    var statusLabels = new Dictionary<string, string>
+    {
+        { "Pending", "Chờ xác nhận" }, { "Confirmed", "Đã xác nhận" },
+        { "Completed", "Hoàn thành" }, { "Cancelled", "Đã hủy" }
+    };
+
     DateOnly weekStart = ViewBag.WeekStart;
     DateOnly weekEnd = ViewBag.WeekEnd;
     var weekDates = Enumerable.Range(0, 7).Select(i => weekStart.AddDays(i)).ToList();
     bool isCurrentWeek = weekStart == ViewBag.ThisWeekStart;
 
-    var scheduleList = (Model ?? Enumerable.Empty<GYM_MANAGEMENT_SYSTEM.ViewModels.ScheduleIndexViewModel>()).ToList();
+    var bookingList = (Model ?? Enumerable.Empty<GYM_MANAGEMENT_SYSTEM.ViewModels.ScheduleBookingViewModel>()).ToList();
 
-    // Grid hour range: default gym hours 06:00–22:00, widened automatically if
-    // any schedule falls outside that window so nothing gets clipped.
-    int minHour = 6, maxHour = 22;
-    if (scheduleList.Any())
+    // Giờ hoạt động cố định của phòng gym (07:00–21:00), tự nới rộng nếu có
+    // booking cũ (tạo trước khi áp dụng khung giờ cố định) nằm ngoài khoảng này.
+    TimeOnly workStart = ViewBag.WorkingHourStart;
+    TimeOnly workEnd = ViewBag.WorkingHourEnd;
+    int minHour = workStart.Hour, maxHour = workEnd.Hour;
+    if (bookingList.Any())
     {
-        minHour = Math.Min(minHour, scheduleList.Min(s => s.StartTime.Hour));
-        maxHour = Math.Max(maxHour, scheduleList.Max(s => s.EndTime.Minute > 0 ? s.EndTime.Hour + 1 : s.EndTime.Hour));
+        minHour = Math.Min(minHour, bookingList.Min(b => b.StartTime.Hour));
+        maxHour = Math.Max(maxHour, bookingList.Max(b => b.EndTime.Minute > 0 ? b.EndTime.Hour + 1 : b.EndTime.Hour));
     }
     const int pxPerHour = 64;
     int totalHeight = (maxHour - minHour) * pxPerHour;
 
     var eventsByDate = weekDates.ToDictionary(
         date => date,
-        date => AssignLanes(scheduleList
-            .Where(s => s.WorkDate == date)
-            .Select(s => new CalEvent
+        date => AssignLanes(bookingList
+            .Where(b => b.WorkDate == date)
+            .Select(b => new CalEvent
             {
-                Schedule = s,
-                StartMinutes = s.StartTime.Hour * 60 + s.StartTime.Minute,
-                EndMinutes = Math.Max(s.EndTime.Hour * 60 + s.EndTime.Minute, s.StartTime.Hour * 60 + s.StartTime.Minute + 20)
+                Booking = b,
+                StartMinutes = b.StartTime.Hour * 60 + b.StartTime.Minute,
+                EndMinutes = Math.Max(b.EndTime.Hour * 60 + b.EndTime.Minute, b.StartTime.Hour * 60 + b.StartTime.Minute + 20)
             }).ToList())
     );
 }
@@ -47,14 +51,14 @@
 @functions {
     public class CalEvent
     {
-        public GYM_MANAGEMENT_SYSTEM.ViewModels.ScheduleIndexViewModel Schedule { get; set; } = default!;
+        public GYM_MANAGEMENT_SYSTEM.ViewModels.ScheduleBookingViewModel Booking { get; set; } = default!;
         public int StartMinutes { get; set; }
         public int EndMinutes { get; set; }
         public int Lane { get; set; }
         public int LaneCount { get; set; } = 1;
     }
 
-    // Greedy lane assignment so overlapping schedules on the same day sit side by
+    // Greedy lane assignment so overlapping bookings on the same day sit side by
     // side instead of stacking on top of one another.
     public List<CalEvent> AssignLanes(List<CalEvent> events)
     {
@@ -365,8 +369,8 @@
         display: inline-block;
         font-size: .62rem;
         font-weight: 700;
-        background: rgba(255,255,255,.1);
-        color: var(--gym-muted);
+        background: rgba(255,255,255,.15);
+        color: inherit;
         border-radius: 999px;
         padding: 0 6px;
         margin-top: 2px;
@@ -419,10 +423,10 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
             <h1 class="sc-title">🗓️ Lịch làm việc huấn luyện viên</h1>
-            <p class="sc-subtitle">Quản lý ca làm việc theo từng huấn luyện viên</p>
+            <p class="sc-subtitle">Các buổi tập đã đặt trong tuần · Giờ hoạt động cố định @workStart.ToString("HH:mm")–@workEnd.ToString("HH:mm") cho mọi HLV</p>
         </div>
         <a asp-action="Create" class="btn btn-sc-primary">
-            <i class="fas fa-plus me-2"></i>Thêm lịch làm việc
+            <i class="fas fa-plus me-2"></i>Đặt lịch hộ thành viên
         </a>
     </div>
 
@@ -486,7 +490,7 @@
         </div>
     </div>
 
-    @if (scheduleList.Any())
+    @if (bookingList.Any())
     {
         <div class="sc-calendar">
             <div class="sc-scroll">
@@ -516,54 +520,83 @@
                         <div class="sc-day-col" style="height:@(totalHeight)px">
                             @foreach (var ev in eventsByDate[date])
                             {
-                                string evBg = ev.Schedule.IsActive ? "linear-gradient(135deg, var(--gym-accent), var(--gym-accent2))" : "var(--gym-card-hover)";
-                                string evBorder = ev.Schedule.IsActive ? "var(--gym-accent)" : "var(--gym-border)";
-                                string evText = ev.Schedule.IsActive ? "#fff" : "var(--gym-muted)";
+                                var status = ev.Booking.Status;
+                                bool isCancelled = status == "Cancelled";
+
+                                string evBg = status switch
+                                {
+                                    "Confirmed" => "linear-gradient(135deg, var(--gym-accent), var(--gym-accent2))",
+                                    "Completed" => "linear-gradient(135deg, #16a34a, #22c55e)",
+                                    "Pending" => "linear-gradient(135deg, #ca8a04, #eab308)",
+                                    _ => "var(--gym-card-hover)"
+                                };
+                                string evBorder = status switch
+                                {
+                                    "Confirmed" => "var(--gym-accent)",
+                                    "Completed" => "#16a34a",
+                                    "Pending" => "#ca8a04",
+                                    _ => "var(--gym-border)"
+                                };
+                                string evText = isCancelled ? "var(--gym-muted)" : "#fff";
+
                                 int topPx = (ev.StartMinutes - minHour * 60);
                                 int heightPx = Math.Max(20, ev.EndMinutes - ev.StartMinutes);
                                 double widthPct = 100.0 / ev.LaneCount;
                                 double leftPct = ev.Lane * widthPct;
 
-                                <div class="sc-event @(ev.Schedule.IsActive ? "" : "inactive")"
+                                <div class="sc-event @(isCancelled ? "inactive" : "")"
+                                     data-trainer="@ev.Booking.TrainerName"
+                                     data-student="@ev.Booking.MemberName"
+                                     data-date="@ev.Booking.WorkDate.ToString("dd/MM/yyyy")"
+                                     data-time="@($"{ev.Booking.StartTime.Hour:00}:{ev.Booking.StartTime.Minute:00}") - @($"{ev.Booking.EndTime.Hour:00}:{ev.Booking.EndTime.Minute:00}")"
+                                     data-status="@statusLabels.GetValueOrDefault(status, status)"
+                                     data-notes="@ev.Booking.Notes"
+                                     data-id="@ev.Booking.Id"
                                      style="top:@(topPx)px; height:@(heightPx)px; left:calc(@(leftPct.ToString("0.##"))% + 2px); width:calc(@(widthPct.ToString("0.##"))% - 4px); background:@evBg; border-color:@evBorder; color:@evText;"
-                                     title="@ev.Schedule.TrainerName · @($"{ev.Schedule.StartTime.Hour:00}:{ev.Schedule.StartTime.Minute:00}") - @($"{ev.Schedule.EndTime.Hour:00}:{ev.Schedule.EndTime.Minute:00}")@(string.IsNullOrWhiteSpace(ev.Schedule.Notes) ? "" : " · " + ev.Schedule.Notes)">
+                                     title="@ev.Booking.MemberName · HLV @ev.Booking.TrainerName · @($"{ev.Booking.StartTime.Hour:00}:{ev.Booking.StartTime.Minute:00}") - @($"{ev.Booking.EndTime.Hour:00}:{ev.Booking.EndTime.Minute:00}")@(string.IsNullOrWhiteSpace(ev.Booking.Notes) ? "" : " · " + ev.Booking.Notes)">
 
-                                    <div class="sc-event-name">@ev.Schedule.TrainerName</div>
-                                    <div class="sc-event-time">@($"{ev.Schedule.StartTime.Hour:00}:{ev.Schedule.StartTime.Minute:00}")–@($"{ev.Schedule.EndTime.Hour:00}:{ev.Schedule.EndTime.Minute:00}")</div>
-                                    @if (!string.IsNullOrWhiteSpace(ev.Schedule.Notes))
-                                    {
-                                        <div class="sc-event-note">@ev.Schedule.Notes</div>
-                                    }
-                                    @if (!ev.Schedule.IsActive)
-                                    {
-                                        <span class="sc-event-tag">Tạm nghỉ</span>
-                                    }
+                                    <div class="sc-event-name">@ev.Booking.MemberName</div>
+                                    <div class="sc-event-time">@($"{ev.Booking.StartTime.Hour:00}:{ev.Booking.StartTime.Minute:00}")–@($"{ev.Booking.EndTime.Hour:00}:{ev.Booking.EndTime.Minute:00}")</div>
+                                    <div class="sc-event-note">HLV: @ev.Booking.TrainerName</div>
+                                    <span class="sc-event-tag">@statusLabels.GetValueOrDefault(status, status)</span>
 
                                     <div class="dropdown sc-dropdown">
                                         <button type="button" class="sc-kebab" data-bs-toggle="dropdown" aria-expanded="false" title="Tùy chọn">
                                             <i class="fas fa-ellipsis-v"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
-                                            <li>
-                                                <form asp-action="ToggleStatus" asp-route-id="@ev.Schedule.Id" method="post">
-                                                    <button type="submit" class="dropdown-item">
-                                                        <i class="fas @(ev.Schedule.IsActive ? "fa-toggle-on" : "fa-toggle-off") me-2"></i>@(ev.Schedule.IsActive ? "Tạm ngưng" : "Kích hoạt")
-                                                    </button>
-                                                </form>
-                                            </li>
-                                            <li>
-                                                <a asp-action="Edit" asp-route-id="@ev.Schedule.Id" class="dropdown-item">
-                                                    <i class="fas fa-edit me-2"></i>Sửa
-                                                </a>
-                                            </li>
-                                            <li><hr class="dropdown-divider" /></li>
-                                            <li>
-                                                <form asp-action="Delete" asp-route-id="@ev.Schedule.Id" method="post" onsubmit="return confirm('Xóa lịch làm việc này?');">
-                                                    <button type="submit" class="dropdown-item text-danger">
-                                                        <i class="fas fa-trash me-2"></i>Xóa
-                                                    </button>
-                                                </form>
-                                            </li>
+                                            @if (status == "Pending")
+                                            {
+                                                <li>
+                                                    <form asp-action="Confirm" asp-route-id="@ev.Booking.Id" method="post">
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="fas fa-check me-2"></i>Xác nhận
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            }
+                                            @if (status == "Pending" || status == "Confirmed")
+                                            {
+                                                <li>
+                                                    <form asp-action="Complete" asp-route-id="@ev.Booking.Id" method="post">
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="fas fa-flag-checkered me-2"></i>Hoàn thành
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li><hr class="dropdown-divider" /></li>
+                                                <li>
+                                                    <form asp-action="Cancel" asp-route-id="@ev.Booking.Id" method="post" onsubmit="return confirm('Hủy buổi tập này?');">
+                                                        <button type="submit" class="dropdown-item text-danger">
+                                                            <i class="fas fa-times me-2"></i>Hủy
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            }
+                                            @if (status != "Pending" && status != "Confirmed")
+                                            {
+                                                <li><span class="dropdown-item-text text-muted small">Không có hành động khả dụng</span></li>
+                                            }
                                         </ul>
                                     </div>
                                 </div>
@@ -578,10 +611,168 @@
     {
         <div class="sc-empty">
             <i class="fas fa-calendar-times mb-3" style="font-size:2.5rem;color:#d1d5db"></i>
-            <p class="mb-3">Chưa có lịch làm việc nào trong tuần này.</p>
+            <p class="mb-3">Chưa có buổi tập nào được đặt trong tuần này.</p>
             <a asp-action="Create" class="btn btn-sc-primary">
-                <i class="fas fa-plus me-2"></i>Thêm lịch làm việc đầu tiên
+                <i class="fas fa-plus me-2"></i>Đặt lịch hộ thành viên
             </a>
         </div>
     }
 </div>
+
+<style>
+    /* ── Booking info modal ── */
+    #scBookingInfoModal .modal-content {
+        background: var(--gym-card);
+        color: var(--gym-text);
+        border: 1px solid var(--gym-border);
+        border-radius: 16px;
+    }
+
+    #scBookingInfoModal .modal-header {
+        border-bottom: 1px solid var(--gym-border);
+    }
+
+    #scBookingInfoModal .modal-title {
+        font-weight: 800;
+    }
+
+    #scBookingInfoModal .btn-close {
+        filter: invert(1) grayscale(1);
+    }
+
+    #scBookingInfoModal .bi-row {
+        display: flex;
+        align-items: flex-start;
+        gap: .75rem;
+        padding: .6rem 0;
+        border-bottom: 1px solid var(--gym-border);
+    }
+
+        #scBookingInfoModal .bi-row:last-child {
+            border-bottom: none;
+        }
+
+    #scBookingInfoModal .bi-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: var(--gym-card-hover);
+        color: var(--gym-accent2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    #scBookingInfoModal .bi-label {
+        font-size: .72rem;
+        color: var(--gym-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+        margin-bottom: 2px;
+    }
+
+    #scBookingInfoModal .bi-value {
+        font-size: .95rem;
+        font-weight: 600;
+        color: var(--gym-text);
+    }
+
+    #scBookingInfoModal .bi-status {
+        display: inline-block;
+        font-size: .72rem;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 2px 10px;
+        background: var(--gym-accent);
+        color: #fff;
+    }
+</style>
+
+<!-- Modal: thông tin buổi tập -->
+<div class="modal fade" id="scBookingInfoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-dumbbell me-2"></i>Chi tiết buổi tập</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <div class="bi-row">
+                    <div class="bi-icon"><i class="fas fa-user-tie"></i></div>
+                    <div>
+                        <div class="bi-label">Huấn luyện viên</div>
+                        <div class="bi-value" id="scBiTrainer">—</div>
+                    </div>
+                </div>
+                <div class="bi-row">
+                    <div class="bi-icon"><i class="fas fa-user"></i></div>
+                    <div>
+                        <div class="bi-label">Khách hàng</div>
+                        <div class="bi-value" id="scBiStudent">—</div>
+                    </div>
+                </div>
+                <div class="bi-row">
+                    <div class="bi-icon"><i class="fas fa-calendar-day"></i></div>
+                    <div>
+                        <div class="bi-label">Ngày tập</div>
+                        <div class="bi-value" id="scBiDate">—</div>
+                    </div>
+                </div>
+                <div class="bi-row">
+                    <div class="bi-icon"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <div class="bi-label">Giờ tập</div>
+                        <div class="bi-value" id="scBiTime">—</div>
+                    </div>
+                </div>
+                <div class="bi-row">
+                    <div class="bi-icon"><i class="fas fa-flag"></i></div>
+                    <div>
+                        <div class="bi-label">Trạng thái</div>
+                        <span class="bi-status" id="scBiStatus">—</span>
+                    </div>
+                </div>
+                <div class="bi-row">
+                    <div class="bi-icon"><i class="fas fa-align-left"></i></div>
+                    <div>
+                        <div class="bi-label">Ghi chú</div>
+                        <div class="bi-value" id="scBiNotes" style="font-weight:400">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid var(--gym-border)">
+                <a href="#" id="scBiDetailLink" class="btn btn-sc-secondary btn-sm">
+                    <i class="fas fa-external-link-alt me-2"></i>Xem trang chi tiết đầy đủ
+                </a>
+                <button type="button" class="btn btn-sc-primary btn-sm" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.sc-event').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            if (e.target.closest('.sc-kebab, .sc-dropdown, .dropdown-menu')) {
+                return;
+            }
+
+            document.getElementById('scBiTrainer').textContent = el.dataset.trainer || '—';
+            document.getElementById('scBiStudent').textContent = el.dataset.student || '—';
+            document.getElementById('scBiDate').textContent = el.dataset.date || '—';
+            document.getElementById('scBiTime').textContent = el.dataset.time || '—';
+            document.getElementById('scBiStatus').textContent = el.dataset.status || '—';
+            document.getElementById('scBiNotes').textContent = el.dataset.notes && el.dataset.notes.trim() !== ''
+                ? el.dataset.notes
+                : 'Không có ghi chú';
+
+            const detailLink = document.getElementById('scBiDetailLink');
+            detailLink.href = '@Url.Action("Details", "Booking")/' + el.dataset.id;
+
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('scBookingInfoModal'));
+            modal.show();
+        });
+    });
+</script>

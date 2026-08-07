@@ -14,7 +14,6 @@ namespace GYM_MANAGEMENT_SYSTEM.ViewModels
 
         [Required(ErrorMessage = "Vui lòng nhập giá")]
         [Range(0, double.MaxValue, ErrorMessage = "Giá phải lớn hơn hoặc bằng 0")]
-        [DisplayFormat(DataFormatString = "{0:N0}", ApplyFormatInEditMode = true)]
         public decimal Price { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập số ngày")]

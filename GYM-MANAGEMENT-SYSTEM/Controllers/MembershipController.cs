@@ -64,7 +64,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
 
             if (!await _membershipService.IsUserEligibleForRegistrationAsync(userId))
             {
-                TempData["ErrorMessage"] = "Bạn đã có gói tập đang hoạt động. Vui lòng gia hạn hoặc hủy gói hiện tại.";
+                TempData["ErrorMessage"] = "Bạn đang có một gói tập chờ thanh toán. Vui lòng hoàn tất thanh toán hoặc hủy gói đó trước khi đăng ký gói mới.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -102,9 +102,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
 
             try
             {
-                await _membershipService.RegisterMembershipAsync(model);
-                TempData["SuccessMessage"] = "Đăng ký gói tập thành công!";
-                return RedirectToAction(nameof(Index));
+                var membership = await _membershipService.RegisterMembershipAsync(model);
+                return RedirectToAction("Create", "Payment", new { membershipId = membership.Id });
             }
             catch (InvalidOperationException ex)
             {
@@ -155,23 +154,13 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RenewConfirm(int id)
         {
-            try
+            if (!await _renewalService.CanRenewAsync(id))
             {
-                var result = await _renewalService.RenewMembershipAsync(id);
-                TempData["SuccessMessage"] = "Gia hạn gói tập thành công! Ngày kết thúc mới: " +
-                                             result.EndDate.ToString("dd/MM/yyyy");
+                TempData["ErrorMessage"] = "Gói tập này không thể gia hạn.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (KeyNotFoundException ex)
-            {
-                TempData["ErrorMessage"] = ex.Message;
-                return RedirectToAction(nameof(Index));
-            }
-            catch (InvalidOperationException ex)
-            {
-                TempData["ErrorMessage"] = ex.Message;
-                return RedirectToAction(nameof(Index));
-            }
+
+            return RedirectToAction("Create", "Payment", new { membershipId = id });
         }
     }
 }

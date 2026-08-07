@@ -1,144 +1,121 @@
-﻿@model IEnumerable<GYM_MANAGEMENT_SYSTEM.ViewModels.UserMembershipViewModel>
+﻿@model List<GYM_MANAGEMENT_SYSTEM.ViewModels.UserMembershipViewModel>
 @{
     ViewData["Title"] = "Gói tập của tôi";
+    bool canRegister = ViewBag.HasActive ?? true;
 }
 
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="fitness-title">💪 Gói tập của tôi</h1>
-            <p class="text-muted">Quản lý gói tập luyện của bạn</p>
-        </div>
-        @if (ViewBag.HasActive != null && ViewBag.HasActive == false)
-        {
-            <a asp-action="Register" class="btn btn-fitness-primary">
-                <i class="fas fa-plus-circle me-2"></i>Đăng ký gói tập
-            </a>
-        }
-    </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                <div>
+                    <h1 class="fitness-title mb-1">💪 Gói tập của tôi</h1>
+                    <p class="text-muted mb-0">Quản lý gói tập đang sử dụng và lịch sử đăng ký</p>
+                </div>
+                @if (canRegister)
+                {
+                    <a asp-action="Register" class="btn btn-fitness-primary">
+                        <i class="fas fa-plus-circle me-2"></i>Đăng ký gói mới
+                    </a>
+                }
+            </div>
 
-    <!-- Messages -->
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show">
-            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show">
-            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    <!-- Membership Cards -->
-    @if (Model.Any())
-    {
-        <div class="row">
-            @foreach (var membership in Model)
+            @if (TempData["SuccessMessage"] != null)
             {
-                <div class="col-lg-6 mb-4">
-                    <div class="card-fitness">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h4 class="text-white">@membership.PackageName</h4>
-                                    <p class="text-muted">@membership.PriceFormatted</p>
-                                </div>
-                                <span class="badge-fitness @membership.StatusBadgeClass">
-                                    @membership.Status
-                                </span>
-                            </div>
+                <div class="alert alert-success mb-4"><i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]</div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger mb-4"><i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]</div>
+            }
 
-                            <div class="row mt-3">
-                                <div class="col-6">
-                                    <small class="text-muted">Ngày bắt đầu</small>
-                                    <p class="text-white">@membership.StartDate.ToString("dd/MM/yyyy")</p>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Ngày kết thúc</small>
-                                    <p class="text-white">@membership.EndDate.ToString("dd/MM/yyyy")</p>
-                                </div>
-                            </div>
+            @if (!canRegister)
+            {
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Bạn đang có một gói tập chờ thanh toán. Hoàn tất thanh toán hoặc hủy gói đó trước khi đăng ký gói mới.
+                </div>
+            }
 
-                            <div class="mt-2">
-                                <small class="text-muted">Trạng thái:</small>
-                                <span class="badge-fitness @membership.StatusBadgeClass">
-                                    @membership.DaysRemainingDisplay
-                                </span>
-                            </div>
-
-                            <div class="mt-3 d-flex gap-2 flex-wrap">
-                                <!-- Nút Thanh toán - hiển thị khi Pending hoặc Active -->
-                                @if (membership.Status == "Pending" || membership.Status == "Active")
-                                {
-                                    <a asp-controller="Payment" asp-action="Create" asp-route-membershipId="@membership.Id"
-                                       class="btn btn-fitness-primary w-100">
-                                        <i class="fas fa-credit-card me-2"></i>Thanh toán ngay
-                                    </a>
-                                }
-
-                                @if (membership.IsActive)
-                                {
-                                    <!-- Nút Hủy -->
-                                    <form asp-action="Cancel" asp-route-id="@membership.Id" method="post" style="flex:1;">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-fitness-danger w-100"
-                                                onclick="return confirm('Bạn có chắc muốn hủy gói tập này?')">
-                                            <i class="fas fa-times me-2"></i>Hủy gói
-                                        </button>
-                                    </form>
-
-                                    <!-- Nút Gia hạn - hiển thị khi còn 30 ngày hoặc ít hơn -->
-                                    @if (membership.DaysRemaining <= 30 && membership.DaysRemaining >= 0)
-                                    {
-                                        <a asp-action="Renew" asp-route-id="@membership.Id" class="btn btn-fitness-primary" style="flex:1;">
-                                            <i class="fas fa-sync me-2"></i>Gia hạn ngay
-                                        </a>
-                                    }
-                                }
-                                else if (membership.IsExpired)
-                                {
-                                    <!-- Nút Gia hạn cho gói đã hết hạn -->
-                                    <a asp-action="Renew" asp-route-id="@membership.Id" class="btn btn-fitness-primary" style="flex:1;">
-                                        <i class="fas fa-sync me-2"></i>Gia hạn
-                                    </a>
-                                }
-                            </div>
-
-                            <!-- Hiển thị thông báo nếu sắp hết hạn -->
-                            @if (membership.IsActive && membership.DaysRemaining <= 7 && membership.DaysRemaining >= 0)
-                            {
-                                <div class="alert alert-warning mt-3 mb-0">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <strong>Chú ý:</strong> Gói tập của bạn sắp hết hạn!
-                                    @if (membership.DaysRemaining == 0)
-                                    {
-                                        <span>Hôm nay là ngày cuối cùng!</span>
-                                    }
-                                    else
-                                    {
-                                        <span>Còn <strong>@membership.DaysRemaining</strong> ngày.</span>
-                                    }
-                                </div>
-                            }
-                        </div>
+            @if (Model == null || !Model.Any())
+            {
+                <div class="card-fitness">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-box-open mb-3" style="font-size:2.5rem;color:var(--gym-border)"></i>
+                        <p class="text-muted mb-3">Bạn chưa đăng ký gói tập nào.</p>
+                        <a asp-action="Register" class="btn btn-fitness-primary">
+                            <i class="fas fa-plus-circle me-2"></i>Đăng ký ngay
+                        </a>
                     </div>
                 </div>
             }
+            else
+            {
+                @foreach (var m in Model)
+                {
+                    <div class="card-fitness mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-box me-2"></i>@m.PackageName</span>
+                            <span class="@m.StatusBadgeClass">@m.StatusDisplay</span>
+                        </div>
+                        <div class="card-body">
+                            @if (m.IsPending)
+                            {
+                                <div class="alert alert-warning mb-3">
+                                    <i class="fas fa-clock me-2"></i>
+                                    Gói này chưa được thanh toán nên chưa thể sử dụng. Hoàn tất thanh toán để kích hoạt.
+                                </div>
+                            }
+                            <dl class="row mb-3">
+                                <dt class="col-sm-4 text-muted">Giá</dt>
+                                <dd class="col-sm-8">@m.PriceFormatted</dd>
+
+                                <dt class="col-sm-4 text-muted">Thời hạn</dt>
+                                <dd class="col-sm-8">@m.DurationDisplay</dd>
+
+                                @if (!m.IsPending)
+                                {
+                                    <dt class="col-sm-4 text-muted">Ngày bắt đầu</dt>
+                                    <dd class="col-sm-8">@m.StartDate.ToString("dd/MM/yyyy")</dd>
+
+                                    <dt class="col-sm-4 text-muted">Ngày hết hạn</dt>
+                                    <dd class="col-sm-8">@m.EndDate.ToString("dd/MM/yyyy")</dd>
+                                }
+
+                                @if (m.IsActive)
+                                {
+                                    <dt class="col-sm-4 text-muted">Còn lại</dt>
+                                    <dd class="col-sm-8 mb-0">@m.DaysRemainingDisplay</dd>
+                                }
+                            </dl>
+
+                            <div class="d-flex gap-2">
+                                @if (m.IsPending)
+                                {
+                                    <a asp-controller="Payment" asp-action="Create" asp-route-membershipId="@m.Id" class="btn btn-fitness-primary btn-sm">
+                                        <i class="fas fa-credit-card me-2"></i>Thanh toán ngay
+                                    </a>
+                                }
+                                @if (m.IsActive || m.IsExpired)
+                                {
+                                    <a asp-action="Renew" asp-route-id="@m.Id" class="btn btn-fitness-secondary btn-sm">
+                                        <i class="fas fa-redo me-2"></i>Gia hạn
+                                    </a>
+                                }
+                                @if (m.IsActive || m.IsPending)
+                                {
+                                    <form asp-action="Cancel" asp-route-id="@m.Id" method="post"
+                                          onsubmit="return confirm('Bạn chắc chắn muốn hủy gói tập này?');">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-times me-2"></i>Hủy gói
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
         </div>
-    }
-    else
-    {
-        <div class="text-center py-5">
-            <i class="fas fa-ticket-alt" style="font-size: 4rem; color: var(--text-muted);"></i>
-            <h4 class="text-muted mt-3">Bạn chưa có gói tập nào</h4>
-            <p class="text-muted">Đăng ký ngay để bắt đầu tập luyện</p>
-            <a asp-action="Register" class="btn btn-fitness-primary mt-3">
-                <i class="fas fa-plus-circle me-2"></i>Đăng ký gói tập
-            </a>
-        </div>
-    }
+    </div>
 </div>

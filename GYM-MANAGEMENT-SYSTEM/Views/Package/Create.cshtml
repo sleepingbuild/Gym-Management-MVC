@@ -11,7 +11,7 @@
                     <i class="fas fa-plus-circle me-2"></i>Thêm gói tập mới
                 </div>
                 <div class="card-body">
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Create" method="post" id="packageForm">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                         <div class="mb-3">
@@ -33,11 +33,15 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Price" class="form-label">
+                                <label for="PriceDisplay" class="form-label">
                                     <i class="fas fa-dollar-sign me-2"></i>Giá (VNĐ)
                                 </label>
-                                <input asp-for="Price" class="form-control" placeholder="0" />
-                                <span asp-validation-for="Price" class="text-danger small"></span>
+                                <div class="input-group">
+                                    <input type="text" id="PriceDisplay" class="form-control" placeholder="0"
+                                           autocomplete="off" inputmode="decimal" />
+                                    <span class="input-group-text">đ</span>
+                                </div>
+                                
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label asp-for="DurationDays" class="form-label">
@@ -73,4 +77,5 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <partial name="_CurrencyInputScript" />
 }

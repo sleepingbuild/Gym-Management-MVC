@@ -29,11 +29,10 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
 
         public async Task<Membership> RegisterMembershipAsync(MembershipRegistrationViewModel model)
         {
-            // Kiểm tra user đã có membership active chưa
-            var activeMembership = await _membershipRepository.GetActiveByUserIdAsync(model.UserId);
-            if (activeMembership != null)
+            var existingMemberships = await _membershipRepository.GetByUserIdAsync(model.UserId);
+            if (existingMemberships.Any(m => m.Status == "Pending"))
             {
-                throw new InvalidOperationException("Bạn đã có gói tập đang hoạt động. Vui lòng gia hạn hoặc hủy gói hiện tại.");
+                throw new InvalidOperationException("Bạn có một gói tập đang chờ thanh toán. Vui lòng hoàn tất thanh toán hoặc hủy gói đó trước khi đăng ký gói mới.");
             }
 
             // Lấy package info
@@ -54,7 +53,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 MembershipPackageId = model.MembershipPackageId,
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddDays(package.DurationDays),
-                Status = "Active",
+                Status = "Pending",
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -75,9 +74,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 throw new KeyNotFoundException("Không tìm thấy gói tập.");
             }
 
-            // Gia hạn từ ngày hiện tại
-            membership.StartDate = DateTime.UtcNow;
-            membership.EndDate = DateTime.UtcNow.AddDays(package.DurationDays);
+            membership.EndDate = membership.EndDate.AddDays(package.DurationDays);
             membership.Status = "Active";
 
             return await _membershipRepository.UpdateAsync(membership);
@@ -96,8 +93,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
 
         public async Task<bool> IsUserEligibleForRegistrationAsync(string userId)
         {
-            var active = await _membershipRepository.GetActiveByUserIdAsync(userId);
-            return active == null;
+            var memberships = await _membershipRepository.GetByUserIdAsync(userId);
+            return !memberships.Any(m => m.Status == "Pending");
         }
 
         public async Task<Membership?> GetByIdAsync(int id)

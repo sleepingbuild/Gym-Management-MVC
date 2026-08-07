@@ -65,9 +65,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 throw new KeyNotFoundException("Không tìm thấy thông tin gói tập.");
             }
 
-            // Gia hạn từ ngày hiện tại
-            membership.StartDate = DateTime.UtcNow;
-            membership.EndDate = DateTime.UtcNow.AddDays(package.DurationDays);
+            membership.EndDate = membership.EndDate.AddDays(package.DurationDays);
             membership.Status = "Active";
 
             return await _membershipRepository.UpdateAsync(membership);
@@ -90,11 +88,11 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
             if (membership == null)
                 return false;
 
-            // Chỉ gia hạn khi membership đang Active hoặc Expired
+            
             if (membership.Status != "Active" && membership.Status != "Expired")
                 return false;
 
-            // Nếu đã hết hạn quá 30 ngày thì không cho gia hạn
+       
             if (membership.Status == "Expired" &&
                 (DateTime.UtcNow - membership.EndDate).Days > 30)
                 return false;

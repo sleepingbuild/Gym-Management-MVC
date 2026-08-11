@@ -14,10 +14,10 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             _attendanceService = attendanceService;
         }
 
-        // GET: /Attendance?date=2026-07-20
+
         public async Task<IActionResult> Index(DateTime? date)
         {
-            var target = date ?? DateTime.UtcNow.Date;
+            var target = date ?? DateTime.Now.Date;
             var report = await _attendanceService.GetDailyReportAsync(target);
             return View(report);
         }

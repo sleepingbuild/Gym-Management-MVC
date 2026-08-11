@@ -43,5 +43,12 @@ namespace GYM_MANAGEMENT_SYSTEM.Repositories
             await _context.SaveChangesAsync();
             return attendance;
         }
+
+        public async Task<TrainerAttendance> UpdateAsync(TrainerAttendance attendance)
+        {
+            _context.Entry(attendance).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return attendance;
+        }
     }
 }

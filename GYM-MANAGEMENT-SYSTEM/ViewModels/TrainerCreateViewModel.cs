@@ -29,9 +29,15 @@ namespace GYM_MANAGEMENT_SYSTEM.ViewModels
         [DataType(DataType.Date)]
         public DateTime DateOfBirth { get; set; }
 
-        
+
         public IFormFile? AvatarFile { get; set; }
 
         public bool IsAvailable { get; set; } = true;
+
+        [DataType(DataType.Time)]
+        public TimeOnly? ShiftStartTime { get; set; }
+
+        [DataType(DataType.Time)]
+        public TimeOnly? ShiftEndTime { get; set; }
     }
 }

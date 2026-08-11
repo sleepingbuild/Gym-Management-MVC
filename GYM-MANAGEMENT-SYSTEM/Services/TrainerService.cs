@@ -10,8 +10,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
         private readonly ITrainerRepository _repository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-
-        
         public const string DefaultTrainerPassword = "Trainer123";
 
         public TrainerService(
@@ -58,6 +56,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 throw new InvalidOperationException("Huấn luyện viên phải từ 18 tuổi trở lên.");
             }
 
+            ValidateShift(model.ShiftStartTime, model.ShiftEndTime);
+
             var userId = model.UserId;
 
             if (string.IsNullOrEmpty(userId))
@@ -83,10 +83,25 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 Email = model.Email,
                 DateOfBirth = model.DateOfBirth,
                 IsAvailable = model.IsAvailable,
+                ShiftStartTime = model.ShiftStartTime,
+                ShiftEndTime = model.ShiftEndTime,
                 CreatedAt = createdAt
             };
 
             return await _repository.AddAsync(trainer);
+        }
+
+        private static void ValidateShift(TimeOnly? start, TimeOnly? end)
+        {
+            if (start.HasValue && end.HasValue && start.Value >= end.Value)
+            {
+                throw new InvalidOperationException("Giờ bắt đầu ca phải nhỏ hơn giờ kết thúc ca.");
+            }
+
+            if (start.HasValue != end.HasValue)
+            {
+                throw new InvalidOperationException("Vui lòng nhập đủ cả giờ bắt đầu và giờ kết thúc ca (hoặc để trống cả hai).");
+            }
         }
 
         private async Task<string> CreateTrainerAccountAsync(string email, string fullName, DateTime createdAt)
@@ -144,6 +159,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 throw new InvalidOperationException("Huấn luyện viên phải từ 18 tuổi trở lên (tính theo ngày đăng ký).");
             }
 
+            ValidateShift(model.ShiftStartTime, model.ShiftEndTime);
+
             trainer.FullName = model.FullName;
             trainer.Specialization = model.Specialization;
             trainer.Bio = model.Bio;
@@ -151,6 +168,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
             trainer.Email = model.Email;
             trainer.DateOfBirth = model.DateOfBirth;
             trainer.IsAvailable = model.IsAvailable;
+            trainer.ShiftStartTime = model.ShiftStartTime;
+            trainer.ShiftEndTime = model.ShiftEndTime;
 
             var updated = await _repository.UpdateAsync(trainer);
             await SyncApplicationUserFullNameAsync(trainer.UserId, trainer.FullName);

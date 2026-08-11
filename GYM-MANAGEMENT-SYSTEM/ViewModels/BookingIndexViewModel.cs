@@ -23,6 +23,7 @@
             "Confirmed" => "badge-fitness blue",
             "Completed" => "badge-fitness green",
             "Cancelled" => "badge-fitness red",
+            "NoShow" or "PtNoShow" => "badge-fitness dark",
             _ => "badge-fitness dark"
         };
         public string StatusDisplay => Status switch
@@ -31,6 +32,8 @@
             "Confirmed" => "Đã xác nhận",
             "Completed" => "Đã hoàn thành",
             "Cancelled" => "Đã hủy",
+            "NoShow" => "Member không đến",
+            "PtNoShow" => "PT không đến",
             _ => Status
         };
     }

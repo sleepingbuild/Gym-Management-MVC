@@ -27,6 +27,7 @@ namespace GYM_MANAGEMENT_SYSTEM.ViewModels
         public string TimeDisplay => SessionDate.ToString("HH:mm");
 
         public const int MaxMonthsAhead = 4;
+        public const int MinMinutesAhead = 30;
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
@@ -44,6 +45,23 @@ namespace GYM_MANAGEMENT_SYSTEM.ViewModels
                 yield return new ValidationResult(
                     $"Ngày tập không được cách quá {MaxMonthsAhead} tháng so với hiện tại (tối đa đến {maxDate:dd/MM/yyyy}).",
                     new[] { nameof(SessionDate) });
+            }
+            else if (SessionDate.Date == today && !string.IsNullOrWhiteSpace(TimeSlot))
+            {
+                
+                var startTimeText = TimeSlot.Split('-')[0].Trim();
+                if (TimeOnly.TryParse(startTimeText, out var slotStart))
+                {
+                    var slotDateTime = SessionDate.Date + slotStart.ToTimeSpan();
+                    var minAllowed = DateTime.Now.AddMinutes(MinMinutesAhead);
+
+                    if (slotDateTime < minAllowed)
+                    {
+                        yield return new ValidationResult(
+                            $"Khung giờ này đã qua hoặc quá gần thời điểm hiện tại. Vui lòng đặt trước ít nhất {MinMinutesAhead} phút (từ {minAllowed:HH:mm} trở đi).",
+                            new[] { nameof(TimeSlot) });
+                    }
+                }
             }
         }
     }

@@ -125,6 +125,14 @@
             cursor: not-allowed;
             text-decoration: line-through;
         }
+
+        .btn-timeslot-locked, .btn-timeslot-locked:disabled {
+            background: repeating-linear-gradient(45deg, var(--gym-input), var(--gym-input) 6px, var(--gym-card) 6px, var(--gym-card) 12px);
+            border: 1px dashed var(--gym-border);
+            color: var(--gym-muted);
+            opacity: 1;
+            cursor: not-allowed;
+        }
     </style>
     <script>
         $(document).ready(function() {
@@ -187,30 +195,71 @@
                         success: function(data) {
                             timeSlotList.empty();
                             var bookedSlots = data.bookedSlots || [];
+                            var mySlots = data.mySlots || [];
 
-                            // Tạo các khung giờ (giả định: 8:00 - 20:00)
+                            // Ca làm việc của Trainer — mặc định 07:00–21:00 nếu Admin
+                            // chưa đặt ca riêng cho Trainer này.
+                            var shiftStart = data.shiftStart || '07:00';
+                            var shiftEnd = data.shiftEnd || '21:00';
+
+                            var now = new Date();
+                            var isToday = (date === toDateInputValue(now));
+                            var minAllowedMs = now.getTime() + 30 * 60 * 1000; // +30 phút
+
+                            // Tạo các khung giờ 07:00 - 20:00 (khớp với ca mặc định của phòng gym)
                             var slots = [];
-                            for (var hour = 8; hour <= 20; hour++) {
+                            for (var hour = 7; hour <= 20; hour++) {
                                 var time = hour.toString().padStart(2, '0') + ':00';
+                                var isMine = mySlots.includes(time);
                                 var isBooked = bookedSlots.includes(time);
+                                var isLocked = (time < shiftStart) || (time >= shiftEnd);
+                                var isTooSoon = false;
+                                if (isToday) {
+                                    var slotDate = new Date(date + 'T' + time + ':00');
+                                    isTooSoon = slotDate.getTime() < minAllowedMs;
+                                }
                                 slots.push({
                                     time: time,
-                                    isBooked: isBooked
+                                    isMine: isMine,
+                                    isBooked: isBooked,
+                                    isLocked: isLocked,
+                                    isTooSoon: isTooSoon
                                 });
                             }
 
                             $.each(slots, function(index, slot) {
-                                var isPreviouslySelected = slot.time === selectedTimeSlot.val() && !slot.isBooked;
+                                var isPreviouslySelected = slot.time === selectedTimeSlot.val() && !slot.isBooked && !slot.isLocked && !slot.isTooSoon;
+                                var isDisabled = slot.isBooked || slot.isLocked || slot.isTooSoon;
+
+                                var label = slot.time;
+                                var cssClass = 'btn-timeslot-available';
+                                if (slot.isMine) {
+                                    label += ' (bạn đã có lịch)';
+                                    cssClass = 'btn-timeslot-booked';
+                                } else if (slot.isBooked) {
+                                    label += ' (đã đặt)';
+                                    cssClass = 'btn-timeslot-booked';
+                                } else if (slot.isLocked) {
+                                    label = '🔒 ' + label;
+                                    cssClass = 'btn-timeslot-locked';
+                                } else if (slot.isTooSoon) {
+                                    label += ' (đã qua)';
+                                    cssClass = 'btn-timeslot-booked';
+                                }
 
                                 var btn = $('<button>')
                                     .addClass('btn btn-timeslot')
-                                    .addClass(slot.isBooked ? 'btn-timeslot-booked' : (isPreviouslySelected ? 'btn-timeslot-selected' : 'btn-timeslot-available'))
+                                    .addClass(isDisabled ? cssClass : (isPreviouslySelected ? 'btn-timeslot-selected' : 'btn-timeslot-available'))
                                     .attr('type', 'button')
                                     .attr('data-time', slot.time)
-                                    .text(slot.isBooked ? slot.time + ' (đã đặt)' : slot.time)
-                                    .prop('disabled', slot.isBooked);
+                                    .text(label)
+                                    .prop('disabled', isDisabled);
 
-                                if (!slot.isBooked) {
+                                if (slot.isLocked && !slot.isBooked) {
+                                    btn.attr('title', 'Ngoài ca làm việc của huấn luyện viên (' + shiftStart + ' - ' + shiftEnd + ')');
+                                }
+
+                                if (!isDisabled) {
                                     btn.click(function() {
                                         $('.btn-timeslot').removeClass('btn-timeslot-selected').filter(':not(:disabled)').addClass('btn-timeslot-available');
                                         $(this).removeClass('btn-timeslot-available').addClass('btn-timeslot-selected');
@@ -223,8 +272,15 @@
                                 timeSlotList.append(btn);
                             });
 
+                            var shiftHint = $('#shiftHint');
+                            if (shiftHint.length === 0) {
+                                shiftHint = $('<div id="shiftHint" class="small mt-2"></div>').appendTo(timeSlotList.parent());
+                            }
+                            shiftHint.css('color', 'var(--gym-muted)')
+                                .html('<i class="fas fa-business-time me-1"></i>Ca làm việc của huấn luyện viên: <strong>' + shiftStart + ' - ' + shiftEnd + '</strong>. Khung giờ có 🔒 nằm ngoài ca, không thể đặt.');
+
                             var stillValid = slots.some(function(s) {
-                                return s.time === selectedTimeSlot.val() && !s.isBooked;
+                                return s.time === selectedTimeSlot.val() && !s.isBooked && !s.isLocked && !s.isTooSoon;
                             });
                             if (stillValid) {
                                 submitBtn.prop('disabled', false);
@@ -262,3 +318,4 @@
         });
     </script>
 }
+dotnet

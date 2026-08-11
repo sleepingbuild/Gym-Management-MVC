@@ -166,5 +166,18 @@ namespace GYM_MANAGEMENT_SYSTEM.Repositories
                 .ThenBy(b => b.TimeSlot)
                 .ToListAsync();
         }
+
+        public async Task<Booking?> GetTodayCheckedInBookingForUserAsync(string userId, DateTime date)
+        {
+            var dateOnly = date.Date;
+            return await _context.Bookings
+                .Include(b => b.Trainer)
+                .Where(b => b.UserId == userId
+                         && b.SessionDate.Date == dateOnly
+                         && b.CheckInTime != null
+                         && b.CheckOutTime == null)
+                .OrderByDescending(b => b.CheckInTime)
+                .FirstOrDefaultAsync();
+        }
     }
 }

@@ -7,6 +7,8 @@
         public int ConfirmedBookings { get; set; }
         public int CompletedBookings { get; set; }
         public int CancelledBookings { get; set; }
+        public int NoShowBookings { get; set; }
+        public int PtNoShowBookings { get; set; }
         public int UpcomingBookings { get; set; }
         public int PastBookings { get; set; }
 
@@ -19,6 +21,9 @@
             : 0;
         public double CancellationRate => TotalBookings > 0
             ? Math.Round((double)CancelledBookings / TotalBookings * 100, 1)
+            : 0;
+        public double NoShowRate => TotalBookings > 0
+            ? Math.Round((double)NoShowBookings / TotalBookings * 100, 1)
             : 0;
     }
 
@@ -36,6 +41,7 @@
             "Confirmed" => "badge-fitness blue",
             "Completed" => "badge-fitness green",
             "Cancelled" => "badge-fitness red",
+            "NoShow" or "PtNoShow" => "badge-fitness dark",
             _ => "badge-fitness dark"
         };
     }

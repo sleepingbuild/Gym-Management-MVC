@@ -456,19 +456,15 @@
                         <div class="bi-value" id="biNotes" style="font-weight:400">—</div>
                     </div>
                 </div>
+                <div id="biConfirmHint" class="small mt-2" style="display:none; color: var(--gym-muted);">
+                    <i class="fas fa-info-circle me-1"></i><span></span>
+                </div>
             </div>
             <div class="modal-footer" style="border-top:1px solid var(--gym-border)">
                 <form id="biConfirmForm" method="post" style="margin:0">
                     @Html.AntiForgeryToken()
                     <button type="submit" id="biConfirmBtn" class="btn btn-success btn-sm" style="display:none">
                         <i class="fas fa-check me-2"></i>Xác nhận buổi tập
-                    </button>
-                </form>
-                <form id="biCancelForm" method="post" style="margin:0"
-                      onsubmit="return confirm('Bạn chắc chắn muốn huỷ buổi tập này?');">
-                    @Html.AntiForgeryToken()
-                     <button type="submit" id="biCancelBtn" class="btn btn-fitness-danger btn-sm" style="display:none">
-                      <i class="fas fa-times me-2"></i>Huỷ buổi tập
                     </button>
                 </form>
                 <a href="#" id="biDetailLink" class="btn btn-fitness-secondary btn-sm">
@@ -482,39 +478,46 @@
 
 <script>
     document.getElementById('bookingInfoModal').addEventListener('show.bs.modal', function(event) {
-    const trigger = event.relatedTarget;
-    if (!trigger) return;
+        const trigger = event.relatedTarget;
+        if (!trigger) return;
 
-    document.getElementById('biTrainer').textContent = trigger.dataset.trainer || '—';
-    document.getElementById('biStudent').textContent = trigger.dataset.student || '—';
-    document.getElementById('biDate').textContent = trigger.dataset.date || '—';
-    document.getElementById('biTime').textContent = trigger.dataset.time || '—';
-    document.getElementById('biStatus').textContent = trigger.dataset.status || '—';
-    document.getElementById('biNotes').textContent = trigger.dataset.notes && trigger.dataset.notes.trim() !== ''
-        ? trigger.dataset.notes
-        : 'Không có ghi chú';
+        document.getElementById('biTrainer').textContent = trigger.dataset.trainer || '—';
+        document.getElementById('biStudent').textContent = trigger.dataset.student || '—';
+        document.getElementById('biDate').textContent = trigger.dataset.date || '—';
+        document.getElementById('biTime').textContent = trigger.dataset.time || '—';
+        document.getElementById('biStatus').textContent = trigger.dataset.status || '—';
+        document.getElementById('biNotes').textContent = trigger.dataset.notes && trigger.dataset.notes.trim() !== ''
+            ? trigger.dataset.notes
+            : 'Không có ghi chú';
 
-    const detailLink = document.getElementById('biDetailLink');
-    detailLink.href = '@Url.Action("BookingDetail", "TrainerPortal")/' + trigger.dataset.id;
+        const detailLink = document.getElementById('biDetailLink');
+        detailLink.href = '@Url.Action("BookingDetail", "TrainerPortal")/' + trigger.dataset.id;
 
-    const confirmForm = document.getElementById('biConfirmForm');
-    const confirmBtn = document.getElementById('biConfirmBtn');
-    if (trigger.dataset.status === 'Pending') {
-        confirmForm.action = '@Url.Action("Confirm", "TrainerPortal")/' + trigger.dataset.id;
-        confirmBtn.style.display = 'inline-block';
-    } else {
-        confirmBtn.style.display = 'none';
-    }
+        // Nút "Xác nhận" chỉ hiện khi buổi tập đang chờ xác nhận (Pending) VÀ
+        // Member đã điểm danh bằng khuôn mặt (CheckInMethod == "Face") — không cho
+        // PT xác nhận khống cho người chưa thật sự có mặt.
+        const confirmForm = document.getElementById('biConfirmForm');
+        const confirmBtn = document.getElementById('biConfirmBtn');
+        const hasFaceCheckIn = trigger.dataset.checkinMethod === 'Face';
 
-    const cancelForm = document.getElementById('biCancelForm');
-    const cancelBtn = document.getElementById('biCancelBtn');
-    if (trigger.dataset.status === 'Pending' || trigger.dataset.status === 'Confirmed') {
-        cancelForm.action = '@Url.Action("Cancel", "TrainerPortal")/' + trigger.dataset.id;
-        cancelBtn.style.display = 'inline-block';
-    } else {
-        cancelBtn.style.display = 'none';
-    }
-});
+        if (trigger.dataset.status === 'Pending' && hasFaceCheckIn) {
+            confirmForm.action = '@Url.Action("Confirm", "TrainerPortal")/' + trigger.dataset.id;
+            confirmBtn.style.display = 'inline-block';
+        } else {
+            confirmBtn.style.display = 'none';
+        }
+
+        // Gợi ý cho PT biết vì sao chưa xác nhận được, thay vì im lặng ẩn nút.
+        const hintEl = document.getElementById('biConfirmHint');
+        if (hintEl) {
+            if (trigger.dataset.status === 'Pending' && !hasFaceCheckIn) {
+                hintEl.querySelector('span').textContent = 'Chưa thể xác nhận: Member chưa điểm danh bằng khuôn mặt.';
+                hintEl.style.display = 'block';
+            } else {
+                hintEl.style.display = 'none';
+            }
+        }
+    });
 </script>
 
 <div class="trainer-schedule-page" style="--ts-hour-h:@(pxPerHour)px">
@@ -553,6 +556,7 @@
         <span class="ts-legend-item"><span class="ts-legend-dot" style="background:var(--gym-accent2)"></span>Chờ xác nhận / Đã xác nhận</span>
         <span class="ts-legend-item"><span class="ts-legend-dot" style="background:var(--success-green)"></span>Hoàn thành</span>
         <span class="ts-legend-item"><span class="ts-legend-dot" style="background:var(--gym-muted)"></span>Đã hủy</span>
+        <span class="ts-legend-item"><span class="ts-legend-dot" style="background:var(--gym-danger)"></span>Vắng mặt (Member / PT)</span>
     </div>
 
     @if (bookingList.Any())
@@ -589,18 +593,21 @@
                                 {
                                     "Completed" => "rgba(34,197,94,.18)",
                                     "Cancelled" => "var(--gym-card-hover)",
+                                    "NoShow" or "PtNoShow" => "rgba(239,68,68,.18)",
                                     _ => "linear-gradient(135deg, var(--gym-accent), var(--gym-accent2))"
                                 };
                                 string evBorder = ev.Booking.Status switch
                                 {
                                     "Completed" => "var(--success-green)",
                                     "Cancelled" => "var(--gym-border)",
+                                    "NoShow" or "PtNoShow" => "var(--gym-danger)",
                                     _ => "var(--gym-accent)"
                                 };
                                 string evText = ev.Booking.Status switch
                                 {
                                     "Completed" => "var(--success-green)",
                                     "Cancelled" => "var(--gym-muted)",
+                                    "NoShow" or "PtNoShow" => "var(--gym-danger)",
                                     _ => "#fff"
                                 };
                                 int topPx = (ev.StartMinutes - minHour * 60);
@@ -614,6 +621,7 @@
                                      data-date="@ev.Booking.SessionDate.ToString("dd/MM/yyyy")"
                                      data-time="@ev.Booking.TimeSlot"
                                      data-status="@ev.Booking.Status"
+                                     data-checkin-method="@ev.Booking.CheckInMethod"
                                      data-notes="@ev.Booking.Notes"
                                      data-id="@ev.Booking.Id"
                                      style="top:@(topPx)px; height:@(heightPx)px; left:calc(@(leftPct.ToString("0.##"))% + 2px); width:calc(@(widthPct.ToString("0.##"))% - 4px); background:@evBg; border-color:@evBorder; color:@evText;"

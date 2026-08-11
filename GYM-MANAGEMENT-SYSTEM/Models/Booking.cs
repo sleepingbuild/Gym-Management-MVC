@@ -27,11 +27,15 @@ namespace GYM_MANAGEMENT_SYSTEM.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-      
+        // Điểm danh (Face Attendance) — null nếu chưa điểm danh
         public DateTime? CheckInTime { get; set; }
 
         // "Manual" hoặc "Face"
         public string? CheckInMethod { get; set; }
+
+        // Điểm danh ra về sau buổi tập — null nếu chưa check-out
+        public DateTime? CheckOutTime { get; set; }
+        public string? CheckOutMethod { get; set; }
 
         // Navigation properties
         [ForeignKey("TrainerId")]

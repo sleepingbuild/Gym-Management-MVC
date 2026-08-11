@@ -221,7 +221,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
 
             var bookings = await _bookingService.GetUserBookingsAsync(userId);
             var weekBookings = bookings
-                .Where(b => b.SessionDate.Date >= startOfWeek && b.SessionDate.Date <= endOfWeek && b.Status != "Cancelled")
+                .Where(b => b.SessionDate.Date >= startOfWeek && b.SessionDate.Date <= endOfWeek && b.Status != "Cancelled" && b.Status != "NoShow")
                 .OrderBy(b => b.SessionDate)
                 .ThenBy(b => b.TimeSlot)
                 .Select(b => new BookingIndexViewModel
@@ -248,16 +248,33 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
         [HttpGet]
         public async Task<IActionResult> GetSlots(int trainerId, DateTime date)
         {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? User.Identity?.Name;
+
             var bookings = await _bookingService.GetBookingsByDateAsync(date);
 
             var fullSlots = bookings
                 .Where(b => b.TrainerId == trainerId && (b.Status == "Pending" || b.Status == "Confirmed"))
                 .GroupBy(b => b.TimeSlot)
-                .Where(g => g.Count() >= 2)
+                .Where(g => g.Count() >= 1)
                 .Select(g => g.Key)
                 .ToList();
 
-            return Json(new { bookedSlots = fullSlots });
+            var mySlots = string.IsNullOrEmpty(userId)
+                ? new List<string>()
+                : bookings
+                    .Where(b => b.UserId == userId && (b.Status == "Pending" || b.Status == "Confirmed"))
+                    .Select(b => b.TimeSlot)
+                    .Distinct()
+                    .ToList();
+
+            var bookedSlots = fullSlots.Union(mySlots).Distinct().ToList();
+
+            var trainer = await _trainerService.GetTrainerByIdAsync(trainerId);
+            string? shiftStart = trainer?.ShiftStartTime?.ToString("HH:mm");
+            string? shiftEnd = trainer?.ShiftEndTime?.ToString("HH:mm");
+
+            return Json(new { bookedSlots, mySlots, shiftStart, shiftEnd });
         }
 
         // GET: /Booking/History

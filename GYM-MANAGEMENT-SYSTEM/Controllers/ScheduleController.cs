@@ -67,6 +67,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
         }
 
         // GET: /Schedule/Create
+       
+        // Booking tạo ra sẽ ở trạng thái Confirmed ngay, không cần Trainer xác nhận.
         public async Task<IActionResult> Create()
         {
             await PopulateCreateFormData();
@@ -139,6 +141,13 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             TempData[result ? "SuccessMessage" : "ErrorMessage"] =
                 result ? "Đã hủy buổi tập!" : "Không thể hủy buổi tập này.";
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTrainerSlots(int trainerId)
+        {
+            var slots = await _bookingService.GetTimeSlotsForTrainerAsync(trainerId);
+            return Json(slots);
         }
 
         private async Task PopulateCreateFormData()

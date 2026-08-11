@@ -13,10 +13,10 @@
                 <div class="card-body">
                     <p class="text-muted small mb-3">
                         Buổi tập tạo ra sẽ ở trạng thái <strong>Đã xác nhận</strong> ngay, không cần huấn luyện viên xác nhận lại.
-                        Giờ hoạt động cố định của phòng gym: <strong>07:00 – 21:00</strong>.
+                        Khung giờ sẽ tự cập nhật theo đúng ca làm việc của huấn luyện viên được chọn.
                     </p>
 
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Create" method="post" id="adminBookingForm">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                         <div class="mb-3">
@@ -37,7 +37,7 @@
                             <label asp-for="TrainerId" class="form-label">
                                 <i class="fas fa-user-tie me-2"></i>Huấn luyện viên
                             </label>
-                            <select asp-for="TrainerId" class="form-select">
+                            <select asp-for="TrainerId" class="form-select" id="trainerSelect">
                                 <option value="">-- Chọn huấn luyện viên --</option>
                                 @foreach (var trainer in (IEnumerable<dynamic>)ViewBag.Trainers)
                                 {
@@ -59,14 +59,15 @@
                                 <label asp-for="TimeSlot" class="form-label">
                                     <i class="fas fa-clock me-2"></i>Khung giờ
                                 </label>
-                                <select asp-for="TimeSlot" class="form-select">
-                                    <option value="">-- Chọn khung giờ --</option>
+                                <select asp-for="TimeSlot" class="form-select" id="timeSlotSelect">
+                                    <option value="">-- Chọn huấn luyện viên trước --</option>
                                     @foreach (var slot in (IEnumerable<string>)ViewBag.TimeSlots)
                                     {
                                         <option value="@slot">@slot</option>
                                     }
                                 </select>
                                 <span asp-validation-for="TimeSlot" class="text-danger small"></span>
+                                <div id="shiftHint" class="small mt-1" style="color: var(--gym-muted);"></div>
                             </div>
                         </div>
 
@@ -95,4 +96,56 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            var trainerSelect = $('#trainerSelect');
+            var timeSlotSelect = $('#timeSlotSelect');
+            var shiftHint = $('#shiftHint');
+
+            function loadTrainerSlots() {
+                var trainerId = trainerSelect.val();
+                var currentValue = timeSlotSelect.val();
+
+                if (!trainerId) {
+                    timeSlotSelect.html('<option value="">-- Chọn huấn luyện viên trước --</option>');
+                    shiftHint.text('');
+                    return;
+                }
+
+                $.getJSON('@Url.Action("GetTrainerSlots")', { trainerId: trainerId }, function(slots) {
+                    timeSlotSelect.empty();
+                    timeSlotSelect.append('<option value="">-- Chọn khung giờ --</option>');
+
+                    $.each(slots, function(i, slot) {
+                        timeSlotSelect.append($('<option>').val(slot).text(slot));
+                    });
+
+                    if (slots.indexOf(currentValue) !== -1) {
+                        timeSlotSelect.val(currentValue);
+                    }
+
+                    if (slots.length > 0) {
+                        shiftHint.html('<i class="fas fa-business-time me-1"></i>Ca làm việc: <strong>' + slots[0] + ' - ' + addOneHour(slots[slots.length - 1]) + '</strong>');
+                    } else {
+                        shiftHint.text('Huấn luyện viên này chưa có khung giờ khả dụng.');
+                    }
+                }).fail(function() {
+                    timeSlotSelect.html('<option value="">-- Không tải được khung giờ --</option>');
+                });
+            }
+
+            function addOneHour(hhmm) {
+                var parts = hhmm.split(':');
+                var hour = (parseInt(parts[0], 10) + 1) % 24;
+                return hour.toString().padStart(2, '0') + ':00';
+            }
+
+            trainerSelect.change(loadTrainerSlots);
+
+            // Nếu form load lại sau lỗi validate và đã có Trainer được chọn sẵn, tải luôn khung giờ đúng ca.
+            if (trainerSelect.val()) {
+                loadTrainerSlots();
+            }
+        });
+    </script>
 }

@@ -10,10 +10,11 @@
     };
 
     var statusLabels = new Dictionary<string, string>
-    {
-        { "Pending", "Chờ xác nhận" }, { "Confirmed", "Đã xác nhận" },
-        { "Completed", "Hoàn thành" }, { "Cancelled", "Đã hủy" }
-    };
+{
+    { "Pending", "Chờ xác nhận" }, { "Confirmed", "Đã xác nhận" },
+    { "Completed", "Hoàn thành" }, { "Cancelled", "Đã hủy" },
+    { "NoShow", "Vắng mặt (Member)" }, { "PtNoShow", "Vắng mặt (PT)" }
+};
 
     DateOnly weekStart = ViewBag.WeekStart;
     DateOnly weekEnd = ViewBag.WeekEnd;
@@ -423,7 +424,7 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
             <h1 class="sc-title">🗓️ Lịch làm việc huấn luyện viên</h1>
-            <p class="sc-subtitle">Các buổi tập đã đặt trong tuần · Giờ hoạt động cố định @workStart.ToString("HH:mm")–@workEnd.ToString("HH:mm") cho mọi HLV</p>
+            <p class="sc-subtitle">Các buổi tập đã đặt trong tuần </p>
         </div>
         <a asp-action="Create" class="btn btn-sc-primary">
             <i class="fas fa-plus me-2"></i>Đặt lịch hộ thành viên
@@ -528,6 +529,7 @@
                                     "Confirmed" => "linear-gradient(135deg, var(--gym-accent), var(--gym-accent2))",
                                     "Completed" => "linear-gradient(135deg, #16a34a, #22c55e)",
                                     "Pending" => "linear-gradient(135deg, #ca8a04, #eab308)",
+                                    "NoShow" or "PtNoShow" => "linear-gradient(135deg, #dc2626, #ef4444)",
                                     _ => "var(--gym-card-hover)"
                                 };
                                 string evBorder = status switch
@@ -535,6 +537,7 @@
                                     "Confirmed" => "var(--gym-accent)",
                                     "Completed" => "#16a34a",
                                     "Pending" => "#ca8a04",
+                                    "NoShow" or "PtNoShow" => "#dc2626",
                                     _ => "var(--gym-border)"
                                 };
                                 string evText = isCancelled ? "var(--gym-muted)" : "#fff";

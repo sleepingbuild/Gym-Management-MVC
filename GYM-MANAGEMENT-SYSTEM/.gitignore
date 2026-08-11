@@ -6,3 +6,4 @@ benchmark*.py
 test_questions_100.json
 faq_embeddings.json
 build_faq_embeddings.py
+gymbot-output/

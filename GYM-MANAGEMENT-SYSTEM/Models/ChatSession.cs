@@ -7,4 +7,7 @@ public class ChatSession
     public string Title { get; set; } = "Cuộc trò chuyện mới";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime LastActivityAt { get; set; } = DateTime.UtcNow;
+
+    public double? LastHeightM { get; set; }
+    public double? LastWeightKg { get; set; }
 }

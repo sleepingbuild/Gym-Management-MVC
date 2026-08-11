@@ -42,7 +42,6 @@ public class KnowledgeBaseService
         return dot / (Math.Sqrt(normA) * Math.Sqrt(normB) + 1e-9);
     }
 
-    // Giữ hàm cũ (substring) làm fallback cực nhanh nếu cần, không bắt buộc dùng nữa
     public string? SearchAnswerExact(string question)
     {
         var faq = _context.FAQs.FirstOrDefault(x =>
@@ -50,7 +49,6 @@ public class KnowledgeBaseService
         return faq?.Answer;
     }
 
-    // Hàm chính mới — dùng similarity thật
     public async Task<(string? Answer, string Source)> SearchAnswerAsync(string question)
     {
         if (_cachedEmbeddings == null || _cachedEmbeddings.Count == 0)

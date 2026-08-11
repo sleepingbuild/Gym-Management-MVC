@@ -5,6 +5,7 @@ using GYM_MANAGEMENT_SYSTEM.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace GYM_MANAGEMENT_SYSTEM.Controllers;
 
@@ -33,9 +34,6 @@ public class AIController : Controller
     private string GetUserId() =>
         User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "guest";
 
-    private bool IsSessionEmpty(int sessionId) =>
-        !_context.ChatHistories.Any(h => h.SessionId == sessionId);
-
     [HttpGet]
     public async Task<IActionResult> Chat(int? sessionId)
     {
@@ -44,13 +42,11 @@ public class AIController : Controller
 
         if (sessionId.HasValue)
         {
-            // Người dùng chủ động bấm vào 1 session cụ thể trong sidebar
             session = _context.ChatSessions.FirstOrDefault(s => s.Id == sessionId && s.UserId == userId);
             if (session == null) return RedirectToAction("Chat");
         }
         else
         {
-            // Không chỉ định session -> xác định session "mặc định" cho lần này
             var authResult = await HttpContext.AuthenticateAsync();
             var loginTime = authResult?.Properties?.IssuedUtc?.UtcDateTime ?? DateTime.MinValue;
 
@@ -63,18 +59,15 @@ public class AIController : Controller
 
             if (isFromPreviousLogin)
             {
-                bool lastIsEmpty = lastSession != null && IsSessionEmpty(lastSession.Id);
-
+                bool lastIsEmpty = lastSession != null && !_context.ChatHistories.Any(h => h.SessionId == lastSession.Id);
                 if (lastIsEmpty)
                 {
-                    // Session cũ vẫn còn rỗng -> tái sử dụng, chỉ "làm mới" thời gian
                     lastSession!.CreatedAt = DateTime.UtcNow;
                     lastSession.LastActivityAt = DateTime.UtcNow;
                     session = lastSession;
                 }
                 else
                 {
-                    // Session cũ đã có nội dung -> tạo phiên mới hoàn toàn
                     session = new ChatSession { UserId = userId, Title = "Cuộc trò chuyện mới" };
                     _context.ChatSessions.Add(session);
                 }
@@ -82,7 +75,6 @@ public class AIController : Controller
             }
             else
             {
-                // Vẫn trong cùng phiên đăng nhập, đã có session -> tiếp tục dùng session đó
                 session = lastSession!;
             }
         }
@@ -98,7 +90,6 @@ public class AIController : Controller
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(20)
                 .ToList(),
-            // Sidebar CHỈ hiện các session đã có ít nhất 1 tin nhắn - session rỗng không hiển thị
             Sessions = _context.ChatSessions
                 .Where(s => s.UserId == userId && _context.ChatHistories.Any(h => h.SessionId == s.Id))
                 .OrderByDescending(s => s.LastActivityAt)
@@ -113,14 +104,12 @@ public class AIController : Controller
     public IActionResult NewSession()
     {
         var userId = GetUserId();
-
         var lastSession = _context.ChatSessions
             .Where(s => s.UserId == userId)
             .OrderByDescending(s => s.CreatedAt)
             .FirstOrDefault();
 
-        // Nếu session hiện tại (mới nhất) vẫn đang rỗng -> không tạo thêm, dùng luôn nó
-        if (lastSession != null && IsSessionEmpty(lastSession.Id))
+        if (lastSession != null && !_context.ChatHistories.Any(h => h.SessionId == lastSession.Id))
         {
             return RedirectToAction("Chat", new { sessionId = lastSession.Id });
         }
@@ -139,7 +128,7 @@ public class AIController : Controller
         var session = _context.ChatSessions.FirstOrDefault(s => s.Id == sessionId && s.UserId == userId);
         if (session == null) return BadRequest();
 
-        var answer = await GetAnswerAsync(question, sessionId);
+        var answer = await GetAnswerAsync(question, sessionId, userId);
         var savedId = SaveHistoryAndReturnId(question, answer, userId, sessionId);
 
         if (session.Title == "Cuộc trò chuyện mới")
@@ -149,7 +138,9 @@ public class AIController : Controller
         session.LastActivityAt = DateTime.UtcNow;
         _context.SaveChanges();
 
+        // 2 tác vụ nền độc lập: tóm tắt phiên hiện tại + cập nhật bộ nhớ dài hạn theo tài khoản
         _ = Task.Run(() => SummarizeInBackgroundAsync(sessionId));
+        _ = Task.Run(() => UpdateUserMemoryAsync(userId, question, answer));
 
         var summary = _context.ChatSummaries.FirstOrDefault(s => s.SessionId == sessionId);
 
@@ -175,37 +166,102 @@ public class AIController : Controller
         return result.Trim().ToUpperInvariant().StartsWith("CO");
     }
 
-    private async Task<string> GetAnswerAsync(string question, int sessionId)
+    private (double? Height, double? Weight) TryExtractHeightWeight(string question)
     {
-        var (kbAnswer, source) = await _kb.SearchAnswerAsync(question);
+        var heightMatch = Regex.Match(question,
+            @"cao\s*(?:là|khoảng|còn)?\s*(\d+(?:[.,]\d+)?)\s*(m|cm)?", RegexOptions.IgnoreCase);
+        var weightMatch = Regex.Match(question,
+            @"nặng\s*(?:là|thành|còn|chỉ|khoảng)?\s*(\d+(?:[.,]\d+)?)\s*(kg)?", RegexOptions.IgnoreCase);
 
-        if (!string.IsNullOrEmpty(kbAnswer) && source.StartsWith("KB_Direct"))
+        double? height = null, weight = null;
+        if (heightMatch.Success)
+        {
+            var val = double.Parse(heightMatch.Groups[1].Value.Replace(',', '.'));
+            var unit = heightMatch.Groups[2].Value.ToLower();
+            height = (unit == "cm" || val > 3) ? val / 100.0 : val;
+        }
+        if (weightMatch.Success)
+        {
+            weight = double.Parse(weightMatch.Groups[1].Value.Replace(',', '.'));
+        }
+        return (height, weight);
+    }
+
+    private string BuildPersonalContext(double heightM, double weightKg)
+    {
+        var bmi = weightKg / (heightM * heightM);
+        string category = bmi switch
+        {
+            < 18.5 => "thiếu cân, nên ưu tiên mục tiêu tăng cân/tăng cơ",
+            < 25 => "cân nặng bình thường, có thể tập theo mục tiêu tăng cơ hoặc giữ dáng",
+            < 30 => "thừa cân, nên kết hợp cardio với tập tạ để giảm mỡ",
+            _ => "béo phì, nên ưu tiên giảm mỡ an toàn, cường độ tăng dần"
+        };
+        return $"Thông tin người dùng: cao {heightM:0.00}m, nặng {weightKg:0.#}kg, BMI = {bmi:0.0} ({category}).";
+    }
+
+    private async Task<string> GetAnswerAsync(string question, int sessionId, string userId)
+    {
+        var session = _context.ChatSessions.First(s => s.Id == sessionId);
+
+        var (extractedHeight, extractedWeight) = TryExtractHeightWeight(question);
+        double? height = extractedHeight ?? session.LastHeightM;
+        double? weight = extractedWeight ?? session.LastWeightKg;
+
+        if (extractedHeight.HasValue) session.LastHeightM = extractedHeight;
+        if (extractedWeight.HasValue) session.LastWeightKg = extractedWeight;
+        if (extractedHeight.HasValue || extractedWeight.HasValue) _context.SaveChanges();
+
+        string? personalContext = (height.HasValue && weight.HasValue)
+            ? BuildPersonalContext(height.Value, weight.Value)
+            : null;
+
+        var (kbAnswer, source) = await _kb.SearchAnswerAsync(question);
+        var history = BuildHistoryContext(sessionId, userId);
+
+        
+        bool hasUserMemory = _context.UserMemories.Any(m => m.UserId == userId);
+
+        if (personalContext != null)
+        {
+            var refText = !string.IsNullOrEmpty(kbAnswer) ? $"Thông tin tham khảo chung: {kbAnswer}\n" : "";
+            var prompt = $"{refText}{personalContext}\n" +
+                         $"Dựa vào thông tin trên, hãy trả lời câu hỏi sau, có nhắc cụ thể tới chỉ số BMI:\n" +
+                         $"Câu hỏi: {question}";
+            return await _aiClient.AskAsync(prompt, history);
+        }
+        if (!string.IsNullOrEmpty(kbAnswer) && source.StartsWith("KB_Direct") && !hasUserMemory)
             return kbAnswer;
 
-        var history = BuildHistoryContext(sessionId);
-
-        if (!string.IsNullOrEmpty(kbAnswer) && source.StartsWith("KB_Context"))
+        if (!string.IsNullOrEmpty(kbAnswer) &&
+            (source.StartsWith("KB_Context") || (source.StartsWith("KB_Direct") && hasUserMemory)))
         {
-            var prompt = $"Dựa vào thông tin sau, hãy trả lời câu hỏi của người dùng một cách tự nhiên:\n" +
+            var prompt = $"Dựa vào thông tin sau, hãy trả lời câu hỏi của người dùng một cách tự nhiên, " +
+                         $"có lưu ý tới thông tin cá nhân đã biết về người dùng (nếu liên quan):\n" +
                          $"Thông tin tham khảo: {kbAnswer}\nCâu hỏi: {question}";
             return await _aiClient.AskAsync(prompt, history);
         }
 
         var inScope = await IsGymRelatedAsync(question);
-        if (!inScope)
-            return OutOfScopeMessage;
+        if (!inScope) return OutOfScopeMessage;
 
         return await _aiClient.AskAsync(question, history);
     }
-
-    private List<object> BuildHistoryContext(int sessionId)
+    // Gộp bộ nhớ dài hạn theo TÀI KHOẢN (mọi phiên) + tóm tắt phiên hiện tại + các lượt gần đây
+    private List<object> BuildHistoryContext(int sessionId, string userId)
     {
         var history = new List<object>();
+
+        var userMemory = _context.UserMemories.FirstOrDefault(m => m.UserId == userId);
+        if (userMemory != null)
+        {
+            history.Add(new { role = "system", content = $"Thông tin đã biết về người dùng (từ các lần trò chuyện trước, mọi phiên): {userMemory.MemoryText}" });
+        }
 
         var summary = _context.ChatSummaries.FirstOrDefault(s => s.SessionId == sessionId);
         if (summary != null)
         {
-            history.Add(new { role = "system", content = $"Tóm tắt hội thoại trước đó: {summary.SummaryText}" });
+            history.Add(new { role = "system", content = $"Tóm tắt hội thoại trước đó trong phiên này: {summary.SummaryText}" });
         }
 
         var recent = _context.ChatHistories
@@ -239,6 +295,7 @@ public class AIController : Controller
         return entry.Id;
     }
 
+    // Tóm tắt PHIÊN hiện tại (giữ nguyên như trước)
     private async Task SummarizeInBackgroundAsync(int sessionId)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -271,10 +328,10 @@ public class AIController : Controller
         }
         else
         {
-            var userId = scopedContext.ChatSessions.First(s => s.Id == sessionId).UserId;
+            var uid = scopedContext.ChatSessions.First(s => s.Id == sessionId).UserId;
             scopedContext.ChatSummaries.Add(new ChatSummary
             {
-                UserId = userId,
+                UserId = uid,
                 SessionId = sessionId,
                 SummaryText = newSummaryText,
                 UpdatedAt = DateTime.UtcNow
@@ -282,6 +339,45 @@ public class AIController : Controller
         }
 
         foreach (var h in toSummarize) h.IsArchived = true;
+        scopedContext.SaveChanges();
+    }
+
+    // MỚI — cập nhật bộ nhớ dài hạn theo TÀI KHOẢN, chạy sau MỖI lượt chat, ở BẤT KỲ phiên nào
+    private async Task UpdateUserMemoryAsync(string userId, string question, string answer)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var scopedContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var scopedAiClient = scope.ServiceProvider.GetRequiredService<IGymAiClient>();
+
+        var existing = scopedContext.UserMemories.FirstOrDefault(m => m.UserId == userId);
+
+        var prompt = existing != null
+            ?$"Đây là bộ nhớ hiện tại về người dùng:\n{existing.MemoryText}\n\n" +
+             $"Đoạn hội thoại mới:\nUser: {question}\nBot: {answer}\n\n" +
+             $"Nhiệm vụ: cập nhật bộ nhớ trên. CHỈ thêm thông tin CÁ NHÂN CỤ THỂ mới (chấn thương, mục tiêu, sở thích, chỉ số cơ thể...) nếu người dùng thực sự nhắc tới. " +
+            $"KHÔNG suy diễn, KHÔNG bịa thêm nội dung không có trong hội thoại. " +
+            $"Nếu đoạn hội thoại mới KHÔNG có thông tin cá nhân nào, giữ nguyên bộ nhớ cũ, không đổi 1 chữ nào.\n\n" +
+            $"Ví dụ đúng: User nói 'tôi bị đau vai' → thêm dòng '- Đang bị đau vai, cần tránh bài tập vai nặng'.\n" +
+            $"Ví dụ SAI cần tránh: tự bịa thông tin không được nhắc tới (ví dụ chế độ ăn) khi user không hề nói gì về việc đó."
+          : $"...";
+
+        var result = await scopedAiClient.AskAsync(prompt);
+
+        Console.WriteLine($"[MEMORY DEBUG] UserId={userId}");
+        Console.WriteLine($"[MEMORY DEBUG] Prompt gửi đi:\n{prompt}");
+        Console.WriteLine($"[MEMORY DEBUG] Qwen trả về:\n{result}");
+
+        if (result.Trim().ToUpperInvariant() == "KHONG") return;
+
+        if (existing != null)
+        {
+            existing.MemoryText = result;
+            existing.UpdatedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            scopedContext.UserMemories.Add(new UserMemory { UserId = userId, MemoryText = result, UpdatedAt = DateTime.UtcNow });
+        }
         scopedContext.SaveChanges();
     }
 }

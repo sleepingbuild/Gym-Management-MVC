@@ -1,75 +1,94 @@
 ﻿@{
     ViewData["Title"] = "Đăng ký gói tập";
-    var packages = ViewBag.Packages as IEnumerable<GYM_MANAGEMENT_SYSTEM.Models.MembershipPackage>;
+    var packages = (IEnumerable<dynamic>)ViewBag.Packages;
+    var activeMembership = ViewBag.ActiveMembership as GYM_MANAGEMENT_SYSTEM.Models.Membership;
+    var actionLabels = ViewBag.ActionLabels as Dictionary<int, string>;
+    var today = DateTime.UtcNow.Date;
 }
 
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="fitness-title">🎯 Đăng ký gói tập</h1>
-            <p class="text-muted">Chọn gói tập phù hợp với bạn</p>
-        </div>
-        <a asp-action="Index" class="btn btn-fitness-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Quay lại
-        </a>
+    <div class="text-center mb-4">
+        <h1 class="fitness-title">📦 Đăng ký gói tập</h1>
+        <p class="text-muted">Chọn gói tập phù hợp với mục tiêu của bạn</p>
     </div>
 
-    @if (TempData["ErrorMessage"] != null)
+    @if (activeMembership != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show">
-            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        var remainingDays = Math.Max(0, (activeMembership.EndDate.Date - today).Days);
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-info-circle me-2"></i>
+            Bạn đang dùng gói <strong>@activeMembership.MembershipPackage?.Name</strong>, còn <strong>@remainingDays ngày</strong>.
+            Chọn gói giá cao hơn để <strong>nâng cấp ngay</strong>, hoặc gói giá thấp hơn để <strong>lên lịch chuyển sang sau khi gói hiện tại hết hạn</strong>.
         </div>
     }
 
-    @if (packages != null && packages.Any())
-    {
-        <div class="row">
-            @foreach (var package in packages)
-            {
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="pricing-card">
-                        <div class="pricing-name">@package.Name</div>
-                        <div class="pricing-price">
-                            @string.Format("{0:N0} VNĐ", package.Price)
-                            <span>/ @(package.DurationDays >= 30 ? $"{package.DurationDays / 30} tháng" : $"{package.DurationDays} ngày")</span>
+    <div class="row">
+        @foreach (var package in packages)
+        {
+            int packageId = package.Id;
+            string label = actionLabels != null && actionLabels.ContainsKey(packageId) ? actionLabels[packageId] : "Đăng ký";
+            bool isDowngrade = label == "Xuống cấp";
+            bool isCurrentPackage = label == "Gia hạn";
+
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="pricing-card">
+                    @if (label == "Nâng cấp")
+                    {
+                        <div class="pricing-badge">Nâng cấp</div>
+                    }
+                    else if (isDowngrade)
+                    {
+                        <div class="pricing-badge" style="background: linear-gradient(135deg, var(--gym-muted), #475569);">Xuống cấp</div>
+                    }
+                    else if (isCurrentPackage)
+                    {
+                        <div class="pricing-badge" style="background: var(--success-green);">Đang dùng</div>
+                    }
+
+                    <div class="pricing-name">@package.Name</div>
+                    <div class="pricing-price">
+                        @($"{(decimal)package.Price:N0} VNĐ")
+                        <span>/ @package.DurationDays ngày</span>
+                    </div>
+
+                    <p class="text-muted" style="min-height: 60px;">@package.Description</p>
+
+                    @if (isDowngrade && activeMembership != null)
+                    {
+                        var remainingDays = Math.Max(0, (activeMembership.EndDate.Date - today).Days);
+                        <div class="alert alert-warning small mb-3 py-2">
+                            <i class="fas fa-clock me-1"></i>
+                            Gói hiện tại còn <strong>@remainingDays ngày</strong>. Gói này sẽ tự động kích hoạt từ
+                            <strong>@activeMembership.EndDate.ToString("dd/MM/yyyy")</strong>, không dùng ngay được.
                         </div>
-                        <p class="text-muted" style="min-height: 60px;">@package.Description</p>
+                    }
 
-                        <ul class="pricing-features">
-                            <li>
-                                <i class="fas fa-calendar-day"></i>
-                                <span>
-                                    Thời hạn: <strong>@(package.DurationDays >= 30 ? $"{package.DurationDays / 30} tháng" : $"{package.DurationDays} ngày")</strong>
-                                </span>
-                            </li>
-                            <li>
-                                <i class="fas fa-tag"></i>
-                                <span>Giá: <strong>@string.Format("{0:N0} VNĐ", package.Price)</strong></span>
-                            </li>
-                        </ul>
-
-                        <form asp-action="Register" method="post">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="packageId" value="@package.Id" />
-                            <button type="submit" class="btn btn-fitness-primary w-100">
-                                <i class="fas fa-check-circle me-2"></i>Đăng ký ngay
+                    <div class="mt-3">
+                        @if (isCurrentPackage)
+                        {
+                            <button type="button" class="btn btn-fitness-secondary w-100" disabled>
+                                <i class="fas fa-check me-2"></i>Gói đang sử dụng
                             </button>
-                        </form>
+                        }
+                        else
+                        {
+                            <form asp-action="Register" method="post">
+                                <input type="hidden" name="packageId" value="@packageId" />
+                                <button type="submit" class="btn @(isDowngrade ? "btn-fitness-secondary" : "btn-fitness-primary") w-100"
+                                        onclick="return confirm('@(isDowngrade ? $"Xác nhận lên lịch chuyển sang gói {package.Name}?" : $"Xác nhận {label.ToLower()} gói {package.Name}?")');">
+                                    <i class="fas @(isDowngrade ? "fa-clock" : "fa-check-circle") me-2"></i>@label
+                                </button>
+                            </form>
+                        }
                     </div>
                 </div>
-            }
-        </div>
-    }
-    else
-    {
-        <div class="text-center py-5">
-            <i class="fas fa-box-open" style="font-size: 4rem; color: var(--text-muted);"></i>
-            <h4 class="text-muted mt-3">Hiện chưa có gói tập nào</h4>
-            <p class="text-muted">Vui lòng quay lại sau</p>
-            <a asp-action="Index" class="btn btn-fitness-primary mt-3">
-                <i class="fas fa-arrow-left me-2"></i>Quay lại
-            </a>
-        </div>
-    }
+            </div>
+        }
+    </div>
+
+    <div class="text-center mt-3">
+        <a asp-action="Index" class="btn btn-fitness-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại gói tập của tôi
+        </a>
+    </div>
 </div>

@@ -50,8 +50,23 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                 return RedirectToAction("Index", "Membership");
             }
 
-            var isRenewal = membership.Status != "Pending";
             var packageName = membership.MembershipPackage?.Name ?? $"#{membershipId}";
+            string paymentInfo;
+
+            if (membership.Status != "Pending")
+            {
+                paymentInfo = $"Gia hạn gói tập {packageName}";
+            }
+            else
+            {
+                var label = await _membershipService.GetPackageActionLabelAsync(userId, membership.MembershipPackageId);
+                paymentInfo = label switch
+                {
+                    "Gia hạn" => $"Gia hạn gói tập {packageName}",
+                    "Nâng cấp" => $"Nâng cấp lên gói tập {packageName}",
+                    _ => $"Đăng ký gói tập {packageName}"
+                };
+            }
 
             var viewModel = new PaymentCreateViewModel
             {
@@ -59,9 +74,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                 MembershipId = membershipId,
                 Amount = membership.MembershipPackage?.Price ?? 0,
                 Method = "Tại quầy",
-                PaymentInfo = isRenewal
-                    ? $"Gia hạn gói tập {packageName}"
-                    : $"Thanh toán gói tập {packageName}"
+                PaymentInfo = paymentInfo
             };
 
             return View(viewModel);

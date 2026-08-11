@@ -43,7 +43,7 @@
                                 </div>
                                 <input type="hidden" asp-for="Price" id="Price" />
                                 <span asp-validation-for="Price" class="text-danger small"></span>
-                                
+
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label asp-for="DurationDays" class="form-label">
@@ -51,6 +51,17 @@
                                 </label>
                                 <input asp-for="DurationDays" class="form-control" />
                                 <span asp-validation-for="DurationDays" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="MaxSessionsPerWeek" class="form-label">
+                                <i class="fas fa-dumbbell me-2"></i>Số buổi tập với HLV / tuần
+                            </label>
+                            <input asp-for="MaxSessionsPerWeek" class="form-control" placeholder="Để trống = không giới hạn" />
+                            <span asp-validation-for="MaxSessionsPerWeek" class="text-danger small"></span>
+                            <div class="small mt-1" style="color: var(--gym-muted);">
+                                Để trống = không giới hạn. Nhập <strong>0</strong> = gói này không cho đặt lịch với HLV. Nhập số N = tối đa N buổi/tuần.
                             </div>
                         </div>
 

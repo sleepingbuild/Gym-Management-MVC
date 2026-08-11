@@ -62,14 +62,35 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            // Đã có 1 gói được lên lịch (do xuống cấp trước đó) -> chưa cho đăng ký thêm
+            var scheduled = await _membershipService.GetScheduledMembershipAsync(userId);
+            if (scheduled != null)
+            {
+                TempData["ErrorMessage"] = $"Bạn đã có một gói tập được lên lịch chuyển sang vào ngày {scheduled.StartDate:dd/MM/yyyy}. Vui lòng chờ gói đó kích hoạt trước khi đăng ký gói khác.";
+                return RedirectToAction(nameof(Index));
+            }
+
             if (!await _membershipService.IsUserEligibleForRegistrationAsync(userId))
             {
-                TempData["ErrorMessage"] = "Bạn đang có một gói tập chờ thanh toán. Vui lòng hoàn tất thanh toán hoặc hủy gói đó trước khi đăng ký gói mới.";
+                TempData["ErrorMessage"] = "Bạn có một gói tập đang chờ thanh toán. Vui lòng hoàn tất thanh toán hoặc hủy gói đó trước khi đăng ký gói mới.";
                 return RedirectToAction(nameof(Index));
             }
 
             var packages = await _packageService.GetActivePackagesAsync();
             ViewBag.Packages = packages;
+
+            // Thông tin gói đang active — để View hiển thị "còn X ngày" cho các gói xuống cấp
+            var activeMembership = await _membershipService.GetActiveMembershipAsync(userId);
+            ViewBag.ActiveMembership = activeMembership;
+
+            // Nhãn Đăng ký / Gia hạn / Nâng cấp / Xuống cấp cho từng gói
+            var actionLabels = new Dictionary<int, string>();
+            foreach (var pkg in packages)
+            {
+                actionLabels[pkg.Id] = await _membershipService.GetPackageActionLabelAsync(userId, pkg.Id);
+            }
+            ViewBag.ActionLabels = actionLabels;
+
             return View();
         }
 
@@ -102,8 +123,22 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
 
             try
             {
-                var membership = await _membershipService.RegisterMembershipAsync(model);
-                return RedirectToAction("Create", "Payment", new { membershipId = membership.Id });
+                var result = await _membershipService.RegisterMembershipAsync(model);
+
+                if (result.Status == "Scheduled")
+                {
+                    var daysRemaining = Math.Max(0, (result.StartDate.Date - DateTime.UtcNow.Date).Days);
+                    var newPackage = await _packageService.GetPackageByIdAsync(packageId);
+                    TempData["SuccessMessage"] =
+                        $"Đã lên lịch chuyển gói thành công! Gói hiện tại của bạn còn {daysRemaining} ngày. " +
+                        $"Sau đó hệ thống sẽ tự động chuyển sang gói \"{newPackage?.Name}\" (từ {result.StartDate:dd/MM/yyyy}).";
+                }
+                else
+                {
+                    TempData["SuccessMessage"] = "Đăng ký gói tập thành công!";
+                }
+
+                return RedirectToAction(nameof(Index));
             }
             catch (InvalidOperationException ex)
             {
@@ -154,13 +189,23 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RenewConfirm(int id)
         {
-            if (!await _renewalService.CanRenewAsync(id))
+            try
             {
-                TempData["ErrorMessage"] = "Gói tập này không thể gia hạn.";
+                var result = await _renewalService.RenewMembershipAsync(id);
+                TempData["SuccessMessage"] = "Gia hạn gói tập thành công! Ngày kết thúc mới: " +
+                                             result.EndDate.ToString("dd/MM/yyyy");
                 return RedirectToAction(nameof(Index));
             }
-
-            return RedirectToAction("Create", "Payment", new { membershipId = id });
+            catch (KeyNotFoundException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }

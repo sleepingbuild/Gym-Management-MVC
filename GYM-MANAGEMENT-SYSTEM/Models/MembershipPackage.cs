@@ -25,6 +25,10 @@ namespace GYM_MANAGEMENT_SYSTEM.Models
         [Range(1, 365, ErrorMessage = "Số ngày phải từ 1-365")]
         public int DurationDays { get; set; }
 
+        
+        [Range(0, 100, ErrorMessage = "Số buổi/tuần phải từ 0-100")]
+        public int? MaxSessionsPerWeek { get; set; }
+
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -42,6 +42,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 Description = model.Description,
                 Price = model.Price,
                 DurationDays = model.DurationDays,
+                MaxSessionsPerWeek = model.MaxSessionsPerWeek,
                 IsActive = model.IsActive,
                 CreatedAt = DateTime.UtcNow
             };
@@ -67,6 +68,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
             package.Description = model.Description;
             package.Price = model.Price;
             package.DurationDays = model.DurationDays;
+            package.MaxSessionsPerWeek = model.MaxSessionsPerWeek;
             package.IsActive = model.IsActive;
 
             return await _repository.UpdateAsync(package);

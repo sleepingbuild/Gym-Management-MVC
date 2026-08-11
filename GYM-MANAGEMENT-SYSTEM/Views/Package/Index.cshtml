@@ -77,6 +77,10 @@
                                 <i class="fas fa-calendar-day"></i>
                                 <span>Thời hạn: <strong>@package.DurationDisplay</strong></span>
                             </li>
+                            <li>
+                                <i class="fas fa-dumbbell"></i>
+                                <span>Đặt lịch HLV: <strong>@package.BookingLimitDisplay</strong></span>
+                            </li>
                             @if (isAdmin)
                             {
                                 <li>
@@ -125,7 +129,7 @@
                                     <i class="fas fa-info-circle me-1"></i>Chi tiết
                                 </a>
                                 <a asp-controller="Membership" asp-action="Register" class="btn btn-fitness-primary flex-grow-1">
-                                    <i class="fas fa-check me-1"></i>Đăng ký
+                                    <i class="fas fa-check me-1"></i>@package.ActionLabel
                                 </a>
                             }
                         </div>

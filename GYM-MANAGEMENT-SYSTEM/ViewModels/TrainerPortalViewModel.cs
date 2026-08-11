@@ -33,6 +33,11 @@
         public string Status { get; set; } = string.Empty;
         public string Notes { get; set; } = string.Empty;
 
+        // Đã điểm danh bằng khuôn mặt chưa — "Face" nếu đã check-in qua Face
+        // Attendance, null nếu chưa điểm danh. Dùng để chỉ hiện nút "Xác nhận"
+        // khi Member đã thật sự có mặt (không cho PT xác nhận khống).
+        public string? CheckInMethod { get; set; }
+
         public string StatusBadgeClass => Status switch
         {
             "Pending" => "badge-fitness orange",
@@ -43,7 +48,7 @@
         };
     }
 
-    
+
     public class TrainerBookingDetailViewModel
     {
         public int Id { get; set; }
@@ -60,6 +65,11 @@
         public string Status { get; set; } = string.Empty;
         public string Notes { get; set; } = string.Empty;
 
+        // Điểm danh khuôn mặt — null nếu học viên chưa điểm danh vào buổi này.
+        public DateTime? CheckInTime { get; set; }
+        public string? CheckInMethod { get; set; }
+        public bool HasCheckedIn => CheckInTime.HasValue;
+
         public string StatusBadgeClass => Status switch
         {
             "Pending" => "badge-fitness orange",
@@ -70,7 +80,7 @@
         };
     }
 
-    
+
     public class TrainerStudentProgressViewModel
     {
         public string UserId { get; set; } = string.Empty;

@@ -7,3 +7,6 @@ test_questions_100.json
 faq_embeddings.json
 build_faq_embeddings.py
 gymbot-output/faq_merged_final.json.bak
+*.bak
+diagnose_faq_json.py
+fix_faq_json*.py

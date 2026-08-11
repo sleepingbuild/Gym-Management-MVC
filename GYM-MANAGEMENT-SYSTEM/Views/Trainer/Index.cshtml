@@ -35,9 +35,17 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="card-fitness h-100">
                         <div class="card-body text-center">
-                            <div class="auth-icon" style="width: 72px; height: 72px; margin: 0 auto;">
-                                <i class="fas fa-user-tie" style="font-size: 2rem;"></i>
-                            </div>
+                            @if (!string.IsNullOrEmpty(trainer.AvatarPath))
+                            {
+                                <img src="@trainer.AvatarPath" alt="@trainer.FullName"
+                                     style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--gym-border);margin:0 auto;display:block;" />
+                            }
+                            else
+                            {
+                                <div class="auth-icon" style="width: 72px; height: 72px; margin: 0 auto;">
+                                    <i class="fas fa-user-tie" style="font-size: 2rem;"></i>
+                                </div>
+                            }
                             <h5 class="text-white mt-3 mb-1">@trainer.FullName</h5>
                             <p class="text-muted small mb-2">@trainer.Specialization</p>
                             <span class="badge-fitness @trainer.StatusBadgeClass mb-3">

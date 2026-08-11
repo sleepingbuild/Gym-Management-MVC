@@ -8,12 +8,33 @@
         <div class="col-lg-8 col-md-10">
             <div class="card-fitness">
                 <div class="card-header">
-                    <i class="fas fa-edit me-2"></i>Sửa huấn luyện viên
+                    <i class="fas fa-user-edit me-2"></i>Sửa huấn luyện viên
                 </div>
                 <div class="card-body">
-                    <form asp-action="Edit" method="post">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
                         <input type="hidden" asp-for="Id" />
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <input type="hidden" asp-for="CurrentAvatarPath" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+                        <div class="mb-4 text-center">
+                            <label class="form-label d-block">
+                                <i class="fas fa-camera me-2"></i>Ảnh đại diện
+                            </label>
+                            @if (!string.IsNullOrEmpty(Model.CurrentAvatarPath))
+                            {
+                                <img src="@Model.CurrentAvatarPath" alt="Ảnh hiện tại"
+                                     style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:2px solid var(--gym-border);" class="mb-2" />
+                            }
+                            else
+                            {
+                                <div class="auth-icon mb-2" style="width: 90px; height: 90px; margin: 0 auto;">
+                                    <i class="fas fa-user-tie" style="font-size: 2.2rem;"></i>
+                                </div>
+                            }
+                            <input asp-for="AvatarFile" class="form-control" type="file" accept="image/png,image/jpeg,image/webp" style="max-width: 320px; margin: 0 auto;" />
+                            <span asp-validation-for="AvatarFile" class="text-danger small"></span>
+                            <div class="small mt-1" style="color: var(--gym-muted);">Để trống nếu muốn giữ ảnh hiện tại. JPG, PNG hoặc WEBP, tối đa 5MB</div>
+                        </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -30,6 +51,15 @@
                                 <input asp-for="Specialization" class="form-control" />
                                 <span asp-validation-for="Specialization" class="text-danger small"></span>
                             </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DateOfBirth" class="form-label">
+                                <i class="fas fa-birthday-cake me-2"></i>Ngày sinh
+                            </label>
+                            <input asp-for="DateOfBirth" class="form-control" type="date" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                            <div class="small mt-1" style="color: var(--gym-muted);">Huấn luyện viên phải từ 18 tuổi trở lên (tính theo ngày đăng ký).</div>
                         </div>
 
                         <div class="mb-3">
@@ -63,6 +93,27 @@
                                 <i class="fas fa-check-circle me-2" style="color: var(--success-green);"></i>
                                 Đang hoạt động
                             </label>
+                        </div>
+
+                        <div class="mb-4 p-3" style="background:var(--gym-input);border-radius:10px;border:1px solid var(--gym-border);">
+                            <label class="form-label fw-bold mb-2">
+                                <i class="fas fa-business-time me-2"></i>Ca làm việc
+                            </label>
+                            <div class="row">
+                                <div class="col-md-6 mb-2 mb-md-0">
+                                    <label asp-for="ShiftStartTime" class="form-label small">Giờ bắt đầu</label>
+                                    <input asp-for="ShiftStartTime" class="form-control" type="time" />
+                                    <span asp-validation-for="ShiftStartTime" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="ShiftEndTime" class="form-label small">Giờ kết thúc</label>
+                                    <input asp-for="ShiftEndTime" class="form-control" type="time" />
+                                    <span asp-validation-for="ShiftEndTime" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="small mt-2" style="color: var(--gym-muted);">
+                                Để trống nếu chưa muốn đặt ca riêng — hệ thống sẽ dùng mặc định 07:00–21:00. Member chỉ đặt lịch được với HLV này trong đúng khung giờ ca làm việc.
+                            </div>
                         </div>
 
                         <div class="d-flex gap-2">

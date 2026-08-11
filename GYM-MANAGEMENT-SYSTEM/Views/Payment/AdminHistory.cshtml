@@ -1,0 +1,146 @@
+﻿@model List<GYM_MANAGEMENT_SYSTEM.ViewModels.PaymentIndexViewModel>
+@{
+    ViewData["Title"] = "Lịch sử thanh toán (Admin)";
+    var stats = ViewBag.Statistics as GYM_MANAGEMENT_SYSTEM.ViewModels.PaymentStatisticsViewModel;
+    var currentStatus = Context.Request.Query["Status"].ToString();
+    var currentSearch = Context.Request.Query["SearchTerm"].ToString();
+    var currentFrom = Context.Request.Query["FromDate"].ToString();
+    var currentTo = Context.Request.Query["ToDate"].ToString();
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h1 class="fitness-title">💳 Lịch sử thanh toán</h1>
+            <p class="text-muted mb-0">Toàn bộ giao dịch của tất cả thành viên</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="AdminExportCSV" asp-route-fromDate="@currentFrom" asp-route-toDate="@currentTo" class="btn btn-fitness-secondary">
+                <i class="fas fa-file-csv me-2"></i>Xuất CSV
+            </a>
+        </div>
+    </div>
+
+    @if (stats != null && stats.TotalPayments > 0)
+    {
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fas fa-coins"></i></div>
+                    <div class="stat-number">@stats.TotalSuccessAmountDisplay</div>
+                    <div class="stat-label">Tổng doanh thu</div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-list"></i></div>
+                    <div class="stat-number">@stats.TotalPayments</div>
+                    <div class="stat-label">Tổng giao dịch</div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-number">@stats.SuccessCount</div>
+                    <div class="stat-label">Thành công</div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon yellow"><i class="fas fa-clock"></i></div>
+                    <div class="stat-number">@stats.PendingCount</div>
+                    <div class="stat-label">Đang xử lý</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Filter -->
+    <div class="card-fitness mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Từ ngày</label>
+                    <input type="date" name="FromDate" class="form-control" value="@currentFrom" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Đến ngày</label>
+                    <input type="date" name="ToDate" class="form-control" value="@currentTo" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Trạng thái</label>
+                    <select name="Status" class="form-select">
+                        <option value="" selected="@(string.IsNullOrEmpty(currentStatus))">Tất cả</option>
+                        <option value="Pending" selected="@(currentStatus == "Pending")">Đang xử lý</option>
+                        <option value="Success" selected="@(currentStatus == "Success")">Thành công</option>
+                        <option value="Failed" selected="@(currentStatus == "Failed")">Thất bại</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Tìm kiếm</label>
+                    <input type="text" name="SearchTerm" class="form-control" value="@currentSearch" placeholder="Tên, email, mã GD..." />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-fitness-secondary w-100">
+                        <i class="fas fa-filter me-2"></i>Lọc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payment list -->
+    <div class="card-fitness">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-fitness">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Thành viên</th>
+                            <th>Số tiền</th>
+                            <th>Phương thức</th>
+                            <th>Trạng thái</th>
+                            <th>Mã giao dịch</th>
+                            <th>Nội dung</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model)
+                        {
+                            <tr>
+                                <td class="small text-muted">@p.DateDisplay</td>
+                                <td>
+                                    <div class="fw-semibold" style="color:var(--gym-text)">@p.MemberName</div>
+                                    <div class="small text-muted">@p.MemberEmail</div>
+                                </td>
+                                <td class="fw-semibold" style="color:var(--gym-text)">@p.AmountDisplay</td>
+                                <td>@p.MethodDisplay</td>
+                                <td><span class="@p.StatusBadgeClass">@p.StatusDisplay</span></td>
+                                <td class="small text-muted">@(string.IsNullOrWhiteSpace(p.TransactionId) ? "—" : p.TransactionId)</td>
+                                <td class="small text-muted">@(string.IsNullOrWhiteSpace(p.PaymentInfo) ? "—" : p.PaymentInfo)</td>
+                                <td class="text-end">
+                                    <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-fitness-secondary">
+                                        <i class="fas fa-eye me-1"></i>Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="card-body text-center py-5">
+                <i class="fas fa-receipt mb-3" style="font-size:2.5rem;color:var(--gym-border)"></i>
+                <p class="text-muted mb-3">Không có giao dịch nào khớp với bộ lọc.</p>
+                <a asp-action="AdminHistory" class="btn btn-fitness-secondary">
+                    <i class="fas fa-times me-2"></i>Xóa bộ lọc
+                </a>
+            </div>
+        }
+    </div>
+</div>

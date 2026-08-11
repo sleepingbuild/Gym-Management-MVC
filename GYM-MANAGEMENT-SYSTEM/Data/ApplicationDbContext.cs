@@ -26,6 +26,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Data
         public DbSet<TrainerAttendance> TrainerAttendances { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<ChatSession> ChatSessions { get; set; }
+        public DbSet<UserMemory> UserMemories { get; set; }
 
         // Face Attendance
         public DbSet<FaceProfile> FaceProfiles { get; set; }

@@ -28,7 +28,18 @@ namespace GYM_MANAGEMENT_SYSTEM.Models
         [EmailAddress(ErrorMessage = "Email không hợp lệ")]
         public string Email { get; set; } = string.Empty;
 
+        public DateTime? DateOfBirth { get; set; }
+
+        [StringLength(300)]
+        public string? AvatarPath { get; set; }
+
         public bool IsAvailable { get; set; } = true;
+
+        // Ca làm việc do Admin đặt riêng cho từng Trainer — dùng để khoá giờ đặt
+        // lịch ngoài ca và tính đi muộn/về sớm khi điểm danh. Null = chưa đặt ca,
+        // hệ thống sẽ dùng khung giờ mặc định của phòng gym (07:00–21:00).
+        public TimeOnly? ShiftStartTime { get; set; }
+        public TimeOnly? ShiftEndTime { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

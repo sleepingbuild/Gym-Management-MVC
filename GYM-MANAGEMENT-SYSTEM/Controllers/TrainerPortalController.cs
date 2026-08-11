@@ -163,13 +163,15 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                     SessionDate = b.SessionDate,
                     TimeSlot = b.TimeSlot,
                     Status = b.Status,
-                    Notes = b.Notes
+                    Notes = b.Notes,
+                    CheckInMethod = b.CheckInMethod
                 });
             }
 
             ViewBag.WeekStart = weekStart;
             ViewBag.WeekEnd = weekEnd;
             ViewBag.ThisWeekStart = thisWeekStart;
+            ViewBag.TrainerName = trainer.FullName;
 
             return View(list);
         }

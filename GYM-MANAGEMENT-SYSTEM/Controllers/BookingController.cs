@@ -52,9 +52,23 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
         }
 
         // GET: /Booking/Create?trainerId=5
-        // trainerId cho phép nút "Đăng ký tập" ở trang Trainer truyền sẵn HLV đã chọn
         public async Task<IActionResult> Create(int? trainerId)
         {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var profile = await _profileService.GetByUserIdAsync(userId);
+            if (profile == null || profile.Age <= 0)
+            {
+                TempData["ErrorMessage"] = "Vui lòng cập nhật tuổi trong hồ sơ cá nhân trước khi đặt lịch.";
+                return RedirectToAction("Edit", "Profile", new { returnUrl = Url.Action("Create", "Booking", new { trainerId }) });
+            }
+
             var trainers = await _trainerService.GetAvailableTrainersAsync();
             ViewBag.Trainers = trainers;
 
@@ -77,11 +91,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BookingCreateViewModel model)
         {
-            // Lấy user hiện tại và gán vào model TRƯỚC khi kiểm tra ModelState.
-            // BookingCreateViewModel.UserId có [Required] nhưng form không có input
-            // nào cho UserId (được gán tự động ở server) — nếu kiểm tra
-            // ModelState.IsValid trước bước gán này, UserId luôn rỗng và validation
-            // luôn thất bại dù mọi field khác hợp lệ.
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
                          ?? User.Identity?.Name;
 
@@ -103,10 +112,6 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             try
             {
                 var booking = await _bookingService.CreateBookingAsync(model);
-
-                // Lưu Tuổi vừa nhập vào UserProfile — không chặn luồng đặt lịch nếu
-                // việc lưu tuổi thất bại vì lý do gì đó, booking vẫn đã thành công.
-                await _profileService.UpdateAgeAsync(userId, model.Age);
 
                 TempData["SuccessMessage"] = "Đặt lịch thành công! Vui lòng chờ xác nhận từ huấn luyện viên.";
                 return RedirectToAction(nameof(Index));
@@ -197,24 +202,79 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             return View(viewModel);
         }
 
-        // GET: /Booking/Calendar
-        public async Task<IActionResult> Calendar()
+        // GET: /Booking/Calendar — Lịch tập CỦA CHÍNH MEMBER (không phải lịch
+        public async Task<IActionResult> Calendar(DateTime? weekStart)
         {
-            var trainers = await _trainerService.GetAllTrainersAsync();
-            ViewBag.Trainers = trainers;
-            return View();
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Xác định ngày bắt đầu tuần (Thứ 2) chứa weekStart, mặc định là tuần hiện tại
+            var referenceDate = (weekStart ?? DateTime.Today).Date;
+            var diff = (7 + (referenceDate.DayOfWeek - DayOfWeek.Monday)) % 7;
+            var startOfWeek = referenceDate.AddDays(-diff);
+            var endOfWeek = startOfWeek.AddDays(6);
+
+            var bookings = await _bookingService.GetUserBookingsAsync(userId);
+            var weekBookings = bookings
+                .Where(b => b.SessionDate.Date >= startOfWeek && b.SessionDate.Date <= endOfWeek && b.Status != "Cancelled" && b.Status != "NoShow")
+                .OrderBy(b => b.SessionDate)
+                .ThenBy(b => b.TimeSlot)
+                .Select(b => new BookingIndexViewModel
+                {
+                    Id = b.Id,
+                    UserId = b.UserId,
+                    TrainerId = b.TrainerId,
+                    TrainerName = b.Trainer?.FullName ?? "N/A",
+                    SessionDate = b.SessionDate,
+                    TimeSlot = b.TimeSlot,
+                    Status = b.Status,
+                    Notes = b.Notes,
+                    CreatedAt = b.CreatedAt
+                })
+                .ToList();
+
+            ViewBag.StartOfWeek = startOfWeek;
+            ViewBag.EndOfWeek = endOfWeek;
+
+            return View(weekBookings);
         }
 
         // API: /Booking/GetSlots
         [HttpGet]
         public async Task<IActionResult> GetSlots(int trainerId, DateTime date)
         {
-            var slots = await _bookingService.GetBookingsByDateAsync(date);
-            var trainerSlots = slots.Where(b => b.TrainerId == trainerId && b.Status != "Cancelled")
-                                    .Select(b => b.TimeSlot)
-                                    .ToList();
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? User.Identity?.Name;
 
-            return Json(new { bookedSlots = trainerSlots });
+            var bookings = await _bookingService.GetBookingsByDateAsync(date);
+
+            var fullSlots = bookings
+                .Where(b => b.TrainerId == trainerId && (b.Status == "Pending" || b.Status == "Confirmed"))
+                .GroupBy(b => b.TimeSlot)
+                .Where(g => g.Count() >= 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            var mySlots = string.IsNullOrEmpty(userId)
+                ? new List<string>()
+                : bookings
+                    .Where(b => b.UserId == userId && (b.Status == "Pending" || b.Status == "Confirmed"))
+                    .Select(b => b.TimeSlot)
+                    .Distinct()
+                    .ToList();
+
+            var bookedSlots = fullSlots.Union(mySlots).Distinct().ToList();
+
+            var trainer = await _trainerService.GetTrainerByIdAsync(trainerId);
+            string? shiftStart = trainer?.ShiftStartTime?.ToString("HH:mm");
+            string? shiftEnd = trainer?.ShiftEndTime?.ToString("HH:mm");
+
+            return Json(new { bookedSlots, mySlots, shiftStart, shiftEnd });
         }
 
         // GET: /Booking/History

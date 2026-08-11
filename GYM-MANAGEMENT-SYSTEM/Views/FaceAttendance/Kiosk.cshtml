@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Kiosk Điểm Danh Khuôn Mặt";
     Layout = "_Layout";
 }
@@ -22,45 +22,24 @@
         // Nếu CDN model bị chặn (chạy offline), tải thư mục weights về
         // wwwroot/lib/face-api/models rồi đổi MODEL_URL thành "/lib/face-api/models"
         const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights";
-        const MATCH_THRESHOLD = 0.55;   // càng nhỏ càng chặt
         const COOLDOWN_MS = 8000;       // tránh gọi API liên tục cho cùng 1 người
 
         const video = document.getElementById("video");
         const overlay = document.getElementById("overlay");
         const banner = document.getElementById("statusBanner");
 
-        let knownProfiles = [];         // [{ userId, fullName, descriptor: Float32Array }]
-        let lastCheckIn = {};           // userId -> timestamp
+        // Trình duyệt KHÔNG còn giữ danh sách khuôn mặt đã đăng ký nữa — chỉ gửi
+        // vector vừa quét lên server, server tự so khớp với toàn bộ hồ sơ (1-N).
+        // Cooldown TOÀN CỤC (không phân biệt theo người) — chặn NGAY TỪ TRƯỚC khi
+        // gửi request, để tránh 1 người đứng trước camera vài giây bị quét đi
+        // quét lại nhiều lần liên tiếp (trước đây cooldown chỉ chặn hiển thị banner,
+        // không chặn gọi API, khiến 1 lần đứng lâu trước camera bị tính thành cả
+        // check-in LẪN check-out chỉ trong vài giây).
+        let cooldownUntil = 0;
 
         function setBanner(message, type) {
             banner.className = "alert alert-" + type;
             banner.textContent = message;
-        }
-
-        function euclideanDistance(a, b) {
-            let sum = 0;
-            for (let i = 0; i < a.length; i++) {
-                sum += (a[i] - b[i]) ** 2;
-            }
-            return Math.sqrt(sum);
-        }
-
-        function findBestMatch(descriptor) {
-            let best = null;
-            let bestDistance = Infinity;
-
-            for (const profile of knownProfiles) {
-                const distance = euclideanDistance(descriptor, profile.descriptor);
-                if (distance < bestDistance) {
-                    bestDistance = distance;
-                    best = profile;
-                }
-            }
-
-            if (best && bestDistance < MATCH_THRESHOLD) {
-                return best;
-            }
-            return null;
         }
 
         async function loadModels() {
@@ -69,83 +48,85 @@
             await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
         }
 
-        async function loadProfiles() {
-            const res = await fetch("/FaceAttendance/GetProfiles");
-            const data = await res.json();
-            knownProfiles = data.map(p => ({
-                userId: p.userId,
-                fullName: p.fullName,
-                descriptor: new Float32Array(p.descriptor)
-            }));
-        }
-
         async function startCamera() {
             const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
             video.srcObject = stream;
         }
 
-        async function sendCheckIn(userId, fullName) {
+        async function sendScan(descriptor) {
             const res = await fetch("/FaceAttendance/CheckIn", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId })
+                body: JSON.stringify({ descriptor: Array.from(descriptor) })
             });
-            const result = await res.json();
-
-            if (result.success) {
-                setBanner(`✅ ${result.message} — ${result.fullName} (${result.role})`, "success");
-            } else {
-                setBanner(`⚠️ ${result.message}${result.fullName ? " — " + result.fullName : ""}`, "warning");
-            }
+            return await res.json();
         }
 
-        function canCheckInAgain(userId) {
-            const last = lastCheckIn[userId];
-            return !last || (Date.now() - last) > COOLDOWN_MS;
-        }
-
-        async function detectLoop() {
+        function detectLoop() {
             const ctx = overlay.getContext("2d");
+            let busy = false;
 
             setInterval(async () => {
-                const detection = await faceapi
-                    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-                    .withFaceLandmarks()
-                    .withFaceDescriptor();
+                if (busy) return;
+                if (Date.now() < cooldownUntil) return; // vừa xử lý xong, chờ trước khi quét tiếp
 
-                ctx.clearRect(0, 0, overlay.width, overlay.height);
+                // QUAN TRỌNG: set busy=true NGAY TỪ ĐẦU, trước cả bước detectSingleFace
+                // (bước này bất đồng bộ, có thể mất vài trăm ms). Nếu để busy=true sau
+                // bước nhận diện, tick tiếp theo của setInterval có thể lọt qua kiểm tra
+                // "if (busy) return" trong lúc tick hiện tại vẫn đang nhận diện dở dang
+                // -> gây gửi trùng 2 lần gần như đồng thời (race condition).
+                busy = true;
 
-                if (!detection) {
-                    return;
+                try {
+                    const detection = await faceapi
+                        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
+
+                    ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+                    if (!detection) {
+                        return; // vào finally, busy=false, không gửi gì cả
+                    }
+
+                    const box = detection.detection.box;
+                    ctx.strokeStyle = "#00c853";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+                    setBanner("Đang nhận diện khuôn mặt...", "info");
+
+                    const result = await sendScan(detection.descriptor);
+
+                    if (!result.success && !result.fullName) {
+                        // Không nhận dạng được ai cả — không cần cooldown, cho quét lại ngay
+                        setBanner("Không nhận diện được — chưa đăng ký khuôn mặt hoặc không đủ rõ.", "secondary");
+                    } else {
+                        // Đã xác định được là ai (thành công hay không) -> bắt đầu cooldown
+                        // để không gửi lại liên tục trong lúc người này vẫn còn trước camera.
+                        cooldownUntil = Date.now() + COOLDOWN_MS;
+
+                        if (result.success) {
+                            const icon = result.action === "CheckOut" ? "👋" : "✅";
+                            setBanner(`${icon} ${result.message} — ${result.fullName} (${result.role})`, "success");
+                        } else {
+                            setBanner(`⚠️ ${result.message}${result.fullName ? " — " + result.fullName : ""}`, "warning");
+                        }
+                    }
+                } catch (err) {
+                    console.error(err);
+                    setBanner("Lỗi khi gửi dữ liệu điểm danh: " + err.message, "danger");
+                } finally {
+                    busy = false;
                 }
-
-                const box = detection.detection.box;
-                ctx.strokeStyle = "#00c853";
-                ctx.lineWidth = 2;
-                ctx.strokeRect(box.x, box.y, box.width, box.height);
-
-                const match = findBestMatch(detection.descriptor);
-                if (!match) {
-                    setBanner("Không nhận diện được — chưa đăng ký khuôn mặt hoặc không rõ mặt.", "secondary");
-                    return;
-                }
-
-                if (!canCheckInAgain(match.userId)) {
-                    return; // vừa điểm danh xong, bỏ qua để tránh spam
-                }
-
-                lastCheckIn[match.userId] = Date.now();
-                setBanner(`Nhận diện: ${match.fullName} — đang điểm danh...`, "info");
-                await sendCheckIn(match.userId, match.fullName);
             }, 1200);
         }
 
         (async function init() {
             try {
                 await loadModels();
-                await loadProfiles();
                 await startCamera();
-                setBanner(`Sẵn sàng. Đã tải ${knownProfiles.length} hồ sơ khuôn mặt.`, "primary");
+                setBanner("Sẵn sàng. Đưa khuôn mặt vào khung hình để điểm danh.", "primary");
                 detectLoop();
             } catch (err) {
                 console.error(err);

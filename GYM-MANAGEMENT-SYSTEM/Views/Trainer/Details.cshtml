@@ -12,9 +12,17 @@
                 </div>
                 <div class="card-body">
                     <div class="text-center mb-4">
-                        <div class="auth-icon" style="width: 100px; height: 100px; margin: 0 auto;">
-                            <i class="fas fa-user-tie" style="font-size: 3rem;"></i>
-                        </div>
+                        @if (!string.IsNullOrEmpty(Model.AvatarPath))
+                        {
+                            <img src="@Model.AvatarPath" alt="@Model.FullName"
+                                 style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:2px solid var(--gym-border);margin:0 auto;display:block;" />
+                        }
+                        else
+                        {
+                            <div class="auth-icon" style="width: 100px; height: 100px; margin: 0 auto;">
+                                <i class="fas fa-user-tie" style="font-size: 3rem;"></i>
+                            </div>
+                        }
                         <h3 class="text-white mt-3">@Model.FullName</h3>
                         <span class="badge-fitness @Model.StatusBadgeClass">
                             @Model.StatusText

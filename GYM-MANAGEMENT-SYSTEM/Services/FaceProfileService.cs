@@ -92,5 +92,71 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 .ThenBy(u => u.FullName)
                 .ToList();
         }
+
+        private const double MatchThreshold = 0.45;
+
+        public async Task<string?> FindMatchingUserIdAsync(float[] descriptor)
+        {
+            if (descriptor == null || descriptor.Length == 0)
+            {
+                return null;
+            }
+
+            var profiles = await _repository.GetAllAsync();
+
+            string? bestUserId = null;
+            double bestDistance = double.MaxValue;
+
+            foreach (var profile in profiles)
+            {
+                var stored = JsonSerializer.Deserialize<float[]>(profile.DescriptorJson);
+                if (stored == null || stored.Length != descriptor.Length)
+                {
+                    continue;
+                }
+
+                var distance = EuclideanDistance(descriptor, stored);
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    bestUserId = profile.UserId;
+                }
+            }
+
+            return bestDistance < MatchThreshold ? bestUserId : null;
+        }
+
+        public async Task<bool> VerifyOwnFaceAsync(string userId, float[] descriptor)
+        {
+            if (descriptor == null || descriptor.Length == 0)
+            {
+                return false;
+            }
+
+            var profile = await _repository.GetByUserIdAsync(userId);
+            if (profile == null)
+            {
+                return false;
+            }
+
+            var stored = JsonSerializer.Deserialize<float[]>(profile.DescriptorJson);
+            if (stored == null || stored.Length != descriptor.Length)
+            {
+                return false;
+            }
+
+            return EuclideanDistance(descriptor, stored) < MatchThreshold;
+        }
+
+        private static double EuclideanDistance(float[] a, float[] b)
+        {
+            double sum = 0;
+            for (int i = 0; i < a.Length; i++)
+            {
+                var diff = a[i] - b[i];
+                sum += diff * diff;
+            }
+            return Math.Sqrt(sum);
+        }
     }
 }

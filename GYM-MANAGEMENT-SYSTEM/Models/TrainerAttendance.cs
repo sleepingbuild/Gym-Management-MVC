@@ -19,9 +19,14 @@ namespace GYM_MANAGEMENT_SYSTEM.Models
         [Required]
         public DateTime CheckInTime { get; set; } = DateTime.UtcNow;
 
+        // Điểm danh tan ca — null nếu chưa check-out
+        public DateTime? CheckOutTime { get; set; }
+
         [Required]
         public string Status { get; set; } = "Present";
 
+        // "Manual" (nút bấm cũ) hoặc "Face" (điểm danh khuôn mặt).
+        // Default "Manual" để không phá vỡ dữ liệu/luồng chấm công cũ.
         [Required]
         public string Method { get; set; } = "Manual";
 

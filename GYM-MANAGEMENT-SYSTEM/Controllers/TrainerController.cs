@@ -9,10 +9,12 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
     public class TrainerController : Controller
     {
         private readonly ITrainerService _trainerService;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public TrainerController(ITrainerService trainerService)
+        public TrainerController(ITrainerService trainerService, IWebHostEnvironment webHostEnvironment)
         {
             _trainerService = trainerService;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: /Trainer — mở cho mọi user đã đăng nhập (Member xem danh sách để đặt lịch)
@@ -28,7 +30,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                 Phone = t.Phone,
                 Email = t.Email,
                 IsAvailable = t.IsAvailable,
-                CreatedAt = t.CreatedAt
+                CreatedAt = t.CreatedAt,
+                AvatarPath = t.AvatarPath
             }).ToList();
 
             return View(viewModels);
@@ -52,7 +55,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                 Phone = trainer.Phone,
                 Email = trainer.Email,
                 IsAvailable = trainer.IsAvailable,
-                CreatedAt = trainer.CreatedAt
+                CreatedAt = trainer.CreatedAt,
+                AvatarPath = trainer.AvatarPath
             };
 
             return View(viewModel);
@@ -78,13 +82,22 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
 
             try
             {
-                await _trainerService.CreateTrainerAsync(model);
-                TempData["SuccessMessage"] = "Huấn luyện viên đã được tạo thành công!";
+                var trainer = await _trainerService.CreateTrainerAsync(model);
+
+                if (model.AvatarFile != null && model.AvatarFile.Length > 0)
+                {
+                    var avatarPath = await SaveAvatarAsync(model.AvatarFile);
+                    await _trainerService.UpdateAvatarAsync(trainer.Id, avatarPath);
+                }
+
+                TempData["SuccessMessage"] =
+                    $"Huấn luyện viên đã được tạo thành công! Tài khoản đăng nhập: {model.Email} — " +
+                    $"Mật khẩu tạm: {Services.TrainerService.DefaultTrainerPassword} (vui lòng báo HLV đổi mật khẩu sau khi đăng nhập lần đầu).";
                 return RedirectToAction(nameof(Index));
             }
             catch (InvalidOperationException ex)
             {
-                ModelState.AddModelError("Email", ex.Message);
+                ModelState.AddModelError("", ex.Message);
                 return View(model);
             }
         }
@@ -107,6 +120,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                 Bio = trainer.Bio,
                 Phone = trainer.Phone,
                 Email = trainer.Email,
+                DateOfBirth = trainer.DateOfBirth ?? DateTime.UtcNow.AddYears(-18),
+                CurrentAvatarPath = trainer.AvatarPath,
                 IsAvailable = trainer.IsAvailable
             };
 
@@ -132,6 +147,13 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             try
             {
                 await _trainerService.UpdateTrainerAsync(model);
+
+                if (model.AvatarFile != null && model.AvatarFile.Length > 0)
+                {
+                    var avatarPath = await SaveAvatarAsync(model.AvatarFile);
+                    await _trainerService.UpdateAvatarAsync(model.Id, avatarPath);
+                }
+
                 TempData["SuccessMessage"] = "Huấn luyện viên đã được cập nhật thành công!";
                 return RedirectToAction(nameof(Index));
             }
@@ -141,7 +163,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                ModelState.AddModelError("Email", ex.Message);
+                ModelState.AddModelError("", ex.Message);
                 return View(model);
             }
         }
@@ -180,6 +202,35 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                 TempData["ErrorMessage"] = "Không thể cập nhật trạng thái.";
             }
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task<string> SaveAvatarAsync(IFormFile file)
+        {
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(ext))
+            {
+                throw new InvalidOperationException("Chỉ chấp nhận ảnh định dạng JPG, PNG hoặc WEBP.");
+            }
+
+            if (file.Length > 5 * 1024 * 1024)
+            {
+                throw new InvalidOperationException("Kích thước ảnh không được vượt quá 5MB.");
+            }
+
+            var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "avatars");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"{Guid.NewGuid()}{ext}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            return $"/uploads/avatars/{fileName}";
         }
     }
 }

@@ -1,18 +1,48 @@
 ﻿@model GYM_MANAGEMENT_SYSTEM.ViewModels.UserProfileEditViewModel
 @{
     ViewData["Title"] = "Cập nhật hồ sơ";
+    var returnUrl = ViewBag.ReturnUrl as string;
 }
 
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-7 col-md-9">
+            @if (!string.IsNullOrEmpty(returnUrl))
+            {
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Vui lòng cập nhật tuổi để tiếp tục đặt lịch tập.
+                </div>
+            }
+
             <div class="card-fitness">
                 <div class="card-header">
                     <i class="fas fa-user-edit me-2"></i>Cập nhật hồ sơ cá nhân
                 </div>
                 <div class="card-body">
-                    <form asp-action="Edit" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <form asp-action="Edit" asp-route-returnUrl="@returnUrl" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="CurrentAvatarPath" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+                        <div class="mb-4 text-center">
+                            <label class="form-label d-block">
+                                <i class="fas fa-camera me-2"></i>Ảnh đại diện
+                            </label>
+                            @if (!string.IsNullOrEmpty(Model.CurrentAvatarPath))
+                            {
+                                <img src="@Model.CurrentAvatarPath" alt="Ảnh hiện tại"
+                                     style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:2px solid var(--gym-border);" class="mb-2" />
+                            }
+                            else
+                            {
+                                <div class="auth-icon mb-2" style="width: 90px; height: 90px; margin: 0 auto;">
+                                    <i class="fas fa-user" style="font-size: 2.2rem;"></i>
+                                </div>
+                            }
+                            <input asp-for="AvatarFile" class="form-control" type="file" accept="image/png,image/jpeg,image/webp" style="max-width: 320px; margin: 0 auto;" />
+                            <span asp-validation-for="AvatarFile" class="text-danger small"></span>
+                            <div class="small mt-1" style="color: var(--gym-muted);">Để trống nếu muốn giữ ảnh hiện tại. JPG, PNG hoặc WEBP, tối đa 5MB</div>
+                        </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -21,6 +51,9 @@
                                 </label>
                                 <input asp-for="Age" class="form-control" type="number" min="10" max="90" />
                                 <span asp-validation-for="Age" class="text-danger small"></span>
+                                <div class="small mt-1" style="color: var(--gym-muted);">
+                                    Tuổi này sẽ được dùng khi bạn đặt lịch tập với huấn luyện viên.
+                                </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Weight" class="form-label">

@@ -1,0 +1,66 @@
+<script>
+   
+    (function () {
+        var display = document.getElementById('PriceDisplay');
+        var hidden = document.getElementById('Price');
+        if (!display || !hidden) return;
+
+        function formatIntegerPart(digits) {
+            digits = digits.replace(/^0+(?=\d)/, '');
+            if (digits === '') return '';
+            return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        function parseAndFormat(raw) {
+            raw = (raw || '').replace(/[đĐ\s]/g, '');
+            raw = raw.replace(/[^0-9.,]/g, '');
+
+            var commaIndex = raw.indexOf(',');
+            var intPart, decPart = null;
+
+            if (commaIndex >= 0) {
+                intPart = raw.substring(0, commaIndex);
+                decPart = raw.substring(commaIndex + 1).replace(/[^0-9]/g, '');
+            } else {
+                intPart = raw;
+            }
+
+            var intDigits = intPart.replace(/\./g, '').replace(/[^0-9]/g, '');
+
+            var displayValue = formatIntegerPart(intDigits);
+            var rawValue = intDigits === '' ? '0' : intDigits;
+
+            if (decPart !== null) {
+                displayValue += ',' + decPart;
+                rawValue += '.' + decPart;
+            }
+
+            return { display: displayValue, raw: rawValue };
+        }
+
+        function sync() {
+            var caretFromEnd = display.value.length - display.selectionEnd;
+            var result = parseAndFormat(display.value);
+            display.value = result.display;
+            hidden.value = result.raw;
+
+            var pos = Math.max(0, display.value.length - caretFromEnd);
+            display.setSelectionRange(pos, pos);
+        }
+
+        if (hidden.value) {
+            display.value = hidden.value.replace('.', ',');
+            var initial = parseAndFormat(display.value);
+            display.value = initial.display;
+            hidden.value = initial.raw;
+        }
+
+        display.addEventListener('input', sync);
+        display.addEventListener('blur', sync);
+
+        var form = display.closest('form');
+        if (form) {
+            form.addEventListener('submit', sync);
+        }
+    })();
+</script>

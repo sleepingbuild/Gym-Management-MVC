@@ -12,5 +12,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
         Task<bool> CancelMembershipAsync(int membershipId);
         Task<bool> IsUserEligibleForRegistrationAsync(string userId);
         Task<Membership?> GetByIdAsync(int id);
+        Task<string> GetPackageActionLabelAsync(string userId, int packageId);
+        Task<Membership?> GetScheduledMembershipAsync(string userId);
     }
 }

@@ -72,13 +72,23 @@
 
             @if (Model.Status != "Completed" && Model.Status != "Cancelled")
             {
-                <form asp-action="MarkCompleted" method="post"
-                      onsubmit="return confirm('Xác nhận học viên đã hoàn thành buổi tập này?');">
-                    <input type="hidden" name="id" value="@Model.Id" />
-                    <button type="submit" class="btn btn-fitness-success w-100">
-                        <i class="fas fa-check-circle me-2"></i>Xác nhận học viên đã tập
-                    </button>
-                </form>
+                @if (Model.HasCheckedIn)
+                {
+                    <form asp-action="MarkCompleted" method="post"
+                          onsubmit="return confirm('Xác nhận học viên đã hoàn thành buổi tập này?');">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-fitness-success w-100">
+                            <i class="fas fa-check-circle me-2"></i>Xác nhận học viên đã tập
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <div class="alert alert-warning mb-0">
+                        <i class="fas fa-face-viewfinder me-2"></i>
+                        Học viên chưa điểm danh khuôn mặt cho buổi tập này — chỉ khi điểm danh xong bạn mới có thể xác nhận.
+                    </div>
+                }
             }
         </div>
     </div>

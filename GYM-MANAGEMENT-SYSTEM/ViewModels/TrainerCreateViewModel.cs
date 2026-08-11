@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace GYM_MANAGEMENT_SYSTEM.ViewModels
 {
@@ -24,6 +25,19 @@ namespace GYM_MANAGEMENT_SYSTEM.ViewModels
         [EmailAddress(ErrorMessage = "Email không hợp lệ")]
         public string Email { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Vui lòng nhập ngày sinh")]
+        [DataType(DataType.Date)]
+        public DateTime DateOfBirth { get; set; }
+
+
+        public IFormFile? AvatarFile { get; set; }
+
         public bool IsAvailable { get; set; } = true;
+
+        [DataType(DataType.Time)]
+        public TimeOnly? ShiftStartTime { get; set; }
+
+        [DataType(DataType.Time)]
+        public TimeOnly? ShiftEndTime { get; set; }
     }
 }

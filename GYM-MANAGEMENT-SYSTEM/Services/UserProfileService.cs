@@ -60,5 +60,24 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
             existing.Age = age;
             await _repository.UpdateAsync(existing);
         }
+
+        public async Task UpdateAvatarAsync(string userId, string avatarPath)
+        {
+            var existing = await _repository.GetByUserIdAsync(userId);
+
+            if (existing == null)
+            {
+                var profile = new UserProfile
+                {
+                    UserId = userId,
+                    AvatarPath = avatarPath
+                };
+                await _repository.AddAsync(profile);
+                return;
+            }
+
+            existing.AvatarPath = avatarPath;
+            await _repository.UpdateAsync(existing);
+        }
     }
 }

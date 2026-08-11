@@ -17,5 +17,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Repositories
         Task<int> CountBookingsForTrainerAsync(int trainerId, DateTime date);
         Task<IEnumerable<Booking>> GetUpcomingBookingsAsync(string userId);
         Task<Booking?> GetTodayBookingForUserAsync(string userId, DateTime date);
+        Task<IEnumerable<Booking>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate, int? trainerId = null);
+        Task<Booking?> GetTodayCheckedInBookingForUserAsync(string userId, DateTime date);
     }
 }

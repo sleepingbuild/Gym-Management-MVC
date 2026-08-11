@@ -16,12 +16,15 @@ namespace GYM_MANAGEMENT_SYSTEM.ViewModels
 
         [Required(ErrorMessage = "Vui lòng nhập giá")]
         [Range(0, double.MaxValue, ErrorMessage = "Giá phải lớn hơn hoặc bằng 0")]
-        [DisplayFormat(DataFormatString = "{0:N0}", ApplyFormatInEditMode = true)]
         public decimal Price { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập số ngày")]
         [Range(1, 365, ErrorMessage = "Số ngày phải từ 1-365")]
         public int DurationDays { get; set; }
+
+        
+        [Range(0, 100, ErrorMessage = "Số buổi/tuần phải từ 0-100")]
+        public int? MaxSessionsPerWeek { get; set; }
 
         public bool IsActive { get; set; } = true;
     }

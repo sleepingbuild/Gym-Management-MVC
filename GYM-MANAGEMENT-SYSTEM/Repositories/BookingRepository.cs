@@ -146,5 +146,38 @@ namespace GYM_MANAGEMENT_SYSTEM.Repositories
                 .OrderBy(b => b.TimeSlot)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<IEnumerable<Booking>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate, int? trainerId = null)
+        {
+            var start = startDate.ToDateTime(TimeOnly.MinValue);
+            var end = endDate.ToDateTime(TimeOnly.MaxValue);
+
+            var query = _context.Bookings
+                .Include(b => b.Trainer)
+                .Where(b => b.SessionDate >= start && b.SessionDate <= end);
+
+            if (trainerId.HasValue)
+            {
+                query = query.Where(b => b.TrainerId == trainerId.Value);
+            }
+
+            return await query
+                .OrderBy(b => b.SessionDate)
+                .ThenBy(b => b.TimeSlot)
+                .ToListAsync();
+        }
+
+        public async Task<Booking?> GetTodayCheckedInBookingForUserAsync(string userId, DateTime date)
+        {
+            var dateOnly = date.Date;
+            return await _context.Bookings
+                .Include(b => b.Trainer)
+                .Where(b => b.UserId == userId
+                         && b.SessionDate.Date == dateOnly
+                         && b.CheckInTime != null
+                         && b.CheckOutTime == null)
+                .OrderByDescending(b => b.CheckInTime)
+                .FirstOrDefaultAsync();
+        }
     }
 }

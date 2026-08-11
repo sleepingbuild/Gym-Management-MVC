@@ -49,20 +49,16 @@ namespace GYM_MANAGEMENT_SYSTEM.Tests
                 HttpContext = new DefaultHttpContext { User = user }
             };
         }
-
         [TestMethod]
-        public async Task Index_WithAuthenticatedUser_ShouldReturnView()
+        public void Index_ShouldRedirectToHistory()
         {
-            // Arrange
-            var payments = new List<Payment>();
-            _mockPaymentService.Setup(s => s.GetUserPaymentsAsync("user123"))
-                .ReturnsAsync(payments);
-
             // Act
-            var result = await _controller.Index();
+            var result = _controller.Index();
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(ViewResult));
+            var redirectResult = result as RedirectToActionResult;
+            Assert.IsNotNull(redirectResult);
+            Assert.AreEqual("History", redirectResult.ActionName);
         }
 
         [TestMethod]

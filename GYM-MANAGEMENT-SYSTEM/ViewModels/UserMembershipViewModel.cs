@@ -14,9 +14,19 @@
         public string StatusBadgeClass => Status switch
         {
             "Active" => "badge-fitness green",
+            "Pending" => "badge-fitness orange",
             "Expired" => "badge-fitness red",
             "Cancelled" => "badge-fitness orange",
             _ => "badge-fitness dark"
+        };
+
+        public string StatusDisplay => Status switch
+        {
+            "Active" => "Đang hoạt động",
+            "Pending" => "Chờ thanh toán",
+            "Expired" => "Đã hết hạn",
+            "Cancelled" => "Đã hủy",
+            _ => Status
         };
 
         public string DurationDisplay => DurationDays >= 30
@@ -26,6 +36,7 @@
         public string PriceFormatted => $"{Price:N0} VNĐ";
 
         public bool IsActive => Status == "Active";
+        public bool IsPending => Status == "Pending";
         public bool IsExpired => Status == "Expired";
         public bool IsCancelled => Status == "Cancelled";
 

@@ -49,8 +49,10 @@
                     <thead>
                         <tr>
                             <th>Huấn luyện viên</th>
-                            <th>Trạng thái</th>
-                            <th>Giờ chấm công</th>
+                            <th>Ca quy định</th>
+                            <th>Giờ check-in</th>
+                            <th>Giờ check-out</th>
+                            <th>Trạng thái ca</th>
                             <th>Ghi chú</th>
                         </tr>
                     </thead>
@@ -59,18 +61,11 @@
                         {
                             <tr>
                                 <td class="fw-semibold" style="color:var(--gym-text)">@row.TrainerName</td>
-                                <td>
-                                    @if (row.HasCheckedIn)
-                                    {
-                                        <span class="badge-fitness green">Đã chấm công</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge-fitness red">Chưa chấm công</span>
-                                    }
-                                </td>
-                                <td>@(row.CheckInTime.HasValue ? row.CheckInTime.Value.ToString("HH:mm") : "—")</td>
-                                <td class="small text-muted">@(string.IsNullOrWhiteSpace(row.Notes) ? "—" : row.Notes)</td>
+                                <td class="small text-muted">@row.ShiftDisplay</td>
+                                <td>@row.CheckInDisplay</td>
+                                <td>@row.CheckOutDisplay</td>
+                                <td><span class="@row.ShiftStatusBadgeClass">@row.ShiftStatusDisplay</span></td>
+                                <td class="small text-muted">@row.ShiftNoteDisplay</td>
                             </tr>
                         }
                     </tbody>

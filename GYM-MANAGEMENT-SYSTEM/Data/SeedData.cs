@@ -165,6 +165,326 @@ namespace GYM_MANAGEMENT_SYSTEM.Data
                 }
                 await context.SaveChangesAsync();
             }
+
+            // 5. Seed lịch sử doanh thu 6 tháng trước — để Dashboard/biểu đồ doanh thu
+            // hiển thị xu hướng thực tế thay vì chỉ có vài giao dịch gần đây.
+            if (!context.Payments.Any())
+            {
+                var allMembers = await userManager.GetUsersInRoleAsync("Member");
+                var packages = context.MembershipPackages.ToList();
+                var rnd = new Random();
+
+                if (allMembers.Any() && packages.Any())
+                {
+                    // Số giao dịch mỗi tháng — xu hướng tăng dần (mô phỏng phòng gym
+                    // ngày càng đông khách), có dao động nhẹ cho thực tế.
+                    var monthsAgoToCount = new Dictionary<int, int>
+        {
+            { 6, 8 },   // 6 tháng trước: 8 giao dịch
+            { 5, 10 },
+            { 4, 9 },
+            { 3, 13 },
+            { 2, 15 },
+            { 1, 18 }   // Tháng trước: 18 giao dịch
+        };
+
+                    foreach (var (monthsAgo, count) in monthsAgoToCount)
+                    {
+                        var monthDate = DateTime.Now.AddMonths(-monthsAgo);
+                        var daysInMonth = DateTime.DaysInMonth(monthDate.Year, monthDate.Month);
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            var member = allMembers[rnd.Next(allMembers.Count)];
+                            var package = packages[rnd.Next(packages.Count)];
+
+                            var day = rnd.Next(1, daysInMonth + 1);
+                            var transactionDate = new DateTime(monthDate.Year, monthDate.Month, day,
+                                rnd.Next(7, 21), rnd.Next(0, 60), 0);
+
+                            // Membership tương ứng với giao dịch này
+                            var membership = new Membership
+                            {
+                                UserId = member.Id,
+                                MembershipPackageId = package.Id,
+                                StartDate = transactionDate,
+                                EndDate = transactionDate.AddDays(package.DurationDays),
+                                Status = transactionDate.AddDays(package.DurationDays) < DateTime.Now ? "Expired" : "Active",
+                                CreatedAt = transactionDate
+                            };
+                            context.Memberships.Add(membership);
+                            await context.SaveChangesAsync(); // lưu ngay để lấy Membership.Id
+
+                            // Trạng thái thanh toán: đa số Success, một ít Failed/Pending cho thực tế
+                            var statusRoll = rnd.Next(100);
+                            var status = statusRoll < 85 ? "Success" : statusRoll < 95 ? "Failed" : "Pending";
+
+                            context.Payments.Add(new Payment
+                            {
+                                UserId = member.Id,
+                                MembershipId = membership.Id,
+                                Amount = package.Price,
+                                Method = "VNPay",
+                                Status = status,
+                                TransactionId = "VNP" + rnd.Next(10000000, 99999999),
+                                PaymentInfo = $"Thanh toan goi {package.Name} qua VNPay",
+                                CreatedAt = transactionDate
+                            });
+                        }
+                        await context.SaveChangesAsync();
+                    }
+                }
+            }
+
+            // 6. Seed thêm buổi tập đã hoàn thành (Completed) trải dài 6 tháng trước
+            // — để biểu đồ "Top huấn luyện viên" trên Dashboard phản ánh đúng số buổi
+            // thực tế, với Phi (Team Leader) có nhiều buổi dạy nhất.
+            if (context.Bookings.Count(b => b.Status == "Completed") < 40)
+            {
+                var trainersForStats = context.Trainers.ToList();
+                var membersForStats = await userManager.GetUsersInRoleAsync("Member");
+                var rndStats = new Random();
+
+                if (trainersForStats.Any() && membersForStats.Any())
+                {
+                    // Số buổi đã dạy mong muốn theo FullName — trainer không có trong
+                    // danh sách này sẽ nhận mặc định 4 buổi.
+                    var sessionCountByTrainer = new Dictionary<string, int>
+        {
+            { "Phi", 25 },
+            { "Nguyễn Văn Hùng", 16 },
+            { "Lê Minh Đức", 13 },
+            { "Phạm Thu Hà", 11 },
+            { "Đỗ Quốc Bảo", 9 },
+            { "Trần Thị Mai", 7 },
+            { "Hoàng Anh Tuấn", 6 },
+            { "Ngô Thị Lan", 5 }
+        };
+
+                    var timeSlots = new[] { "07:00-08:00", "09:00-10:00", "11:00-12:00", "14:00-15:00", "16:00-17:00", "18:00-19:00", "19:00-20:00" };
+
+                    foreach (var trainer in trainersForStats)
+                    {
+                        var sessionCount = sessionCountByTrainer.TryGetValue(trainer.FullName, out var count) ? count : 4;
+
+                        for (int i = 0; i < sessionCount; i++)
+                        {
+                            var member = membersForStats[rndStats.Next(membersForStats.Count)];
+                            var daysAgo = rndStats.Next(1, 180); // trong 6 tháng gần nhất
+                            var sessionDate = DateTime.Now.AddDays(-daysAgo).Date;
+                            var timeSlot = timeSlots[rndStats.Next(timeSlots.Length)];
+
+                            context.Bookings.Add(new Booking
+                            {
+                                UserId = member.Id,
+                                TrainerId = trainer.Id,
+                                SessionDate = sessionDate,
+                                TimeSlot = timeSlot,
+                                Status = "Completed",
+                                Notes = "Buổi tập đã hoàn thành (seed data)",
+                                CreatedAt = sessionDate
+                            });
+                        }
+                    }
+
+                    await context.SaveChangesAsync();
+                }
+            }
+
+            // 7. Seed lịch tập đầy đủ trạng thái cho TẤT CẢ trainer — CHỈ tạo booking
+            // rơi đúng vào giờ làm việc cố định (TrainerSchedule) thật của từng
+            // trainer, vì hệ thống hiện chặn đặt lịch ngoài giờ làm việc.
+            if (!context.Bookings.Any(b => b.Status == "NoShow"))
+            {
+                var allTrainers = context.Trainers.ToList();
+                var allMembersForSchedule = await userManager.GetUsersInRoleAsync("Member");
+                var rndSchedule = new Random();
+
+                if (allTrainers.Any() && allMembersForSchedule.Any())
+                {
+                    var today = DateTime.Now.Date;
+                    var diffFromMonday = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+                    var currentWeekMonday = today.AddDays(-diffFromMonday);
+
+                    // Cộng dồn danh sách khung giờ 1 tiếng hợp lệ (vd "07:00-08:00")
+                    // nằm trong khoảng StartTime-EndTime của 1 TrainerSchedule.
+                    static List<string> HourlySlotsOf(TrainerSchedule sch)
+                    {
+                        var slots = new List<string>();
+                        var t = sch.StartTime;
+                        while (t.AddHours(1) <= sch.EndTime)
+                        {
+                            slots.Add($"{t:HH:mm}-{t.AddHours(1):HH:mm}");
+                            t = t.AddHours(1);
+                        }
+                        return slots;
+                    }
+
+                    // Ngày gần nhất (kể cả trùng) rơi đúng vào 1 DayOfWeek cho trước, tính từ "from".
+                    static DateTime NextOrSameDayOfWeek(DateTime from, DayOfWeek targetDay)
+                    {
+                        int diff = ((int)targetDay - (int)from.DayOfWeek + 7) % 7;
+                        return from.AddDays(diff);
+                    }
+
+                    foreach (var trainer in allTrainers)
+                    {
+                        var schedules = context.TrainerSchedules
+                            .Where(s => s.TrainerId == trainer.Id && s.IsActive)
+                            .ToList();
+
+                        // Trainer chưa có giờ làm việc cố định -> không thể tạo booking hợp lệ
+                        if (!schedules.Any())
+                        {
+                            continue;
+                        }
+
+                        var usedSlotsToday = new HashSet<string>();
+                        var usedThisWeek = new HashSet<(DateTime date, string slot)>();
+
+                        (TrainerSchedule sch, string slot) RandomScheduleSlot()
+                        {
+                            for (int attempt = 0; attempt < 10; attempt++)
+                            {
+                                var sch = schedules[rndSchedule.Next(schedules.Count)];
+                                var hourly = HourlySlotsOf(sch);
+                                if (hourly.Count == 0) continue;
+                                return (sch, hourly[rndSchedule.Next(hourly.Count)]);
+                            }
+                            var fallbackSch = schedules[0];
+                            var fallbackSlots = HourlySlotsOf(fallbackSch);
+                            return (fallbackSch, fallbackSlots.FirstOrDefault() ?? $"{fallbackSch.StartTime:HH:mm}-{fallbackSch.StartTime.AddHours(1):HH:mm}");
+                        }
+
+                        // ----- Cancelled: 3 buổi, trong khoảng ±6 tuần quanh hôm nay -----
+                        for (int i = 0; i < 3; i++)
+                        {
+                            var (sch, slot) = RandomScheduleSlot();
+                            var weekOffset = rndSchedule.Next(-6, 5);
+                            var date = NextOrSameDayOfWeek(currentWeekMonday.AddDays(weekOffset * 7), sch.DayOfWeek);
+                            var member = allMembersForSchedule[rndSchedule.Next(allMembersForSchedule.Count)];
+
+                            context.Bookings.Add(new Booking
+                            {
+                                UserId = member.Id,
+                                TrainerId = trainer.Id,
+                                SessionDate = date,
+                                TimeSlot = slot,
+                                Status = "Cancelled",
+                                Notes = "Buổi tập đã huỷ (seed data)",
+                                CreatedAt = date.AddDays(-1)
+                            });
+                        }
+
+                        // ----- Confirmed: 2 buổi chắc chắn tuần này + 2 buổi tuần sau đó -----
+                        for (int i = 0; i < 4; i++)
+                        {
+                            TrainerSchedule sch; string slot; DateTime date;
+                            int tries = 0;
+                            do
+                            {
+                                (sch, slot) = RandomScheduleSlot();
+                                date = i < 2
+                                    ? NextOrSameDayOfWeek(currentWeekMonday, sch.DayOfWeek)
+                                    : NextOrSameDayOfWeek(currentWeekMonday.AddDays(rndSchedule.Next(1, 5) * 7), sch.DayOfWeek);
+                                tries++;
+                            } while (!usedThisWeek.Add((date, slot)) && tries < 20);
+
+                            var member = allMembersForSchedule[rndSchedule.Next(allMembersForSchedule.Count)];
+                            context.Bookings.Add(new Booking
+                            {
+                                UserId = member.Id,
+                                TrainerId = trainer.Id,
+                                SessionDate = date,
+                                TimeSlot = slot,
+                                Status = "Confirmed",
+                                Notes = "Đã xác nhận (seed data)",
+                                CreatedAt = today
+                            });
+                        }
+
+                        // ----- Pending: 2 buổi chắc chắn tuần này + 2 buổi tuần sau đó -----
+                        for (int i = 0; i < 4; i++)
+                        {
+                            TrainerSchedule sch; string slot; DateTime date;
+                            int tries = 0;
+                            do
+                            {
+                                (sch, slot) = RandomScheduleSlot();
+                                date = i < 2
+                                    ? NextOrSameDayOfWeek(currentWeekMonday, sch.DayOfWeek)
+                                    : NextOrSameDayOfWeek(currentWeekMonday.AddDays(rndSchedule.Next(1, 5) * 7), sch.DayOfWeek);
+                                tries++;
+                            } while (!usedThisWeek.Add((date, slot)) && tries < 20);
+
+                            var member = allMembersForSchedule[rndSchedule.Next(allMembersForSchedule.Count)];
+                            context.Bookings.Add(new Booking
+                            {
+                                UserId = member.Id,
+                                TrainerId = trainer.Id,
+                                SessionDate = date,
+                                TimeSlot = slot,
+                                Status = "Pending",
+                                Notes = "Đang chờ xác nhận (seed data)",
+                                CreatedAt = today
+                            });
+                        }
+
+                        // ----- Completed + NoShow: CHỈ hôm nay, và CHỈ nếu trainer có ca làm hôm nay -----
+                        var todaySchedules = schedules.Where(s => s.DayOfWeek == today.DayOfWeek).ToList();
+                        if (todaySchedules.Any())
+                        {
+                            for (int i = 0; i < 2; i++)
+                            {
+                                var sch = todaySchedules[rndSchedule.Next(todaySchedules.Count)];
+                                var hourly = HourlySlotsOf(sch);
+                                if (hourly.Count == 0) continue;
+
+                                string slot;
+                                int tries = 0;
+                                do { slot = hourly[rndSchedule.Next(hourly.Count)]; tries++; }
+                                while ((!usedSlotsToday.Add(slot) || usedThisWeek.Contains((today, slot))) && tries < 10);
+
+                                var member = allMembersForSchedule[rndSchedule.Next(allMembersForSchedule.Count)];
+                                context.Bookings.Add(new Booking
+                                {
+                                    UserId = member.Id,
+                                    TrainerId = trainer.Id,
+                                    SessionDate = today,
+                                    TimeSlot = slot,
+                                    Status = "Completed",
+                                    Notes = "Đã hoàn thành buổi tập hôm nay (seed data)",
+                                    CreatedAt = today
+                                });
+                            }
+
+                            var noShowSch = todaySchedules[rndSchedule.Next(todaySchedules.Count)];
+                            var noShowHourly = HourlySlotsOf(noShowSch);
+                            if (noShowHourly.Count > 0)
+                            {
+                                string slot;
+                                int tries = 0;
+                                do { slot = noShowHourly[rndSchedule.Next(noShowHourly.Count)]; tries++; }
+                                while ((!usedSlotsToday.Add(slot) || usedThisWeek.Contains((today, slot))) && tries < 10);
+
+                                var member = allMembersForSchedule[rndSchedule.Next(allMembersForSchedule.Count)];
+                                context.Bookings.Add(new Booking
+                                {
+                                    UserId = member.Id,
+                                    TrainerId = trainer.Id,
+                                    SessionDate = today,
+                                    TimeSlot = slot,
+                                    Status = "NoShow",
+                                    Notes = "[Tự động đánh dấu Không đến do quá giờ tập mà học viên không điểm danh]",
+                                    CreatedAt = today
+                                });
+                            }
+                        }
+
+                        await context.SaveChangesAsync();
+                    }
+                }
+            }
         }
     }
 }

@@ -1,0 +1,95 @@
+@model GYM_MANAGEMENT_SYSTEM.ViewModels.TrainerProfileEditViewModel
+@{
+    ViewData["Title"] = "Sửa thông tin của tôi";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card-fitness">
+                <div class="card-header">
+                    <i class="fas fa-user-edit me-2"></i>Sửa thông tin của tôi
+                </div>
+                <div class="card-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <form asp-controller="Profile" asp-action="EditTrainerProfile" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="TrainerId" />
+
+                        <div class="mb-4 text-center">
+                            <label class="form-label d-block">
+                                <i class="fas fa-camera me-2"></i>Ảnh đại diện
+                            </label>
+                            @if (!string.IsNullOrEmpty(Model.CurrentAvatarPath))
+                            {
+                                <img src="@Model.CurrentAvatarPath" alt="Ảnh đại diện hiện tại"
+                                     style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:2px solid var(--gym-border);margin:0 auto 8px;display:block;" />
+                            }
+                            else
+                            {
+                                <div class="auth-icon mb-2" style="width: 90px; height: 90px; margin: 0 auto;">
+                                    <i class="fas fa-user-tie" style="font-size: 2.2rem;"></i>
+                                </div>
+                            }
+                            <input asp-for="AvatarFile" class="form-control" type="file" accept="image/png,image/jpeg,image/webp" style="max-width: 320px; margin: 0 auto;" />
+                            <span asp-validation-for="AvatarFile" class="text-danger small"></span>
+                            <div class="small mt-1" style="color: var(--gym-muted);">JPG, PNG hoặc WEBP, tối đa 5MB. Để trống nếu không đổi ảnh.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FullName" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Họ và tên
+                                </label>
+                                <input asp-for="FullName" class="form-control" />
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Specialization" class="form-label">
+                                    <i class="fas fa-tag me-2"></i>Chuyên môn
+                                </label>
+                                <input asp-for="Specialization" class="form-control" placeholder="VD: Yoga, Gym, Pilates" />
+                                <span asp-validation-for="Specialization" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Phone" class="form-label">
+                                <i class="fas fa-phone me-2"></i>Số điện thoại
+                            </label>
+                            <input asp-for="Phone" class="form-control" />
+                            <span asp-validation-for="Phone" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Bio" class="form-label">
+                                <i class="fas fa-align-left me-2"></i>Tiểu sử
+                            </label>
+                            <textarea asp-for="Bio" class="form-control" rows="3" placeholder="Giới thiệu về bản thân..."></textarea>
+                            <span asp-validation-for="Bio" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4 p-3" style="background:var(--gym-input);border-radius:10px;border:1px solid var(--gym-border);">
+                            <div class="small text-muted mb-1"><i class="fas fa-lock me-2"></i>Do Admin quản lý (không thể tự sửa ở đây)</div>
+                            <div class="small"><strong>Email:</strong> @Model.Email</div>
+                            <div class="small"><strong>Trạng thái hoạt động:</strong> @(Model.IsAvailable ? "Đang hoạt động" : "Tạm nghỉ")</div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-fitness-primary flex-grow-1">
+                                <i class="fas fa-save me-2"></i>Lưu thay đổi
+                            </button>
+                            <a asp-action="Index" class="btn btn-fitness-secondary">
+                                <i class="fas fa-times me-2"></i>Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

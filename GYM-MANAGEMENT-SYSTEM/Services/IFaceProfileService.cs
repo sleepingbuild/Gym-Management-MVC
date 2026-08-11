@@ -8,10 +8,12 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
         Task<bool> HasFaceProfileAsync(string userId);
         Task<IEnumerable<KioskFaceProfileViewModel>> GetAllForKioskAsync();
 
-        // Descriptor của riêng 1 user — dùng cho trang tự điểm danh (Trainer)
         Task<float[]?> GetDescriptorAsync(string userId);
 
-        // Danh sách toàn bộ user (Admin/Trainer/Member) để Admin chọn đăng ký khuôn mặt hộ
         Task<IEnumerable<FaceEnrollableUserViewModel>> GetEnrollableUsersAsync();
+
+        Task<string?> FindMatchingUserIdAsync(float[] descriptor);
+
+        Task<bool> VerifyOwnFaceAsync(string userId, float[] descriptor);
     }
 }

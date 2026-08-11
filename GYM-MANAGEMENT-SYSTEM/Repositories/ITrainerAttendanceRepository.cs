@@ -8,5 +8,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Repositories
         Task<IEnumerable<TrainerAttendance>> GetByTrainerAsync(int trainerId);
         Task<IEnumerable<TrainerAttendance>> GetByDateAsync(DateTime date);
         Task<TrainerAttendance> AddAsync(TrainerAttendance attendance);
+
+        // Mới: lưu thay đổi (dùng để ghi CheckOutTime khi check-out)
+        Task<TrainerAttendance> UpdateAsync(TrainerAttendance attendance);
     }
 }

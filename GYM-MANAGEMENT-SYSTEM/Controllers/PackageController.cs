@@ -8,28 +8,44 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
     [Authorize(Roles = "Admin")]
     public class PackageController : Controller
     {
-        private readonly IMembershipPackageService _packageService;
 
-        public PackageController(IMembershipPackageService packageService)
+        private readonly IMembershipPackageService _packageService;
+        private readonly IMembershipService _membershipService;
+
+        public PackageController(IMembershipPackageService packageService, IMembershipService membershipService)
         {
             _packageService = packageService;
+            _membershipService = membershipService;
         }
 
-        // GET: /Package
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? User.Identity?.Name;
+
             var packages = await _packageService.GetAllPackagesAsync();
-            var viewModels = packages.Select(p => new PackageIndexViewModel
+            var viewModels = new List<PackageIndexViewModel>();
+
+            foreach (var p in packages)
             {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                Price = p.Price,
-                DurationDays = p.DurationDays,
-                IsActive = p.IsActive,
-                CreatedAt = p.CreatedAt
-            }).ToList();
+                var actionLabel = string.IsNullOrEmpty(userId)
+                    ? "Đăng ký"
+                    : await _membershipService.GetPackageActionLabelAsync(userId, p.Id);
+
+                viewModels.Add(new PackageIndexViewModel
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    DurationDays = p.DurationDays,
+                    MaxSessionsPerWeek = p.MaxSessionsPerWeek,
+                    IsActive = p.IsActive,
+                    CreatedAt = p.CreatedAt,
+                    ActionLabel = actionLabel
+                });
+            }
 
             return View(viewModels);
         }
@@ -51,6 +67,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                 Description = package.Description,
                 Price = package.Price,
                 DurationDays = package.DurationDays,
+                MaxSessionsPerWeek = package.MaxSessionsPerWeek,
                 IsActive = package.IsActive,
                 CreatedAt = package.CreatedAt
             };
@@ -103,6 +120,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
                 Description = package.Description,
                 Price = package.Price,
                 DurationDays = package.DurationDays,
+                MaxSessionsPerWeek = package.MaxSessionsPerWeek,
                 IsActive = package.IsActive
             };
 

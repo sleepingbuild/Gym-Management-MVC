@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Điểm danh bằng khuôn mặt";
     Layout = "_Layout";
     var hasFaceProfile = (bool)(ViewBag.HasFaceProfile ?? false);
@@ -22,7 +22,7 @@
             <canvas id="overlay" width="480" height="360" class="position-absolute top-0 start-0"></canvas>
         </div>
 
-        <p class="text-muted mt-2">Đưa khuôn mặt vào giữa khung hình và giữ yên vài giây.</p>
+        <p class="text-muted mt-2">Đưa khuôn mặt vào giữa khung hình và giữ yên vài giây. Hệ thống chỉ chấp nhận đúng khuôn mặt đã đăng ký cho tài khoản này.</p>
     }
 </div>
 
@@ -32,24 +32,16 @@
         <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
         <script>
             const MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights";
-            const MATCH_THRESHOLD = 0.55;
 
             const video = document.getElementById("video");
             const overlay = document.getElementById("overlay");
             const banner = document.getElementById("statusBanner");
 
-            let myDescriptor = null;
-            let alreadyCheckedIn = false;
+            let scanCompleted = false; // đã điểm danh xong trong phiên xem trang này
 
             function setBanner(message, type) {
                 banner.className = "alert alert-" + type;
                 banner.textContent = message;
-            }
-
-            function euclideanDistance(a, b) {
-                let sum = 0;
-                for (let i = 0; i < a.length; i++) sum += (a[i] - b[i]) ** 2;
-                return Math.sqrt(sum);
             }
 
             async function loadModels() {
@@ -58,57 +50,68 @@
                 await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
             }
 
-            async function loadMyDescriptor() {
-                const res = await fetch("/FaceAttendance/GetMyDescriptor");
-                if (!res.ok) {
-                    throw new Error("Không tải được dữ liệu khuôn mặt của bạn.");
-                }
-                const data = await res.json();
-                myDescriptor = new Float32Array(data.descriptor);
-            }
-
             async function startCamera() {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
                 video.srcObject = stream;
             }
 
-            async function submitCheckIn() {
-                const res = await fetch("/FaceAttendance/SelfCheckInSubmit", { method: "POST" });
-                const result = await res.json();
-
-                if (result.success) {
-                    setBanner(`✅ ${result.message}`, "success");
-                } else {
-                    setBanner(`⚠️ ${result.message}`, "warning");
-                }
+            // Gửi thẳng vector vừa quét lên server — server tự so khớp (1-1) với
+            // ĐÚNG hồ sơ của tài khoản đang đăng nhập, không tin kết quả tự so ở
+            // trình duyệt nữa.
+            async function submitScan(descriptor) {
+                const res = await fetch("/FaceAttendance/SelfCheckInSubmit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ descriptor: Array.from(descriptor) })
+                });
+                return await res.json();
             }
 
             function detectLoop() {
                 const ctx = overlay.getContext("2d");
+                let busy = false;
 
                 setInterval(async () => {
-                    if (alreadyCheckedIn) return;
+                    if (scanCompleted || busy) return;
 
-                    const detection = await faceapi
-                        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-                        .withFaceLandmarks()
-                        .withFaceDescriptor();
+                    // QUAN TRỌNG: set busy=true NGAY TỪ ĐẦU, trước cả bước detectSingleFace
+                    // (bất đồng bộ, có thể mất vài trăm ms) — tránh tick tiếp theo của
+                    // setInterval lọt qua kiểm tra "if (busy) return" trong lúc tick hiện
+                    // tại vẫn đang nhận diện dở dang, gây gửi trùng 2 lần liên tiếp.
+                    busy = true;
 
-                    ctx.clearRect(0, 0, overlay.width, overlay.height);
-                    if (!detection) return;
+                    try {
+                        const detection = await faceapi
+                            .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                            .withFaceLandmarks()
+                            .withFaceDescriptor();
 
-                    const box = detection.detection.box;
-                    ctx.strokeStyle = "#00c853";
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(box.x, box.y, box.width, box.height);
+                        ctx.clearRect(0, 0, overlay.width, overlay.height);
+                        if (!detection) return; // vào finally, busy=false, không gửi gì cả
 
-                    const distance = euclideanDistance(detection.descriptor, myDescriptor);
-                    if (distance < MATCH_THRESHOLD) {
-                        alreadyCheckedIn = true;
-                        setBanner("Nhận diện đúng bạn — đang điểm danh...", "info");
-                        await submitCheckIn();
-                    } else {
-                        setBanner("Không khớp khuôn mặt đã đăng ký. Vui lòng thử lại.", "secondary");
+                        const box = detection.detection.box;
+                        ctx.strokeStyle = "#00c853";
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+                        setBanner("Đang xác thực khuôn mặt...", "info");
+
+                        const result = await submitScan(detection.descriptor);
+
+                        if (result.success) {
+                            scanCompleted = true;
+                            const icon = result.action === "CheckOut" ? "👋" : "✅";
+                            setBanner(`${icon} ${result.message}`, "success");
+                        } else {
+                            // Không khớp mặt hoặc không còn gì để điểm danh — cho thử lại,
+                            // không khóa hẳn (trừ khi rõ ràng đã xong cả check-in lẫn check-out).
+                            setBanner(`⚠️ ${result.message}`, "warning");
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        setBanner("Lỗi khi gửi dữ liệu điểm danh: " + err.message, "danger");
+                    } finally {
+                        busy = false;
                     }
                 }, 1200);
             }
@@ -116,7 +119,6 @@
             (async function init() {
                 try {
                     await loadModels();
-                    await loadMyDescriptor();
                     await startCamera();
                     setBanner("Sẵn sàng. Đưa mặt vào khung hình để điểm danh.", "primary");
                     detectLoop();

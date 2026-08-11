@@ -37,6 +37,7 @@ namespace GYM_MANAGEMENT_SYSTEM.ViewModels
             "Confirmed" => "badge-fitness blue",
             "Completed" => "badge-fitness green",
             "Cancelled" => "badge-fitness red",
+            "NoShow" => "badge-fitness dark",
             _ => "badge-fitness dark"
         };
     }

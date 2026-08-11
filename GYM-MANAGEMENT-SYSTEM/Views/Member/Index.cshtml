@@ -1,0 +1,96 @@
+﻿@model List<GYM_MANAGEMENT_SYSTEM.ViewModels.MemberIndexViewModel>
+@{
+    ViewData["Title"] = "Quản lý thành viên";
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h1 class="fitness-title">👥 Quản lý thành viên</h1>
+        <p class="text-muted mb-0">Danh sách tài khoản thành viên — chỉnh sửa, khóa hoặc xóa tài khoản</p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success mb-4">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger mb-4">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="card-fitness">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-fitness">
+                    <thead>
+                        <tr>
+                            <th>Thành viên</th>
+                            <th>Số điện thoại</th>
+                            <th>Gói tập đang dùng</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tham gia</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold" style="color:var(--gym-text)">@m.FullName</div>
+                                    <div class="small text-muted">@m.Email</div>
+                                </td>
+                                <td class="small">@(string.IsNullOrWhiteSpace(m.PhoneNumber) ? "—" : m.PhoneNumber)</td>
+                                <td class="small">
+                                    @if (!string.IsNullOrEmpty(m.ActivePackageName))
+                                    {
+                                        <span class="badge-fitness blue">@m.ActivePackageName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa đăng ký</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="@m.StatusBadgeClass">@m.StatusText</span>
+                                </td>
+                                <td class="small text-muted">@m.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <a asp-action="Edit" asp-route-id="@m.Id" class="btn btn-sm btn-fitness-secondary" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form asp-action="ToggleLock" asp-route-id="@m.Id" method="post" class="d-inline"
+                                              onsubmit="return confirm('@(m.IsLockedOut ? "Mở khóa" : "Khóa") tài khoản này?');">
+                                            <button type="submit" class="btn btn-sm btn-fitness-secondary" title="@(m.IsLockedOut ? "Mở khóa" : "Khóa")">
+                                                <i class="fas @(m.IsLockedOut ? "fa-unlock" : "fa-lock")"></i>
+                                            </button>
+                                        </form>
+                                        <form asp-action="Delete" asp-route-id="@m.Id" method="post"
+                                              onsubmit="return confirm('Xóa vĩnh viễn tài khoản này? Hành động không thể hoàn tác.');" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-fitness-secondary" style="color:var(--gym-danger)" title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="card-body text-center py-5">
+                <i class="fas fa-users mb-3" style="font-size:2.5rem;color:var(--gym-border)"></i>
+                <p class="text-muted mb-0">Chưa có thành viên nào đăng ký.</p>
+            </div>
+        }
+    </div>
+</div>

@@ -10,9 +10,9 @@
         public string Email { get; set; } = string.Empty;
         public bool IsAvailable { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string? AvatarPath { get; set; }
 
+        public string StatusBadgeClass => IsAvailable ? "available" : "unavailable";
         public string StatusText => IsAvailable ? "Đang hoạt động" : "Tạm nghỉ";
-        public string StatusBadgeClass => IsAvailable ? "badge-fitness green" : "badge-fitness red";
-        public string ShortBio => Bio.Length > 100 ? Bio[..100] + "..." : Bio;
     }
 }

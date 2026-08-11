@@ -17,23 +17,65 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
             _packageRepository = packageRepository;
         }
 
+        // ============================================================
+        // "Dọn dẹp" trạng thái mỗi lần đọc dữ liệu gói tập của 1 user:
+        // - Active mà đã qua EndDate  -> Expired
+        // - Scheduled mà đã tới StartDate -> Active (gói xuống cấp tới lượt kích hoạt)
+        // Cách này thay cho việc chạy 1 job nền định kỳ — đơn giản, đủ dùng
+        // cho quy mô hệ thống hiện tại.
+        // ============================================================
+        private async Task RefreshStatusesAsync(string userId)
+        {
+            var now = DateTime.UtcNow;
+            var memberships = await _membershipRepository.GetByUserIdAsync(userId);
+
+            foreach (var m in memberships)
+            {
+                if (m.Status == "Active" && m.EndDate < now)
+                {
+                    m.Status = "Expired";
+                    await _membershipRepository.UpdateAsync(m);
+                }
+                else if (m.Status == "Scheduled" && m.StartDate <= now)
+                {
+                    m.Status = "Active";
+                    await _membershipRepository.UpdateAsync(m);
+                }
+            }
+        }
+
         public async Task<IEnumerable<Membership>> GetUserMembershipsAsync(string userId)
         {
+            await RefreshStatusesAsync(userId);
             return await _membershipRepository.GetByUserIdAsync(userId);
         }
 
         public async Task<Membership?> GetActiveMembershipAsync(string userId)
         {
+            await RefreshStatusesAsync(userId);
             return await _membershipRepository.GetActiveByUserIdAsync(userId);
+        }
+
+        public async Task<Membership?> GetScheduledMembershipAsync(string userId)
+        {
+            await RefreshStatusesAsync(userId);
+            var memberships = await _membershipRepository.GetByUserIdAsync(userId);
+            return memberships.FirstOrDefault(m => m.Status == "Scheduled");
         }
 
         public async Task<Membership> RegisterMembershipAsync(MembershipRegistrationViewModel model)
         {
-            // Kiểm tra user đã có membership active chưa
-            var activeMembership = await _membershipRepository.GetActiveByUserIdAsync(model.UserId);
-            if (activeMembership != null)
+            await RefreshStatusesAsync(model.UserId);
+
+            var existingMemberships = await _membershipRepository.GetByUserIdAsync(model.UserId);
+            if (existingMemberships.Any(m => m.Status == "Pending"))
             {
-                throw new InvalidOperationException("Bạn đã có gói tập đang hoạt động. Vui lòng gia hạn hoặc hủy gói hiện tại.");
+                throw new InvalidOperationException("Bạn có một gói tập đang chờ thanh toán. Vui lòng hoàn tất thanh toán hoặc hủy gói đó trước khi đăng ký gói mới.");
+            }
+
+            if (existingMemberships.Any(m => m.Status == "Scheduled"))
+            {
+                throw new InvalidOperationException("Bạn đã có một gói tập được lên lịch chuyển sang sẵn. Vui lòng chờ gói đó kích hoạt hoặc hủy trước khi đăng ký gói khác.");
             }
 
             // Lấy package info
@@ -48,17 +90,68 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 throw new InvalidOperationException("Gói tập này hiện không khả dụng.");
             }
 
-            var membership = new Membership
+            var activeMembership = await _membershipRepository.GetActiveByUserIdAsync(model.UserId);
+
+            // Chưa có gói active -> đăng ký bình thường như cũ
+            if (activeMembership == null)
+            {
+                var newMembership = new Membership
+                {
+                    UserId = model.UserId,
+                    MembershipPackageId = model.MembershipPackageId,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(package.DurationDays),
+                    Status = "Pending",
+                    CreatedAt = DateTime.UtcNow
+                };
+                return await _membershipRepository.AddAsync(newMembership);
+            }
+
+            var currentPackage = activeMembership.MembershipPackage
+                ?? await _packageRepository.GetByIdAsync(activeMembership.MembershipPackageId);
+
+            if (currentPackage == null)
+            {
+                throw new InvalidOperationException("Không xác định được gói tập hiện tại.");
+            }
+
+            if (currentPackage.Id == package.Id)
+            {
+                throw new InvalidOperationException("Bạn đang sử dụng gói tập này. Vui lòng dùng chức năng Gia hạn thay vì đăng ký lại.");
+            }
+
+            // NÂNG CẤP (giá mới >= giá hiện tại): thay thế ngay — hủy gói cũ,
+            // tạo gói mới ở trạng thái Pending chờ thanh toán như luồng đăng ký
+            // thông thường; sau khi thanh toán thành công gói mới sẽ Active.
+            if (package.Price >= currentPackage.Price)
+            {
+                activeMembership.Status = "Cancelled";
+                await _membershipRepository.UpdateAsync(activeMembership);
+
+                var upgradedMembership = new Membership
+                {
+                    UserId = model.UserId,
+                    MembershipPackageId = model.MembershipPackageId,
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddDays(package.DurationDays),
+                    Status = "Pending",
+                    CreatedAt = DateTime.UtcNow
+                };
+                return await _membershipRepository.AddAsync(upgradedMembership);
+            }
+
+            // XUỐNG CẤP (giá mới thấp hơn): KHÔNG đụng tới gói hiện tại — lên
+            // lịch 1 gói mới bắt đầu đúng ngày gói hiện tại kết thúc.
+            var scheduledMembership = new Membership
             {
                 UserId = model.UserId,
                 MembershipPackageId = model.MembershipPackageId,
-                StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddDays(package.DurationDays),
-                Status = "Active",
+                StartDate = activeMembership.EndDate,
+                EndDate = activeMembership.EndDate.AddDays(package.DurationDays),
+                Status = "Scheduled",
                 CreatedAt = DateTime.UtcNow
             };
-
-            return await _membershipRepository.AddAsync(membership);
+            return await _membershipRepository.AddAsync(scheduledMembership);
         }
 
         public async Task<Membership> RenewMembershipAsync(int membershipId)
@@ -75,9 +168,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 throw new KeyNotFoundException("Không tìm thấy gói tập.");
             }
 
-            // Gia hạn từ ngày hiện tại
-            membership.StartDate = DateTime.UtcNow;
-            membership.EndDate = DateTime.UtcNow.AddDays(package.DurationDays);
+            membership.EndDate = membership.EndDate.AddDays(package.DurationDays);
             membership.Status = "Active";
 
             return await _membershipRepository.UpdateAsync(membership);
@@ -96,13 +187,40 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
 
         public async Task<bool> IsUserEligibleForRegistrationAsync(string userId)
         {
-            var active = await _membershipRepository.GetActiveByUserIdAsync(userId);
-            return active == null;
+            var memberships = await _membershipRepository.GetByUserIdAsync(userId);
+            return !memberships.Any(m => m.Status == "Pending");
         }
 
         public async Task<Membership?> GetByIdAsync(int id)
         {
             return await _membershipRepository.GetByIdAsync(id);
+        }
+
+        public async Task<string> GetPackageActionLabelAsync(string userId, int packageId)
+        {
+            await RefreshStatusesAsync(userId);
+            var activeMembership = await _membershipRepository.GetActiveByUserIdAsync(userId);
+
+            if (activeMembership == null)
+                return "Đăng ký";
+
+            if (activeMembership.MembershipPackageId == packageId)
+                return "Gia hạn";
+
+            var targetPackage = await _packageRepository.GetByIdAsync(packageId);
+            var currentPackage = activeMembership.MembershipPackage
+                ?? await _packageRepository.GetByIdAsync(activeMembership.MembershipPackageId);
+
+            if (targetPackage == null || currentPackage == null)
+                return "Đăng ký";
+
+            if (targetPackage.Price > currentPackage.Price)
+                return "Nâng cấp";
+
+            if (targetPackage.Price < currentPackage.Price)
+                return "Xuống cấp";
+
+            return "Đăng ký";
         }
     }
 }

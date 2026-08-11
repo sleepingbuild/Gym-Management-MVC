@@ -1,6 +1,7 @@
 ﻿using GYM_MANAGEMENT_SYSTEM.Models;
 using GYM_MANAGEMENT_SYSTEM.Repositories;
 using GYM_MANAGEMENT_SYSTEM.ViewModels;
+using Microsoft.AspNetCore.Identity;
 
 namespace GYM_MANAGEMENT_SYSTEM.Services
 {
@@ -8,104 +9,80 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
     {
         private readonly IBookingRepository _bookingRepository;
         private readonly ITrainerRepository _trainerRepository;
-        private readonly ITrainerScheduleRepository _scheduleRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IPaymentService _paymentService;
+
+        public static readonly TimeOnly WorkingHourStart = new TimeOnly(7, 0);
+        public static readonly TimeOnly WorkingHourEnd = new TimeOnly(21, 0);
 
         public BookingService(
             IBookingRepository bookingRepository,
             ITrainerRepository trainerRepository,
-            ITrainerScheduleRepository scheduleRepository)
+            UserManager<ApplicationUser> userManager,
+            IPaymentService paymentService)
         {
             _bookingRepository = bookingRepository;
             _trainerRepository = trainerRepository;
-            _scheduleRepository = scheduleRepository;
+            _userManager = userManager;
+            _paymentService = paymentService;
         }
 
         public async Task<IEnumerable<Booking>> GetAllBookingsAsync()
         {
-            return await _bookingRepository.GetAllAsync();
+            var bookings = await _bookingRepository.GetAllAsync();
+            return await AutoCancelExpiredAsync(bookings);
         }
 
         public async Task<IEnumerable<Booking>> GetUserBookingsAsync(string userId)
         {
-            return await _bookingRepository.GetByUserIdAsync(userId);
+            var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+            return await AutoCancelExpiredAsync(bookings);
         }
 
         public async Task<IEnumerable<Booking>> GetTrainerBookingsAsync(int trainerId)
         {
-            return await _bookingRepository.GetByTrainerIdAsync(trainerId);
+            var bookings = await _bookingRepository.GetByTrainerIdAsync(trainerId);
+            return await AutoCancelExpiredAsync(bookings);
         }
 
         public async Task<IEnumerable<Booking>> GetBookingsByDateAsync(DateTime date)
         {
-            return await _bookingRepository.GetByDateAsync(date);
+            var bookings = await _bookingRepository.GetByDateAsync(date);
+            return await AutoCancelExpiredAsync(bookings);
         }
 
         public async Task<Booking?> GetBookingByIdAsync(int id)
         {
-            return await _bookingRepository.GetByIdAsync(id);
+            var booking = await _bookingRepository.GetByIdAsync(id);
+            if (booking != null)
+            {
+                await AutoCancelIfExpiredAsync(booking);
+            }
+            return booking;
         }
 
         public async Task<Booking> CreateBookingAsync(BookingCreateViewModel model)
         {
-            // Kiểm tra trainer tồn tại
             var trainer = await _trainerRepository.GetByIdAsync(model.TrainerId);
             if (trainer == null)
             {
                 throw new KeyNotFoundException("Không tìm thấy huấn luyện viên.");
             }
 
-            // Kiểm tra trainer có đang hoạt động không
             if (!trainer.IsAvailable)
             {
                 throw new InvalidOperationException("Huấn luyện viên này hiện không hoạt động.");
             }
 
-            // Kiểm tra slot có trống không (với chính trainer này)
             if (!await _bookingRepository.IsSlotAvailableAsync(model.TrainerId, model.SessionDate, model.TimeSlot))
             {
                 throw new InvalidOperationException("Khung giờ này đã được đặt. Vui lòng chọn khung giờ khác.");
             }
 
-            // Kiểm tra học viên đã có lịch nào khác (với HLV khác) trùng đúng
-            // ngày + khung giờ này chưa — 1 người không thể tập 2 chỗ cùng lúc.
-            var userBookings = await _bookingRepository.GetByUserIdAsync(model.UserId);
-            var hasConflict = userBookings.Any(b =>
-                b.SessionDate.Date == model.SessionDate.Date &&
-                b.TimeSlot == model.TimeSlot &&
-                b.Status != "Cancelled");
-
-            if (hasConflict)
-            {
-                throw new InvalidOperationException("Bạn đã có một lịch tập khác vào cùng ngày và khung giờ này. Vui lòng chọn khung giờ khác.");
-            }
-
-            // ============================================================
-            // TẠM THỜI VÔ HIỆU HÓA — kiểm tra lịch làm việc (TrainerSchedule)
-            // Lý do: dữ liệu TrainerSchedule hiện chưa được khai báo đầy đủ nên
-            // hầu như huấn luyện viên nào cũng bị chặn "không làm việc ngày nào
-            // cả", khiến không test được luồng đặt lịch. Mở lại đoạn dưới đây
-            // (bỏ /* */) sau khi đã nhập đủ TrainerSchedule cho từng trainer.
-            // ============================================================
-            /*
-            // Kiểm tra trainer có lịch làm việc vào ngày này không
-            var dayOfWeek = model.SessionDate.DayOfWeek;
-            var timeOnly = TimeOnly.FromDateTime(model.SessionDate);
-            var schedules = await _scheduleRepository.GetAvailableSlotsAsync(model.TrainerId, model.SessionDate);
-
-            if (!schedules.Any())
-            {
-                throw new InvalidOperationException("Huấn luyện viên không làm việc vào ngày này.");
-            }
-
-            // Kiểm tra thời gian nằm trong khung làm việc
-            var isValidSlot = schedules.Any(s =>
-                timeOnly >= s.StartTime && timeOnly < s.EndTime);
-
-            if (!isValidSlot)
-            {
-                throw new InvalidOperationException("Khung giờ này không nằm trong lịch làm việc của huấn luyện viên.");
-            }
-            */
+            EnsureWithinWorkingHours(model.TimeSlot, trainer);
+            EnsureNotPastOrTooSoon(model.SessionDate, model.TimeSlot);
+            await EnsurePackageAllowsBookingAsync(model.UserId, model.SessionDate);
+            await EnsureMemberNotDoubleBookedAsync(model.UserId, model.SessionDate, model.TimeSlot);
 
             var booking = new Booking
             {
@@ -138,6 +115,9 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 {
                     throw new InvalidOperationException("Khung giờ này đã được đặt. Vui lòng chọn khung giờ khác.");
                 }
+
+                await EnsurePackageAllowsBookingAsync(booking.UserId, model.SessionDate, model.Id);
+                await EnsureMemberNotDoubleBookedAsync(booking.UserId, model.SessionDate, model.TimeSlot, model.Id);
             }
 
             booking.TrainerId = model.TrainerId;
@@ -188,7 +168,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
 
         public async Task<IEnumerable<Booking>> GetUpcomingBookingsAsync(string userId)
         {
-            return await _bookingRepository.GetUpcomingBookingsAsync(userId);
+            var bookings = await _bookingRepository.GetUpcomingBookingsAsync(userId);
+            return await AutoCancelExpiredAsync(bookings);
         }
 
         public async Task<int> GetBookingCountForTrainerAsync(int trainerId, DateTime date)
@@ -199,6 +180,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
         public async Task<IEnumerable<Booking>> GetBookingHistoryAsync(string userId, DateTime? fromDate = null, DateTime? toDate = null)
         {
             var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+            bookings = await AutoCancelExpiredAsync(bookings);
 
             if (fromDate.HasValue)
             {
@@ -216,6 +198,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
         public async Task<IEnumerable<Booking>> GetBookingHistoryByStatusAsync(string userId, string status)
         {
             var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+            bookings = await AutoCancelExpiredAsync(bookings);
             return bookings.Where(b => b.Status == status)
                            .OrderByDescending(b => b.SessionDate);
         }
@@ -223,8 +206,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
         public async Task<IEnumerable<Booking>> SearchBookingsAsync(string userId, string? searchTerm = null, DateTime? fromDate = null, DateTime? toDate = null)
         {
             var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+            bookings = await AutoCancelExpiredAsync(bookings);
 
-            // Lọc theo từ khóa (tìm trong Notes hoặc Trainer Name)
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 bookings = bookings.Where(b =>
@@ -249,6 +232,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
         public async Task<BookingStatisticsViewModel> GetBookingStatisticsAsync(string userId)
         {
             var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+            bookings = await AutoCancelExpiredAsync(bookings);
 
             var stats = new BookingStatisticsViewModel
             {
@@ -257,6 +241,8 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 ConfirmedBookings = bookings.Count(b => b.Status == "Confirmed"),
                 CompletedBookings = bookings.Count(b => b.Status == "Completed"),
                 CancelledBookings = bookings.Count(b => b.Status == "Cancelled"),
+                NoShowBookings = bookings.Count(b => b.Status == "NoShow"),
+                PtNoShowBookings = bookings.Count(b => b.Status == "PtNoShow"),
                 UpcomingBookings = bookings.Count(b => b.SessionDate >= DateTime.UtcNow && b.Status != "Cancelled"),
                 PastBookings = bookings.Count(b => b.SessionDate < DateTime.UtcNow)
             };
@@ -275,6 +261,275 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
                 }).ToList();
 
             return stats;
+        }
+
+        // ===================== Admin đặt lịch hộ Member =====================
+
+        public async Task<Booking> CreateBookingByAdminAsync(AdminBookingCreateViewModel model)
+        {
+            var trainer = await _trainerRepository.GetByIdAsync(model.TrainerId);
+            if (trainer == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy huấn luyện viên.");
+            }
+
+            if (!trainer.IsAvailable)
+            {
+                throw new InvalidOperationException("Huấn luyện viên này hiện không hoạt động.");
+            }
+
+            var member = await _userManager.FindByIdAsync(model.UserId);
+            if (member == null)
+            {
+                throw new KeyNotFoundException("Không tìm thấy thành viên.");
+            }
+
+            if (model.SessionDate.Date < DateTime.Today)
+            {
+                throw new InvalidOperationException("Không thể đặt lịch cho ngày trong quá khứ.");
+            }
+
+            EnsureNotPastOrTooSoon(model.SessionDate, model.TimeSlot);
+            await EnsurePackageAllowsBookingAsync(model.UserId, model.SessionDate);
+            await EnsureMemberNotDoubleBookedAsync(model.UserId, model.SessionDate, model.TimeSlot);
+
+            if (!await _bookingRepository.IsSlotAvailableAsync(model.TrainerId, model.SessionDate, model.TimeSlot))
+            {
+                throw new InvalidOperationException("Khung giờ này đã được đặt. Vui lòng chọn khung giờ khác.");
+            }
+
+            EnsureWithinWorkingHours(model.TimeSlot, trainer);
+
+            var booking = new Booking
+            {
+                UserId = model.UserId,
+                TrainerId = model.TrainerId,
+                SessionDate = model.SessionDate,
+                TimeSlot = model.TimeSlot,
+                // Admin đặt hộ -> bỏ qua bước Trainer xác nhận, Confirmed ngay.
+                Status = "Confirmed",
+                Notes = model.Notes,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            return await _bookingRepository.AddAsync(booking);
+        }
+
+        public async Task<IEnumerable<Booking>> GetBookingsByDateRangeAsync(DateOnly startDate, DateOnly endDate, int? trainerId = null)
+        {
+            var bookings = await _bookingRepository.GetByDateRangeAsync(startDate, endDate, trainerId);
+            return await AutoCancelExpiredAsync(bookings);
+        }
+
+        public async Task<IEnumerable<BookableMemberViewModel>> GetBookableMembersAsync()
+        {
+            var members = await _userManager.GetUsersInRoleAsync("Member");
+
+            return members
+                .OrderBy(u => u.FullName)
+                .Select(u => new BookableMemberViewModel
+                {
+                    UserId = u.Id,
+                    FullName = string.IsNullOrWhiteSpace(u.FullName) ? (u.Email ?? u.Id) : u.FullName,
+                    Email = u.Email ?? string.Empty
+                });
+        }
+
+        public async Task<Dictionary<string, (string FullName, string Email)>> GetMemberDisplayInfoAsync(IEnumerable<string> userIds)
+        {
+            var idSet = userIds.ToHashSet();
+
+            var users = _userManager.Users
+                .Where(u => idSet.Contains(u.Id))
+                .ToList();
+
+            return users.ToDictionary(
+                u => u.Id,
+                u => (FullName: string.IsNullOrWhiteSpace(u.FullName) ? (u.Email ?? u.Id) : u.FullName, Email: u.Email ?? string.Empty)
+            );
+        }
+
+        public IEnumerable<string> GetFixedTimeSlots()
+        {
+            return BuildSlots(WorkingHourStart, WorkingHourEnd);
+        }
+
+        public async Task<IEnumerable<string>> GetTimeSlotsForTrainerAsync(int trainerId)
+        {
+            var trainer = await _trainerRepository.GetByIdAsync(trainerId);
+            var start = trainer?.ShiftStartTime ?? WorkingHourStart;
+            var end = trainer?.ShiftEndTime ?? WorkingHourEnd;
+            return BuildSlots(start, end);
+        }
+
+        private static IEnumerable<string> BuildSlots(TimeOnly start, TimeOnly end)
+        {
+            var slots = new List<string>();
+            for (var hour = start.Hour; hour < end.Hour; hour++)
+            {
+                slots.Add($"{hour:00}:00");
+            }
+            return slots;
+        }
+
+        public const int MinMinutesAhead = 30;
+
+       
+        private async Task EnsurePackageAllowsBookingAsync(string userId, DateTime sessionDate, int? excludeBookingId = null)
+        {
+            var currentMembership = await _paymentService.GetCurrentMembershipAsync(userId);
+            var maxPerWeek = currentMembership?.MembershipPackage?.MaxSessionsPerWeek;
+
+            // Gói không giới hạn (hoặc chưa xác định được gói hiện tại) -> không chặn thêm.
+            if (!maxPerWeek.HasValue)
+            {
+                return;
+            }
+
+            if (maxPerWeek.Value == 0)
+            {
+                throw new InvalidOperationException(
+                    "Gói tập hiện tại của bạn không bao gồm đặt lịch với huấn luyện viên. Vui lòng nâng cấp gói để sử dụng tính năng này.");
+            }
+
+            var diff = (7 + (sessionDate.Date.DayOfWeek - DayOfWeek.Monday)) % 7;
+            var weekStart = sessionDate.Date.AddDays(-diff);
+            var weekEnd = weekStart.AddDays(6);
+
+            var userBookings = await _bookingRepository.GetByUserIdAsync(userId);
+            var countThisWeek = userBookings.Count(b =>
+                b.Id != excludeBookingId &&
+                b.SessionDate.Date >= weekStart && b.SessionDate.Date <= weekEnd &&
+                (b.Status == "Pending" || b.Status == "Confirmed" || b.Status == "Completed"));
+
+            if (countThisWeek >= maxPerWeek.Value)
+            {
+                throw new InvalidOperationException(
+                    $"Gói tập hiện tại chỉ cho phép đặt tối đa {maxPerWeek.Value} buổi/tuần với huấn luyện viên. Bạn đã đặt đủ số buổi trong tuần này.");
+            }
+        }
+
+        private async Task EnsureMemberNotDoubleBookedAsync(string userId, DateTime sessionDate, string timeSlot, int? excludeBookingId = null)
+        {
+            var sameDayBookings = await _bookingRepository.GetByDateAsync(sessionDate);
+
+            var alreadyBooked = sameDayBookings.Any(b =>
+                b.Id != excludeBookingId &&
+                b.UserId == userId &&
+                b.TimeSlot == timeSlot &&
+                (b.Status == "Pending" || b.Status == "Confirmed"));
+
+            if (alreadyBooked)
+            {
+                throw new InvalidOperationException(
+                    "Bạn đã có lịch tập vào khung giờ này rồi (với huấn luyện viên khác). Vui lòng chọn khung giờ khác.");
+            }
+        }
+
+
+        private async Task AutoCancelIfExpiredAsync(Booking booking)
+        {
+            if (booking.Status != "Pending" && booking.Status != "Confirmed")
+            {
+                return;
+            }
+
+            var (start, end) = ParseTimeSlot(booking.TimeSlot);
+            var sessionStart = booking.SessionDate.Date + start.ToTimeSpan();
+            var sessionEnd = booking.SessionDate.Date + end.ToTimeSpan();
+            var now = DateTime.Now;
+
+            if (booking.Status == "Pending" && now < sessionStart && (sessionStart - now) <= TimeSpan.FromHours(1))
+            {
+                booking.Status = "Cancelled";
+                var autoCancelNote = "[Tự động huỷ do chưa được xác nhận trước giờ hẹn 1 tiếng]";
+                booking.Notes = string.IsNullOrWhiteSpace(booking.Notes) ? autoCancelNote : $"{booking.Notes} {autoCancelNote}";
+                await _bookingRepository.UpdateAsync(booking);
+                return;
+            }
+
+            if (booking.Status == "Confirmed" && now >= sessionStart.AddMinutes(30))
+            {
+                booking.Status = "PtNoShow";
+                var autoPtNote = "[Tự động đánh dấu PT không đến sau 30 phút kể từ giờ hẹn]";
+                booking.Notes = string.IsNullOrWhiteSpace(booking.Notes) ? autoPtNote : $"{booking.Notes} {autoPtNote}";
+                await _bookingRepository.UpdateAsync(booking);
+                return;
+            }
+
+            if (booking.CheckInTime.HasValue)
+            {
+                return;
+            }
+
+            if (sessionEnd <= now)
+            {
+                booking.Status = "NoShow";
+                var autoNoShowNote = "[Tự động đánh dấu Không đến do quá giờ tập mà học viên không điểm danh]";
+                booking.Notes = string.IsNullOrWhiteSpace(booking.Notes) ? autoNoShowNote : $"{booking.Notes} {autoNoShowNote}";
+                await _bookingRepository.UpdateAsync(booking);
+            }
+        }
+
+        private async Task<IEnumerable<Booking>> AutoCancelExpiredAsync(IEnumerable<Booking> bookings)
+        {
+            var list = bookings.ToList();
+            foreach (var booking in list)
+            {
+                await AutoCancelIfExpiredAsync(booking);
+            }
+            return list;
+        }
+
+        private static void EnsureNotPastOrTooSoon(DateTime sessionDate, string timeSlot)
+        {
+            if (sessionDate.Date != DateTime.Today)
+            {
+                return;
+            }
+
+            var (start, _) = ParseTimeSlot(timeSlot);
+            var slotDateTime = sessionDate.Date + start.ToTimeSpan();
+            var minAllowed = DateTime.Now.AddMinutes(MinMinutesAhead);
+
+            if (slotDateTime < minAllowed)
+            {
+                throw new InvalidOperationException(
+                    $"Khung giờ này đã qua hoặc quá gần thời điểm hiện tại. Vui lòng đặt trước ít nhất {MinMinutesAhead} phút (từ {minAllowed:HH:mm} trở đi).");
+            }
+        }
+
+        private static void EnsureWithinWorkingHours(string timeSlot, Trainer trainer)
+        {
+            var (start, end) = ParseTimeSlot(timeSlot);
+
+            var shiftStart = trainer.ShiftStartTime ?? WorkingHourStart;
+            var shiftEnd = trainer.ShiftEndTime ?? WorkingHourEnd;
+
+            if (start < shiftStart || end > shiftEnd)
+            {
+                throw new InvalidOperationException(
+                    $"Huấn luyện viên {trainer.FullName} chỉ nhận lịch trong ca làm việc {shiftStart:HH:mm}–{shiftEnd:HH:mm}. Vui lòng chọn khung giờ khác.");
+            }
+        }
+
+        private static (TimeOnly Start, TimeOnly End) ParseTimeSlot(string timeSlot)
+        {
+            var parts = timeSlot.Split('-');
+
+
+            if (parts.Length == 2 &&
+                TimeOnly.TryParse(parts[0], out var rangeStart) &&
+                TimeOnly.TryParse(parts[1], out var rangeEnd))
+            {
+                return (rangeStart, rangeEnd);
+            }
+            if (parts.Length == 1 && TimeOnly.TryParse(parts[0], out var singleStart))
+            {
+                return (singleStart, singleStart.AddHours(1));
+            }
+
+            throw new InvalidOperationException("Khung giờ không hợp lệ.");
         }
     }
 }

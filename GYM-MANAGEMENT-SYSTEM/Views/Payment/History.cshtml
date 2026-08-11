@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Lịch sử thanh toán";
     var stats = ViewBag.Statistics as GYM_MANAGEMENT_SYSTEM.ViewModels.PaymentStatisticsViewModel;
+    var pendingMemberships = ViewBag.PendingMemberships as List<GYM_MANAGEMENT_SYSTEM.Models.Membership>;
     var currentStatus = Context.Request.Query["Status"].ToString();
     var currentSearch = Context.Request.Query["SearchTerm"].ToString();
     var currentFrom = Context.Request.Query["FromDate"].ToString();
@@ -23,6 +24,44 @@
             </a>
         </div>
     </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (pendingMemberships != null && pendingMemberships.Any())
+    {
+        <div class="card-fitness mb-4">
+            <div class="card-header">
+                <i class="fas fa-clock me-2"></i>Gói chưa thanh toán
+            </div>
+            <div class="card-body">
+                @foreach (var m in pendingMemberships)
+                {
+                    <div class="d-flex justify-content-between align-items-center py-2 @(m != pendingMemberships.Last() ? "border-bottom" : "")">
+                        <div>
+                            <div class="fw-bold" style="color:var(--gym-text)">@(m.MembershipPackage?.Name ?? "N/A")</div>
+                            <div class="small text-muted">@string.Format("{0:N0} VNĐ", m.MembershipPackage?.Price ?? 0)</div>
+                        </div>
+                        <a asp-action="Create" asp-route-membershipId="@m.Id" class="btn btn-fitness-primary btn-sm">
+                            <i class="fas fa-credit-card me-2"></i>Thanh toán
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 
     @if (stats != null && stats.TotalPayments > 0)
     {

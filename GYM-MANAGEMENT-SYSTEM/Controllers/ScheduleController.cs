@@ -8,22 +8,20 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
     [Authorize(Roles = "Admin")]
     public class ScheduleController : Controller
     {
-        private readonly ITrainerScheduleService _scheduleService;
+        private readonly IBookingService _bookingService;
         private readonly ITrainerService _trainerService;
 
         public ScheduleController(
-            ITrainerScheduleService scheduleService,
+            IBookingService bookingService,
             ITrainerService trainerService)
         {
-            _scheduleService = scheduleService;
+            _bookingService = bookingService;
             _trainerService = trainerService;
         }
 
         // GET: /Schedule?trainerId=&week=yyyy-MM-dd
         public async Task<IActionResult> Index(int? trainerId, DateOnly? week)
         {
-            // "week" can be any date inside the week the admin wants to see —
-            // we snap it back to that week's Monday. Omitted => current week.
             var today = DateOnly.FromDateTime(DateTime.Today);
             var refDate = week ?? today;
             int diffFromMonday = ((int)refDate.DayOfWeek + 6) % 7; // Monday = 0 ... Sunday = 6
@@ -33,182 +31,152 @@ namespace GYM_MANAGEMENT_SYSTEM.Controllers
             var thisWeekDiff = ((int)today.DayOfWeek + 6) % 7;
             var thisWeekStart = today.AddDays(-thisWeekDiff);
 
-            var schedules = await _scheduleService.GetSchedulesByWeekAsync(weekStart, weekEnd, trainerId);
+            var bookings = (await _bookingService.GetBookingsByDateRangeAsync(weekStart, weekEnd, trainerId)).ToList();
 
-            var viewModels = schedules.Select(s => new ScheduleIndexViewModel
+            var memberInfo = await _bookingService.GetMemberDisplayInfoAsync(bookings.Select(b => b.UserId).Distinct());
+
+            var viewModels = bookings.Select(b =>
             {
-                Id = s.Id,
-                TrainerId = s.TrainerId,
-                TrainerName = s.Trainer?.FullName ?? "N/A",
-                WorkDate = s.WorkDate,
-                DayOfWeek = s.DayOfWeek,
-                StartTime = s.StartTime,
-                EndTime = s.EndTime,
-                Notes = s.Notes,
-                IsActive = s.IsActive,
-                CreatedAt = s.CreatedAt
+                memberInfo.TryGetValue(b.UserId, out var info);
+                var (start, end) = ParseTimeSlot(b.TimeSlot);
+
+                return new ScheduleBookingViewModel
+                {
+                    Id = b.Id,
+                    TrainerId = b.TrainerId,
+                    TrainerName = b.Trainer?.FullName ?? "N/A",
+                    MemberName = info.FullName ?? b.UserId,
+                    WorkDate = DateOnly.FromDateTime(b.SessionDate),
+                    StartTime = start,
+                    EndTime = end,
+                    Status = b.Status,
+                    Notes = b.Notes
+                };
             }).ToList();
 
-            // Get trainers for filter
             var trainers = await _trainerService.GetAllTrainersAsync();
             ViewBag.Trainers = trainers;
             ViewBag.SelectedTrainerId = trainerId;
             ViewBag.WeekStart = weekStart;
             ViewBag.WeekEnd = weekEnd;
             ViewBag.ThisWeekStart = thisWeekStart;
+            ViewBag.WorkingHourStart = BookingService.WorkingHourStart;
+            ViewBag.WorkingHourEnd = BookingService.WorkingHourEnd;
 
             return View(viewModels);
         }
 
         // GET: /Schedule/Create
+       
+        // Booking tạo ra sẽ ở trạng thái Confirmed ngay, không cần Trainer xác nhận.
         public async Task<IActionResult> Create()
         {
-            var trainers = await _trainerService.GetAllTrainersAsync();
-            ViewBag.Trainers = trainers;
-            return View();
+            await PopulateCreateFormData();
+            var model = new AdminBookingCreateViewModel
+            {
+                SessionDate = DateTime.Today.AddDays(1)
+            };
+            return View(model);
         }
 
         // POST: /Schedule/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ScheduleCreateViewModel model)
+        public async Task<IActionResult> Create(AdminBookingCreateViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                var trainers = await _trainerService.GetAllTrainersAsync();
-                ViewBag.Trainers = trainers;
+                await PopulateCreateFormData();
                 return View(model);
             }
 
             try
             {
-                await _scheduleService.CreateScheduleAsync(model);
-                TempData["SuccessMessage"] = "Lịch làm việc đã được tạo thành công!";
+                await _bookingService.CreateBookingByAdminAsync(model);
+                TempData["SuccessMessage"] = "Đã đặt lịch cho thành viên thành công!";
                 return RedirectToAction(nameof(Index));
             }
             catch (KeyNotFoundException ex)
             {
-                ModelState.AddModelError("TrainerId", ex.Message);
-                var trainers = await _trainerService.GetAllTrainersAsync();
-                ViewBag.Trainers = trainers;
+                ModelState.AddModelError("", ex.Message);
+                await PopulateCreateFormData();
                 return View(model);
             }
             catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError("", ex.Message);
-                var trainers = await _trainerService.GetAllTrainersAsync();
-                ViewBag.Trainers = trainers;
+                await PopulateCreateFormData();
                 return View(model);
             }
         }
 
-        // GET: /Schedule/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var schedule = await _scheduleService.GetScheduleByIdAsync(id);
-            if (schedule == null)
-            {
-                return NotFound();
-            }
-
-            var viewModel = new ScheduleEditViewModel
-            {
-                Id = schedule.Id,
-                WorkDate = schedule.WorkDate,
-                StartTime = schedule.StartTime,
-                EndTime = schedule.EndTime,
-                Notes = schedule.Notes,
-                IsActive = schedule.IsActive
-            };
-
-            return View(viewModel);
-        }
-
-        // POST: /Schedule/Edit/5
+        // POST: /Schedule/Confirm/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, ScheduleEditViewModel model)
+        public async Task<IActionResult> Confirm(int id)
         {
-            if (id != model.Id)
-            {
-                return BadRequest();
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            try
-            {
-                await _scheduleService.UpdateScheduleAsync(model);
-                TempData["SuccessMessage"] = "Lịch làm việc đã được cập nhật thành công!";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (InvalidOperationException ex)
-            {
-                ModelState.AddModelError("", ex.Message);
-                return View(model);
-            }
-        }
-
-        // POST: /Schedule/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var result = await _scheduleService.DeleteScheduleAsync(id);
-            if (result)
-            {
-                TempData["SuccessMessage"] = "Lịch làm việc đã được xóa thành công!";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Không thể xóa lịch làm việc này.";
-            }
+            var result = await _bookingService.ConfirmBookingAsync(id);
+            TempData[result ? "SuccessMessage" : "ErrorMessage"] =
+                result ? "Đã xác nhận buổi tập!" : "Không thể xác nhận buổi tập này.";
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Schedule/ToggleStatus/5
+        // POST: /Schedule/Complete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleStatus(int id)
+        public async Task<IActionResult> Complete(int id)
         {
-            var result = await _scheduleService.ToggleScheduleStatusAsync(id);
-            if (result)
-            {
-                TempData["SuccessMessage"] = "Trạng thái lịch đã được cập nhật!";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Không thể cập nhật trạng thái.";
-            }
+            var result = await _bookingService.CompleteBookingAsync(id);
+            TempData[result ? "SuccessMessage" : "ErrorMessage"] =
+                result ? "Đã đánh dấu buổi tập hoàn thành!" : "Không thể cập nhật buổi tập này.";
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: /Schedule/ByTrainer/5
-        public async Task<IActionResult> ByTrainer(int trainerId)
+        // POST: /Schedule/Cancel/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(int id)
         {
-            var schedules = await _scheduleService.GetSchedulesByTrainerIdAsync(trainerId);
-            var viewModels = schedules.Select(s => new ScheduleIndexViewModel
-            {
-                Id = s.Id,
-                TrainerId = s.TrainerId,
-                TrainerName = s.Trainer?.FullName ?? "N/A",
-                WorkDate = s.WorkDate,
-                DayOfWeek = s.DayOfWeek,
-                StartTime = s.StartTime,
-                EndTime = s.EndTime,
-                Notes = s.Notes,
-                IsActive = s.IsActive,
-                CreatedAt = s.CreatedAt
-            }).ToList();
+            var result = await _bookingService.CancelBookingAsync(id);
+            TempData[result ? "SuccessMessage" : "ErrorMessage"] =
+                result ? "Đã hủy buổi tập!" : "Không thể hủy buổi tập này.";
+            return RedirectToAction(nameof(Index));
+        }
 
-            return Json(viewModels);
+        [HttpGet]
+        public async Task<IActionResult> GetTrainerSlots(int trainerId)
+        {
+            var slots = await _bookingService.GetTimeSlotsForTrainerAsync(trainerId);
+            return Json(slots);
+        }
+
+        private async Task PopulateCreateFormData()
+        {
+            var trainers = await _trainerService.GetAllTrainersAsync();
+            var members = await _bookingService.GetBookableMembersAsync();
+
+            ViewBag.Trainers = trainers;
+            ViewBag.Members = members;
+            ViewBag.TimeSlots = _bookingService.GetFixedTimeSlots();
+        }
+
+        private static (TimeOnly Start, TimeOnly End) ParseTimeSlot(string timeSlot)
+        {
+            var parts = timeSlot.Split('-');
+
+            if (parts.Length == 2 &&
+                TimeOnly.TryParse(parts[0], out var rangeStart) &&
+                TimeOnly.TryParse(parts[1], out var rangeEnd))
+            {
+                return (rangeStart, rangeEnd);
+            }
+
+            if (parts.Length == 1 && TimeOnly.TryParse(parts[0], out var singleStart))
+            {
+                return (singleStart, singleStart.AddHours(1));
+            }
+
+            return (TimeOnly.MinValue, TimeOnly.MinValue);
         }
     }
 }

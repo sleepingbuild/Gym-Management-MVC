@@ -118,6 +118,12 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
                     b.Property<DateTime?>("CheckInTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CheckOutMethod")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CheckOutTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -197,6 +203,12 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
 
                     b.Property<DateTime>("LastActivityAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<double?>("LastHeightM")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("LastWeightKg")
+                        .HasColumnType("float");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -383,6 +395,9 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("MaxSessionsPerWeek")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -485,6 +500,12 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<TimeOnly?>("ShiftEndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly?>("ShiftStartTime")
+                        .HasColumnType("time");
+
                     b.Property<string>("Specialization")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -508,6 +529,9 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CheckInTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CheckOutTime")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedAt")
@@ -579,6 +603,30 @@ namespace GYMMANAGEMENTSYSTEM.Migrations
                     b.HasIndex("TrainerId");
 
                     b.ToTable("TrainerSchedules");
+                });
+
+            modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.UserMemory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("MemoryText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserMemories");
                 });
 
             modelBuilder.Entity("GYM_MANAGEMENT_SYSTEM.Models.UserProfile", b =>

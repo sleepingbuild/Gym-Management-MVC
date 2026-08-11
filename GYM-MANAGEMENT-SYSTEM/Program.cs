@@ -67,6 +67,7 @@ builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IFaceProfileRepository, FaceProfileRepository>();
 builder.Services.AddScoped<IFaceProfileService, FaceProfileService>();
 builder.Services.AddScoped<IFaceAttendanceService, FaceAttendanceService>();
+builder.Services.AddHostedService<BookingAutoStatusService>();
 
 // Cấu hình VNPay
 builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("VNPay"));

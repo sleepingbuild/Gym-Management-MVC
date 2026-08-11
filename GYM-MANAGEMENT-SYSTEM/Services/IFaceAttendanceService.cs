@@ -4,6 +4,7 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
 {
     public interface IFaceAttendanceService
     {
-        Task<FaceCheckInResultViewModel> CheckInAsync(string userId);
+       
+        Task<FaceCheckInResultViewModel> ProcessScanAsync(string userId);
     }
 }

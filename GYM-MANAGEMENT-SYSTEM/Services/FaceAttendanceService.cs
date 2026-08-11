@@ -24,39 +24,76 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
             _userManager = userManager;
         }
 
-        public async Task<FaceCheckInResultViewModel> CheckInAsync(string userId)
+        public async Task<FaceCheckInResultViewModel> ProcessScanAsync(string userId)
         {
-            var today = DateTime.UtcNow.Date;
+            var today = DateTime.Now.Date;
 
             // 1) Thử tìm xem người này có phải là Trainer không
             var trainer = await _trainerRepository.GetByUserIdAsync(userId);
             if (trainer != null)
             {
-                return await CheckInTrainerAsync(trainer);
+                return await ProcessTrainerScanAsync(trainer);
             }
 
-            // 2) Không phải Trainer -> xử lý như Member, cần có Booking hôm nay
-            return await CheckInMemberAsync(userId, today);
+            // 2) Không phải Trainer -> xử lý như Member
+            return await ProcessMemberScanAsync(userId, today);
         }
 
-        private async Task<FaceCheckInResultViewModel> CheckInTrainerAsync(Trainer trainer)
+        // ===================== Trainer =====================
+
+        private async Task<FaceCheckInResultViewModel> ProcessTrainerScanAsync(Trainer trainer)
+        {
+            var todayRecord = await _trainerAttendanceService.GetTodayRecordAsync(trainer.Id);
+
+            
+            if (todayRecord == null)
+            {
+                return await TrainerCheckInAsync(trainer);
+            }
+
+            if (todayRecord.CheckOutTime == null)
+            {
+                return await TrainerCheckOutAsync(trainer);
+            }
+
+            return new FaceCheckInResultViewModel
+            {
+                Success = false,
+                Message = "Bạn đã điểm danh đủ vào ca và tan ca cho hôm nay.",
+                FullName = trainer.FullName,
+                Role = "Trainer"
+            };
+        }
+
+        private async Task<FaceCheckInResultViewModel> TrainerCheckInAsync(Trainer trainer)
         {
             try
             {
                 await _trainerAttendanceService.CheckInAsync(trainer.Id, "Điểm danh bằng khuôn mặt", "Face");
 
+                var now = DateTime.Now;
+                var message = $"Điểm danh VÀO CA thành công lúc {now:HH:mm}";
+
+                if (trainer.ShiftStartTime.HasValue)
+                {
+                    var lateMinutes = (int)(TimeOnly.FromDateTime(now).ToTimeSpan() - trainer.ShiftStartTime.Value.ToTimeSpan()).TotalMinutes;
+                    message += lateMinutes > 0
+                        ? $" (đi muộn {lateMinutes} phút so với ca {trainer.ShiftStartTime:HH\\:mm})"
+                        : $" (đúng giờ — ca bắt đầu {trainer.ShiftStartTime:HH\\:mm})";
+                }
+
                 return new FaceCheckInResultViewModel
                 {
                     Success = true,
-                    Message = $"Điểm danh HLV thành công lúc {DateTime.Now:HH:mm}",
+                    Message = message,
                     FullName = trainer.FullName,
                     Role = "Trainer",
-                    Time = DateTime.UtcNow
+                    Action = "CheckIn",
+                    Time = DateTime.Now
                 };
             }
             catch (InvalidOperationException ex)
             {
-                // Ví dụ: đã chấm công hôm nay rồi
                 return new FaceCheckInResultViewModel
                 {
                     Success = false,
@@ -67,34 +104,94 @@ namespace GYM_MANAGEMENT_SYSTEM.Services
             }
         }
 
-        private async Task<FaceCheckInResultViewModel> CheckInMemberAsync(string userId, DateTime today)
+        private async Task<FaceCheckInResultViewModel> TrainerCheckOutAsync(Trainer trainer)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            var fullName = user?.FullName ?? "N/A";
+            try
+            {
+                await _trainerAttendanceService.CheckOutAsync(trainer.Id);
 
-            var booking = await _bookingRepository.GetTodayBookingForUserAsync(userId, today);
-            if (booking == null)
+                var now = DateTime.Now;
+                var message = $"Điểm danh TAN CA thành công lúc {now:HH:mm}";
+
+                if (trainer.ShiftEndTime.HasValue)
+                {
+                    var earlyMinutes = (int)(trainer.ShiftEndTime.Value.ToTimeSpan() - TimeOnly.FromDateTime(now).ToTimeSpan()).TotalMinutes;
+                    message += earlyMinutes > 0
+                        ? $" (về sớm {earlyMinutes} phút so với ca kết thúc {trainer.ShiftEndTime:HH\\:mm})"
+                        : $" (đúng giờ — ca kết thúc {trainer.ShiftEndTime:HH\\:mm})";
+                }
+
+                return new FaceCheckInResultViewModel
+                {
+                    Success = true,
+                    Message = message,
+                    FullName = trainer.FullName,
+                    Role = "Trainer",
+                    Action = "CheckOut",
+                    Time = DateTime.Now
+                };
+            }
+            catch (InvalidOperationException ex)
             {
                 return new FaceCheckInResultViewModel
                 {
                     Success = false,
-                    Message = "Không tìm thấy lịch đặt hôm nay. Vui lòng đặt lịch trước khi điểm danh.",
+                    Message = ex.Message,
+                    FullName = trainer.FullName,
+                    Role = "Trainer"
+                };
+            }
+        }
+
+        // ===================== Member =====================
+
+        private async Task<FaceCheckInResultViewModel> ProcessMemberScanAsync(string userId, DateTime today)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            var fullName = user?.FullName ?? "N/A";
+
+            var pendingBooking = await _bookingRepository.GetTodayBookingForUserAsync(userId, today);
+            if (pendingBooking != null)
+            {
+                pendingBooking.CheckInTime = DateTime.Now;
+                pendingBooking.CheckInMethod = "Face";
+                await _bookingRepository.UpdateAsync(pendingBooking);
+
+                return new FaceCheckInResultViewModel
+                {
+                    Success = true,
+                    Message = $"Điểm danh VÀO buổi tập lúc {pendingBooking.TimeSlot} thành công!",
                     FullName = fullName,
-                    Role = "Member"
+                    Role = "Member",
+                    Action = "CheckIn",
+                    Time = DateTime.Now
                 };
             }
 
-            booking.CheckInTime = DateTime.UtcNow;
-            booking.CheckInMethod = "Face";
-            await _bookingRepository.UpdateAsync(booking);
+            var checkedInBooking = await _bookingRepository.GetTodayCheckedInBookingForUserAsync(userId, today);
+            if (checkedInBooking != null)
+            {
+                checkedInBooking.CheckOutTime = DateTime.Now;
+                checkedInBooking.CheckOutMethod = "Face";
+                await _bookingRepository.UpdateAsync(checkedInBooking);
+
+                return new FaceCheckInResultViewModel
+                {
+                    Success = true,
+                    Message = $"Điểm danh RA VỀ thành công lúc {DateTime.Now:HH:mm}. Hẹn gặp lại!",
+                    FullName = fullName,
+                    Role = "Member",
+                    Action = "CheckOut",
+                    Time = DateTime.Now
+                };
+            }
 
             return new FaceCheckInResultViewModel
             {
-                Success = true,
-                Message = $"Điểm danh buổi tập lúc {booking.TimeSlot} thành công!",
+                Success = false,
+                Message = "Không tìm thấy lịch đặt hôm nay cần điểm danh (hoặc đã điểm danh đủ vào/ra).",
                 FullName = fullName,
-                Role = "Member",
-                Time = DateTime.UtcNow
+                Role = "Member"
             };
         }
     }
